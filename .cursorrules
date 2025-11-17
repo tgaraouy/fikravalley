@@ -1,0 +1,133 @@
+# In your Cursor terminal:
+cd marrai-idea-bank
+
+# Create the file
+touch .cursorrules
+
+# Copy content from the .cursorrules file into it
+```
+
+Or just copy the file directly from the outputs folder.
+
+### **Step 2: Test It** (1 minute)
+
+1. Open any `.ts` file in Cursor
+2. Press **Cmd+L** (or Ctrl+L)
+3. Ask: `"What database tables should I use for this project?"`
+4. Cursor should mention `marrai_ideas`, `marrai_workshop_sessions`, etc.
+
+✅ **Working? Perfect!**
+
+### **Step 3: Start Using It** (immediately)
+
+Every time you write code:
+
+**Creating new API endpoint:**
+```
+Cmd+K → "Create API endpoint for [feature] following project rules"
+```
+
+**Writing component:**
+```
+Cmd+K → "Create component with French labels and loading states"
+```
+
+**Fixing error:**
+```
+Cmd+L → "Fix this error: [paste error]. Check .cursorrules"
+```
+
+---
+
+## 💡 Key Rules Cursor Will Follow:
+
+### **Database:**
+- Always use `marrai_ideas` not `ideas`
+- Never use reserved keywords like `current_role`
+- Always include CASCADE on foreign keys
+
+### **Code Quality:**
+- Always wrap API routes in try-catch
+- Always validate input
+- Always handle loading states
+- Always use French labels
+
+### **Supabase Patterns:**
+- Always use `.select()` with `.insert()`
+- Always use `.single()` for unique records
+- Always check for errors before using data
+- Always unsubscribe from realtime channels
+
+### **Claude API:**
+- Always clean JSON response before parsing
+- Always implement fallback analysis
+- Always set reasonable token limits (2000-4000)
+
+---
+
+## 📊 Benefits You'll See:
+
+### **Immediate (Day 1):**
+- ✅ Cursor generates code that matches your patterns
+- ✅ Fewer bugs from naming mistakes
+- ✅ Consistent error handling everywhere
+
+### **Short-term (Week 1):**
+- ✅ 3x faster development (less copy-pasting patterns)
+- ✅ Less time debugging common mistakes
+- ✅ More confidence in AI-generated code
+
+### **Long-term (Month 1):**
+- ✅ Entire codebase follows same patterns
+- ✅ Easy onboarding for new developers
+- ✅ Cleaner, more maintainable code
+
+---
+
+## 🎯 Example Workflow:
+
+**You want to add a new feature: "Export ideas to CSV"**
+
+### **Without `.cursorrules`:**
+1. Create file manually
+2. Look up Next.js API route structure
+3. Look up Supabase query syntax
+4. Remember table name is `marrai_ideas` not `ideas`
+5. Add error handling
+6. Add TypeScript types
+7. Test everything
+**Time: 30-45 minutes**
+
+### **With `.cursorrules`:**
+1. Create file: `app/api/export-csv/route.ts`
+2. Press Cmd+K
+3. Type: `"Create API endpoint that exports marrai_ideas to CSV following project patterns"`
+4. Review generated code (already has error handling, correct table names, TypeScript types)
+5. Test
+**Time: 5-10 minutes**
+
+**Cursor AI + Rules = 5x productivity boost** 🚀
+
+---
+
+## 🎓 Pro Tips:
+
+### **1. Reference Rules Explicitly**
+```
+"Following .cursorrules, create..."
+"According to project patterns..."
+"Review this against .cursorrules"
+```
+
+### **2. Use @ Mentions**
+```
+"@.cursorrules What's the naming convention?"
+"@lib/supabase.ts Show me query examples"
+
+## Patterns I Discovered
+
+### Workshop Dashboard Pattern
+Always include:
+- QR code for validation
+- Real-time counter
+- Notification sound on new ideas

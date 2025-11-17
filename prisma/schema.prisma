@@ -1,0 +1,659 @@
+// ============================================
+// MarrAI Idea Bank - Prisma Schema
+// ============================================
+// This schema represents the complete database structure
+// For Supabase/PostgreSQL, use the SQL migrations in supabase/migrations/
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USERS
+// ============================================
+
+model User {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at") // Soft delete
+
+  // Privacy-first storage
+  phoneHash             String   @unique @map("phone_hash") // bcrypt hash
+  encryptedName         String   @map("encrypted_name") // AES-256-GCM
+  nameIv                String   @map("name_iv")
+  nameTag                String   @map("name_tag")
+  anonymousEmail        String   @unique @map("anonymous_email")
+  
+  // Consent & retention
+  consent               Boolean  @default(false)
+  consentDate           DateTime @map("consent_date")
+  dataRetentionExpiry    DateTime @map("data_retention_expiry")
+
+  // Relationships
+  ideas                 Idea[]
+  consents              Consent[]
+  upvotes               Upvote[]
+  comments              Comment[]
+  receipts              Receipt[]
+  selfAskResponses      SelfAskResponse[]
+  deletionRequests      DeletionRequest[]
+  exportRequests        ExportRequest[]
+
+  @@index([phoneHash])
+  @@index([dataRetentionExpiry])
+  @@index([anonymousEmail])
+  @@map("secure_users")
+}
+
+// ============================================
+// IDEAS
+// ============================================
+
+model Idea {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at") // Soft delete
+
+  // Basic info
+  title                 String
+  problemStatement      String   @map("problem_statement")
+  proposedSolution      String?  @map("proposed_solution")
+  currentManualProcess  String?  @map("current_manual_process")
+  digitizationOpportunity String? @map("digitization_opportunity")
+  
+  // Classification
+  category              String? // health, education, agriculture, tech, etc.
+  location              String? // casablanca, rabat, marrakech, etc.
+  frequency             String? // daily, weekly, monthly, etc.
+  
+  // Data & integration
+  dataSources           String[] @default([]) @map("data_sources")
+  integrationPoints     String[] @default([]) @map("integration_points")
+  aiCapabilitiesNeeded   String[] @default([]) @map("ai_capabilities_needed")
+  
+  // ROI & benefits
+  roiTimeSavedHours     Float?   @map("roi_time_saved_hours")
+  roiCostSavedEur       Float?   @map("roi_cost_saved_eur")
+  estimatedCost          String?  @map("estimated_cost")
+  
+  // Submitter info (encrypted in production)
+  submitterName          String?  @map("submitter_name")
+  submitterEmail         String?  @map("submitter_email")
+  submitterPhone         String?  @map("submitter_phone")
+  submitterType          String?  @map("submitter_type")
+  submitterSkills        String[] @default([]) @map("submitter_skills")
+  
+  // User reference
+  userId                 String?  @map("user_id")
+  user                   User?    @relation(fields: [userId], references: [id])
+  
+  // Status & visibility
+  status                 String   @default("submitted") // submitted, analyzing, analyzed, qualified, rejected
+  qualificationTier      String?  @map("qualification_tier") // exceptional, qualified, needs_work
+  featured               Boolean  @default(false)
+  public                 Boolean  @default(false) // Publicly searchable
+  optInPublic            Boolean  @default(false) @map("opt_in_public")
+  
+  // Submission method
+  submittedVia           String   @default("web") @map("submitted_via") // web, whatsapp, workshop
+  workshopSession        String?  @map("workshop_session")
+  
+  // Intilaka PDF
+  intilakaPdfGenerated   Boolean  @default(false) @map("intilaka_pdf_generated")
+  intilakaPdfUrl         String?  @map("intilaka_pdf_url")
+  intilakaPdfGeneratedAt DateTime? @map("intilaka_pdf_generated_at")
+  
+  // Admin
+  adminNotes             String?  @map("admin_notes")
+  rejectedReason         String?  @map("rejected_reason")
+
+  // Relationships
+  clarityScores          ClarityScore[]
+  decisionScores         DecisionScore[]
+  receipts               Receipt[]
+  selfAskResponses       SelfAskResponse[]
+  upvotes                 Upvote[]
+  comments                Comment[]
+  fundingApplications     FundingApplication[]
+  mentorMatches           MentorMatch[]
+  problemValidations      ProblemValidation[]
+
+  @@index([status])
+  @@index([category])
+  @@index([location])
+  @@index([qualificationTier])
+  @@index([public])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@map("marrai_ideas")
+}
+
+// ============================================
+// SCORING
+// ============================================
+
+model ClarityScore {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  // Stage 1: Clarity scores (0-10 each)
+  problemStatement      Float    @map("problem_statement")
+  asIsAnalysis          Float    @map("as_is_analysis")
+  benefitStatement      Float    @map("benefit_statement")
+  operationalNeeds      Float    @map("operational_needs")
+  
+  // Total
+  total                 Float    // Sum of above (0-40)
+  average               Float    // Average (0-10)
+  
+  // Qualification
+  qualified             Boolean  @default(false) // ≥6/10 average
+  qualificationReason   String?  @map("qualification_reason")
+
+  @@unique([ideaId])
+  @@index([qualified])
+  @@index([total])
+  @@map("clarity_scores")
+}
+
+model DecisionScore {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  // Stage 2: Decision scores (1-5 each)
+  strategicFit         Float    @map("strategic_fit")
+  feasibility           Float    @map("feasibility")
+  differentiation       Float    @map("differentiation")
+  evidenceOfDemand      Float    @map("evidence_of_demand")
+  
+  // Total
+  total                 Float    // Sum of above (4-20)
+  
+  // Break-even analysis
+  breakEvenMonths       Int?     @map("break_even_months")
+  intilakaEligible      Boolean  @default(false) @map("intilaka_eligible") // ≤24 months
+  
+  // Qualification
+  qualified             Boolean  @default(false) // ≥25/40 total (Stage 1 + Stage 2)
+  qualificationTier     String?  @map("qualification_tier") // exceptional (≥35), qualified (≥25), needs_work (<25)
+  
+  // Darija detection
+  darijaKeywords        String[] @default([]) @map("darija_keywords")
+  darijaScore           Float?   @map("darija_score") // 0-1
+
+  @@unique([ideaId])
+  @@index([qualified])
+  @@index([total])
+  @@index([intilakaEligible])
+  @@map("decision_scores")
+}
+
+// Combined view (for convenience)
+model IdeaScore {
+  ideaId                String   @id @map("idea_id")
+  
+  // Stage 1
+  stage1Problem         Float    @map("stage1_problem")
+  stage1AsIs            Float    @map("stage1_as_is")
+  stage1Benefits        Float    @map("stage1_benefits")
+  stage1Operations      Float    @map("stage1_operations")
+  stage1Total           Float    @map("stage1_total")
+  stage1Average         Float    @map("stage1_average")
+  
+  // Stage 2
+  stage2Strategic       Float    @map("stage2_strategic")
+  stage2Feasibility     Float    @map("stage2_feasibility")
+  stage2Differentiation Float    @map("stage2_differentiation")
+  stage2Evidence        Float    @map("stage2_evidence")
+  stage2Total           Float    @map("stage2_total")
+  
+  // Combined
+  totalScore            Float    @map("total_score") // 0-40
+  breakEvenMonths       Int?     @map("break_even_months")
+  intilakaEligible      Boolean  @default(false) @map("intilaka_eligible")
+  qualificationTier     String?  @map("qualification_tier")
+
+  @@map("idea_scores") // Materialized view
+}
+
+// ============================================
+// RECEIPTS (Proof of Demand)
+// ============================================
+
+model Receipt {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  userId                String?  @map("user_id")
+  user                  User?    @relation(fields: [userId], references: [id])
+  
+  // Receipt details
+  type                  String   // photo, barid_cash, other
+  proofUrl              String   @map("proof_url")
+  amount                Float    @default(3.0) // 3 DH validation payment
+  
+  // Verification
+  verified              Boolean  @default(false)
+  verifiedAt             DateTime? @map("verified_at")
+  verifiedBy             String?  @map("verified_by") // admin_id
+  verificationNotes      String?  @map("verification_notes")
+  
+  // Fraud detection
+  flagged               Boolean  @default(false)
+  flaggedReason         String?  @map("flagged_reason")
+  fraudScore            Float?   @map("fraud_score") // 0-1
+
+  @@index([ideaId])
+  @@index([verified])
+  @@index([flagged])
+  @@map("idea_receipts")
+}
+
+// ============================================
+// SELF-ASK CHAIN
+// ============================================
+
+model SelfAskQuestion {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  questionId            String   @map("question_id") // q1, q2, etc.
+  questionOrder         Int      @map("question_order")
+  questionText          String   @map("question_text") // Darija version
+  
+  status                String   @default("asked") // asked, answered, skipped
+  askedAt               DateTime? @map("asked_at")
+  answeredAt            DateTime? @map("answered_at")
+  
+  followUpCount         Int      @default(0) @map("follow_up_count")
+  lastFollowUpAt        DateTime? @map("last_follow_up_at")
+
+  @@index([ideaId])
+  @@index([status])
+  @@map("self_ask_questions")
+}
+
+model SelfAskResponse {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  userId                String?  @map("user_id")
+  user                  User?    @relation(fields: [userId], references: [id])
+  
+  questionId            String   @map("question_id")
+  
+  // Original response
+  originalText          String   @map("original_text") // Darija/French/Arabic
+  
+  // Extracted data
+  extractedData         Json     @default("{}") @map("extracted_data")
+  entities              Json     @default("{}") // {prices: [], names: [], locations: []}
+  
+  // Analysis
+  sentiment             String?  // positive, neutral, negative
+  confidence            Float    @default(0.5) // 0-1
+  languageDetected      String?  @map("language_detected") // darija, french, arabic, mixed
+  processingNotes       String?  @map("processing_notes")
+
+  @@index([ideaId])
+  @@index([questionId])
+  @@index([confidence])
+  @@map("self_ask_responses")
+}
+
+// ============================================
+// FUNDING APPLICATIONS
+// ============================================
+
+model FundingApplication {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  // Application type
+  type                  String   @default("intilaka") // intilaka, other
+  status                String   @default("draft") // draft, submitted, approved, rejected
+  
+  // PDF generation
+  pdfUrl                String?  @map("pdf_url")
+  pdfGeneratedAt        DateTime? @map("pdf_generated_at")
+  pdfVersion            String?  @map("pdf_version")
+  
+  // Application data (snapshot)
+  applicationData       Json     @map("application_data")
+  
+  // Submission
+  submittedAt           DateTime? @map("submitted_at")
+  submittedBy           String?  @map("submitted_by")
+  
+  // Review
+  reviewedAt            DateTime? @map("reviewed_at")
+  reviewedBy            String?  @map("reviewed_by")
+  reviewNotes           String?  @map("review_notes")
+  approvalDate          DateTime? @map("approval_date")
+  fundingAmount         Float?   @map("funding_amount")
+
+  @@index([ideaId])
+  @@index([status])
+  @@index([type])
+  @@map("funding_applications")
+}
+
+// ============================================
+// ENGAGEMENT
+// ============================================
+
+model Upvote {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  userId                String?  @map("user_id")
+  user                  User?    @relation(fields: [userId], references: [id])
+  
+  // Anonymous upvotes (no user_id)
+  voterIp               String?  @map("voter_ip")
+  voterUserAgent        String?  @map("voter_user_agent")
+
+  @@unique([ideaId, userId])
+  @@index([ideaId])
+  @@index([createdAt(sort: Desc)])
+  @@map("idea_upvotes")
+}
+
+model Comment {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at") // Soft delete
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  userId                String?  @map("user_id")
+  user                  User?    @relation(fields: [userId], references: [id])
+  
+  // Comment content
+  content               String
+  commentType           String?  @map("comment_type") // suggestion, question, concern, support, technical
+  
+  // Moderation
+  approved               Boolean  @default(true)
+  moderatedAt            DateTime? @map("moderated_at")
+  moderatedBy            String?  @map("moderated_by")
+
+  @@index([ideaId])
+  @@index([approved])
+  @@index([createdAt(sort: Desc)])
+  @@map("idea_comments")
+}
+
+model ProblemValidation {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  // Anonymous validation ("I have this problem too")
+  validatorIp           String?  @map("validator_ip")
+  validatorUserAgent    String?  @map("validator_user_agent")
+  
+  // Optional comment
+  comment               String?
+
+  @@index([ideaId])
+  @@index([createdAt(sort: Desc)])
+  @@map("problem_validations")
+}
+
+// ============================================
+// MENTORS
+// ============================================
+
+model Mentor {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  deletedAt             DateTime? @map("deleted_at") // Soft delete
+  
+  // Basic info
+  name                  String
+  email                 String   @unique
+  phone                 String?
+  location              String? // Current location
+  moroccanCity          String? @map("moroccan_city") // Origin city
+  
+  // Expertise
+  expertise             String[] // ['healthcare', 'education', 'tech', 'finance']
+  skills                String[] // Specific technical skills
+  yearsExperience       Int?     @map("years_experience")
+  currentRole           String[] @default([]) @map("current_role")
+  company               String?
+  
+  // Engagement
+  willingToMentor       Boolean  @default(false) @map("willing_to_mentor")
+  willingToCofund       Boolean  @default(false) @map("willing_to_cofund")
+  maxCofundAmount       String?  @map("max_cofund_amount")
+  availableHoursPerMonth Int?    @map("available_hours_per_month")
+  
+  // Workshop participation
+  attendedKenitra       Boolean  @default(false) @map("attended_kenitra")
+  mglMember             Boolean  @default(false) @map("mgl_member")
+  chapter               String? // health, education, innovation, women, etc.
+  
+  // Stats
+  ideasMatched          Int      @default(0) @map("ideas_matched")
+  ideasFunded           Int      @default(0) @map("ideas_funded")
+  totalCofundedEur      Float    @default(0) @map("total_cofunded_eur")
+  
+  // Relationships
+  matches               MentorMatch[]
+
+  @@index([email])
+  @@index([willingToMentor])
+  @@index([expertise])
+  @@map("mentors")
+}
+
+model MentorMatch {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  ideaId                String   @map("idea_id")
+  idea                  Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  
+  mentorId              String   @map("mentor_id")
+  mentor                Mentor   @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  
+  // Matching details
+  matchScore            Float    @map("match_score") // 0-1
+  matchReason           String?  @map("match_reason")
+  matchedBy             String?  @map("matched_by") // admin_id or 'auto'
+  
+  // Status
+  status                String   @default("pending") // pending, accepted, rejected, active, completed
+  mentorResponse        String?  @map("mentor_response")
+  mentorRespondedAt     DateTime? @map("mentor_responded_at")
+  
+  // Engagement
+  startedAt             DateTime? @map("started_at")
+  completedAt            DateTime? @map("completed_at")
+  success               Boolean? // true if mentorship led to funding/success
+
+  @@unique([ideaId, mentorId])
+  @@index([ideaId])
+  @@index([mentorId])
+  @@index([status])
+  @@map("mentor_matches")
+}
+
+// ============================================
+// PRIVACY & CONSENT
+// ============================================
+
+model Consent {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  userId                String   @map("user_id")
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  phoneHash             String   @map("phone_hash")
+  
+  // Consent details
+  consentType           String   @map("consent_type") // submission, marketing, analysis, data_retention
+  granted               Boolean
+  consentVersion        String   @default("1.0.0") @map("consent_version")
+  consentMethod         String   @map("consent_method") // whatsapp, web, email, phone, in_person, other
+  
+  // GDPR Article 7: Provable consent
+  ipAddress             String?  @map("ip_address")
+  userAgent             String?  @map("user_agent")
+  
+  // Expiry
+  expiresAt             DateTime? @map("expires_at")
+  
+  // Metadata
+  metadata              Json     @default("{}")
+
+  @@index([userId])
+  @@index([phoneHash])
+  @@index([consentType])
+  @@index([createdAt])
+  @@map("consents")
+}
+
+model DeletionRequest {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  userId                String   @map("user_id")
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Verification
+  verificationToken     String   @unique @map("verification_token")
+  verified              Boolean  @default(false)
+  verifiedAt             DateTime? @map("verified_at")
+  
+  // Grace period
+  scheduledDeletionAt   DateTime @map("scheduled_deletion_at") // 7 days from request
+  cancelled             Boolean  @default(false)
+  cancelledAt           DateTime? @map("cancelled_at")
+  
+  // Execution
+  deleted               Boolean  @default(false)
+  deletedAt             DateTime? @map("deleted_at")
+  deletionReason        String?  @map("deletion_reason")
+
+  @@index([userId])
+  @@index([verified])
+  @@index([scheduledDeletionAt])
+  @@map("deletion_requests")
+}
+
+model ExportRequest {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  userId                String   @map("user_id")
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Verification
+  otpToken              String   @unique @map("otp_token")
+  verified              Boolean  @default(false)
+  verifiedAt             DateTime? @map("verified_at")
+  
+  // Export
+  format                String   @default("json") // json, pdf
+  downloadUrl            String?  @map("download_url")
+  downloadToken          String?  @unique @map("download_token")
+  expiresAt              DateTime @map("expires_at") // 24 hours
+  downloaded             Boolean  @default(false)
+  downloadedAt           DateTime? @map("downloaded_at")
+
+  @@index([userId])
+  @@index([verified])
+  @@index([expiresAt])
+  @@map("export_requests")
+}
+
+// ============================================
+// ADMIN & AUDIT
+// ============================================
+
+model AdminAction {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  // Actor
+  adminId               String   @map("admin_id")
+  adminEmail             String?  @map("admin_email")
+  adminRole              String?  @map("admin_role") // admin, privacy_officer, etc.
+  
+  // Action
+  action                String   // idea_approved, receipt_verified, user_banned, score_override, etc.
+  entityType            String?  @map("entity_type") // idea, user, receipt, etc.
+  entityId              String?  @map("entity_id")
+  
+  // Details
+  details               Json     @default("{}")
+  reason                String? // Required for sensitive actions
+  ipAddress             String?  @map("ip_address")
+  userAgent             String?  @map("user_agent")
+  
+  // 2FA (if applicable)
+  twoFactorVerified     Boolean  @default(false) @map("two_factor_verified")
+
+  @@index([adminId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@map("admin_actions")
+}
+
+model AuditLog {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now()) @map("created_at")
+  
+  userId                String   @map("user_id")
+  action                String
+  actor                 String
+  timestamp             DateTime @default(now())
+  metadata              Json     @default("{}")
+
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
