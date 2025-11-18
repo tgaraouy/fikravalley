@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get scores for each idea
-    const ideaIds = ideas?.map(i => i.id) || [];
+    const ideaIds = (ideas as any[])?.map((i: any) => i.id) || [];
     if (ideaIds.length > 0) {
       const { data: scores } = await supabase
         .from('marrai_idea_scores')
@@ -52,12 +52,12 @@ export async function GET(request: NextRequest) {
         .in('idea_id', ideaIds);
 
       // Merge scores into ideas
-      const scoresMap = new Map(scores?.map(s => [s.idea_id, s]) || []);
-      ideas?.forEach(idea => {
+      const scoresMap = new Map((scores as any[])?.map((s: any) => [s.idea_id, s]) || []);
+      (ideas as any[])?.forEach((idea: any) => {
         const score = scoresMap.get(idea.id);
         if (score) {
-          (idea as any).total_score = score.total_score;
-          (idea as any).clarity_score = score.clarity_score;
+          idea.total_score = (score as any).total_score;
+          idea.clarity_score = (score as any).clarity_score;
         }
       });
     }

@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
+import type { Database } from '@/lib/supabase';
 import { checkAdminAccess } from '@/lib/privacy/admin-auth';
 
 /**
@@ -37,8 +38,14 @@ export async function GET(request: NextRequest) {
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
 
+    const pendingDeletionRows =
+      (pendingDeletions as Database['public']['Tables']['marrai_deletion_requests']['Row'][] | null) ||
+      [];
+    const pendingExportRows =
+      (pendingExports as Database['public']['Tables']['marrai_export_requests']['Row'][] | null) || [];
+
     // Calculate time to fulfillment
-    const deletionRequests = pendingDeletions?.map((req) => {
+    const deletionRequests = pendingDeletionRows.map((req) => {
       const requestedAt = new Date(req.requested_at);
       const daysPending = Math.floor((now.getTime() - requestedAt.getTime()) / (1000 * 60 * 60 * 24));
       return {
@@ -50,9 +57,9 @@ export async function GET(request: NextRequest) {
         targetDays: 30,
         onTrack: daysPending < 30,
       };
-    }) || [];
+    });
 
-    const exportRequests = pendingExports?.map((req) => {
+    const exportRequests = pendingExportRows.map((req) => {
       const requestedAt = new Date(req.created_at);
       const daysPending = Math.floor((now.getTime() - requestedAt.getTime()) / (1000 * 60 * 60 * 24));
       return {
@@ -64,7 +71,7 @@ export async function GET(request: NextRequest) {
         targetDays: 30,
         onTrack: daysPending < 30,
       };
-    }) || [];
+    });
 
     // Get overdue requests
     const overdueDeletions = deletionRequests.filter((r) => r.daysPending >= 30);
@@ -85,22 +92,27 @@ export async function GET(request: NextRequest) {
       .not('completed_at', 'is', null)
       .limit(100);
 
+    const completedDeletionRows =
+      (completedDeletions as Database['public']['Tables']['marrai_deletion_requests']['Row'][] | null) || [];
+    const completedExportRows =
+      (completedExports as Database['public']['Tables']['marrai_export_requests']['Row'][] | null) || [];
+
     const avgDeletionTime =
-      completedDeletions && completedDeletions.length > 0
-        ? completedDeletions.reduce((sum, req) => {
+      completedDeletionRows.length > 0
+        ? completedDeletionRows.reduce((sum, req) => {
             const requested = new Date(req.requested_at);
             const deleted = new Date(req.deleted_at!);
             return sum + (deleted.getTime() - requested.getTime()) / (1000 * 60 * 60 * 24);
-          }, 0) / completedDeletions.length
+          }, 0) / completedDeletionRows.length
         : 0;
 
     const avgExportTime =
-      completedExports && completedExports.length > 0
-        ? completedExports.reduce((sum, req) => {
+      completedExportRows.length > 0
+        ? completedExportRows.reduce((sum, req) => {
             const created = new Date(req.created_at);
             const completed = new Date(req.completed_at!);
             return sum + (completed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
-          }, 0) / completedExports.length
+          }, 0) / completedExportRows.length
         : 0;
 
     return NextResponse.json({

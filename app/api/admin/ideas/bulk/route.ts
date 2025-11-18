@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       updates.status = 'flagged';
     }
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('marrai_ideas')
       .update(updates)
       .in('id', ideaIds);
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log audit entry
-    await supabase.from('admin_audit_log').insert({
+    await (supabase as any).from('admin_audit_log').insert({
       id: randomUUID(),
       action: `bulk_${action}`,
       admin_email: 'admin@fikravalley.com', // Get from session

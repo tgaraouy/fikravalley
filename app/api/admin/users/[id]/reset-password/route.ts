@@ -20,7 +20,7 @@ export async function POST(
     const supabase = await createClient();
 
     // Log audit
-    await supabase.from('admin_audit_log').insert({
+    await (supabase as any).from('admin_audit_log').insert({
       id: randomUUID(),
       action: 'reset_password',
       admin_email: 'admin@fikravalley.com',

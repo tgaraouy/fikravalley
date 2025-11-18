@@ -48,6 +48,11 @@ export interface Database {
           submitted_via: 'web' | 'whatsapp' | 'workshop_form' | 'workshop_conversation' | null;
           admin_notes: string | null;
           rejected_reason: string | null;
+          last_contacted_at: string | null;
+          contact_method: 'email' | 'phone' | 'whatsapp' | 'other' | null;
+          follow_up_status: 'pending' | 'contacted' | 'completed' | 'escalated' | null;
+          contact_attempts: number | null;
+          next_follow_up_date: string | null;
         };
         Insert: {
           id?: string;
@@ -91,6 +96,11 @@ export interface Database {
           submitted_via?: 'web' | 'whatsapp' | 'workshop_form' | 'workshop_conversation' | null;
           admin_notes?: string | null;
           rejected_reason?: string | null;
+          last_contacted_at?: string | null;
+          contact_method?: 'email' | 'phone' | 'whatsapp' | 'other' | null;
+          follow_up_status?: 'pending' | 'contacted' | 'completed' | 'escalated' | null;
+          contact_attempts?: number | null;
+          next_follow_up_date?: string | null;
         };
         Update: {
           id?: string;
@@ -134,6 +144,11 @@ export interface Database {
           submitted_via?: 'web' | 'whatsapp' | 'workshop_form' | 'workshop_conversation' | null;
           admin_notes?: string | null;
           rejected_reason?: string | null;
+          last_contacted_at?: string | null;
+          contact_method?: 'email' | 'phone' | 'whatsapp' | 'other' | null;
+          follow_up_status?: 'pending' | 'contacted' | 'completed' | 'escalated' | null;
+          contact_attempts?: number | null;
+          next_follow_up_date?: string | null;
         };
       };
       marrai_workshop_sessions: {
@@ -588,6 +603,369 @@ export interface Database {
           comment_type?: 'suggestion' | 'question' | 'concern' | 'support' | 'technical';
           updated_at?: string | null;
         };
+      };
+      marrai_access_requests: {
+        Row: {
+          id: string;
+          email: string;
+          name: string;
+          organization: string | null;
+          user_type:
+            | 'workshop_attendee'
+            | 'student'
+            | 'professional'
+            | 'diaspora'
+            | 'government'
+            | 'entrepreneur'
+            | 'other';
+          reason: string;
+          how_heard: string | null;
+          status: 'pending' | 'approved' | 'rejected';
+          created_at: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          rejection_reason: string | null;
+          activation_token: string | null;
+          activation_expires_at: string | null;
+          activated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          email: string;
+          name: string;
+          organization?: string | null;
+          user_type:
+            | 'workshop_attendee'
+            | 'student'
+            | 'professional'
+            | 'diaspora'
+            | 'government'
+            | 'entrepreneur'
+            | 'other';
+          reason: string;
+          how_heard?: string | null;
+          status?: 'pending' | 'approved' | 'rejected';
+          created_at?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          rejection_reason?: string | null;
+          activation_token?: string | null;
+          activation_expires_at?: string | null;
+          activated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          name?: string;
+          organization?: string | null;
+          user_type?:
+            | 'workshop_attendee'
+            | 'student'
+            | 'professional'
+            | 'diaspora'
+            | 'government'
+            | 'entrepreneur'
+            | 'other';
+          reason?: string;
+          how_heard?: string | null;
+          status?: 'pending' | 'approved' | 'rejected';
+          created_at?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          rejection_reason?: string | null;
+          activation_token?: string | null;
+          activation_expires_at?: string | null;
+          activated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      privacy_incidents: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          severity: string | null;
+          status: string | null;
+          affected_users: string[] | null;
+          discovered_at: string | null;
+          notification_deadline: string | null;
+          created_at: string | null;
+          created_by: string | null;
+          updated_at: string | null;
+          updated_by: string | null;
+          remediation_steps: string | null;
+          notes: string | null;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description: string;
+          severity?: string | null;
+          status?: string | null;
+          affected_users?: string[] | null;
+          discovered_at?: string | null;
+          notification_deadline?: string | null;
+          created_at?: string | null;
+          created_by?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          remediation_steps?: string | null;
+          notes?: string | null;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string;
+          severity?: string | null;
+          status?: string | null;
+          affected_users?: string[] | null;
+          discovered_at?: string | null;
+          notification_deadline?: string | null;
+          created_at?: string | null;
+          created_by?: string | null;
+          updated_at?: string | null;
+          updated_by?: string | null;
+          remediation_steps?: string | null;
+          notes?: string | null;
+        };
+        Relationships: [];
+      };
+      admin_access_logs: {
+        Row: {
+          id: string;
+          admin_id: string;
+          user_id: string | null;
+          action: string;
+          reason: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          timestamp: string;
+          metadata: Record<string, unknown> | null;
+        };
+        Insert: {
+          id?: string;
+          admin_id: string;
+          user_id?: string | null;
+          action: string;
+          reason: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          timestamp?: string;
+          metadata?: Record<string, unknown> | null;
+        };
+        Update: {
+          id?: string;
+          admin_id?: string;
+          user_id?: string | null;
+          action?: string;
+          reason?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          timestamp?: string;
+          metadata?: Record<string, unknown> | null;
+        };
+        Relationships: [];
+      };
+      marrai_secure_users: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+          phone_hash: string;
+          encrypted_name: string;
+          name_iv: string;
+          name_tag: string;
+          anonymous_email: string;
+          consent: boolean;
+          consent_date: string;
+          data_retention_expiry: string;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+          phone_hash: string;
+          encrypted_name: string;
+          name_iv: string;
+          name_tag: string;
+          anonymous_email: string;
+          consent?: boolean;
+          consent_date?: string;
+          data_retention_expiry: string;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+          phone_hash?: string;
+          encrypted_name?: string;
+          name_iv?: string;
+          name_tag?: string;
+          anonymous_email?: string;
+          consent?: boolean;
+          consent_date?: string;
+          data_retention_expiry?: string;
+        };
+        Relationships: [];
+      };
+      marrai_consents: {
+        Row: {
+          id: string;
+          created_at: string;
+          user_id: string;
+          phone_hash: string;
+          consent_type: 'submission' | 'marketing' | 'analysis' | 'data_retention';
+          granted: boolean;
+          consent_version: string;
+          consent_method: 'whatsapp' | 'web' | 'email' | 'phone' | 'in_person' | 'other';
+          ip_address: string | null;
+          user_agent: string | null;
+          expires_at: string | null;
+          metadata: Record<string, unknown> | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          user_id: string;
+          phone_hash: string;
+          consent_type: 'submission' | 'marketing' | 'analysis' | 'data_retention';
+          granted: boolean;
+          consent_version?: string;
+          consent_method: 'whatsapp' | 'web' | 'email' | 'phone' | 'in_person' | 'other';
+          ip_address?: string | null;
+          user_agent?: string | null;
+          expires_at?: string | null;
+          metadata?: Record<string, unknown> | null;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          user_id?: string;
+          phone_hash?: string;
+          consent_type?: 'submission' | 'marketing' | 'analysis' | 'data_retention';
+          granted?: boolean;
+          consent_version?: string;
+          consent_method?: 'whatsapp' | 'web' | 'email' | 'phone' | 'in_person' | 'other';
+          ip_address?: string | null;
+          user_agent?: string | null;
+          expires_at?: string | null;
+          metadata?: Record<string, unknown> | null;
+        };
+        Relationships: [];
+      };
+      marrai_deletion_requests: {
+        Row: {
+          id: string;
+          user_id: string;
+          verification_code: string;
+          status: 'pending' | 'cancelled' | 'confirmed' | 'completed';
+          requested_at: string;
+          scheduled_deletion_date: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          cancelled_at: string | null;
+          confirmed_at: string | null;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          verification_code: string;
+          status?: 'pending' | 'cancelled' | 'confirmed' | 'completed';
+          requested_at?: string;
+          scheduled_deletion_date: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          cancelled_at?: string | null;
+          confirmed_at?: string | null;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          verification_code?: string;
+          status?: 'pending' | 'cancelled' | 'confirmed' | 'completed';
+          requested_at?: string;
+          scheduled_deletion_date?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          cancelled_at?: string | null;
+          confirmed_at?: string | null;
+          deleted_at?: string | null;
+        };
+        Relationships: [];
+      };
+      marrai_export_requests: {
+        Row: {
+          id: string;
+          user_id: string;
+          otp: string | null;
+          status: 'pending' | 'completed' | 'cancelled';
+          format: 'json' | 'pdf';
+          created_at: string;
+          ip_address: string | null;
+          user_agent: string | null;
+          download_count: number | null;
+          completed_at: string | null;
+          download_url: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          otp?: string | null;
+          status?: 'pending' | 'completed' | 'cancelled';
+          format?: 'json' | 'pdf';
+          created_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          download_count?: number | null;
+          completed_at?: string | null;
+          download_url?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          otp?: string | null;
+          status?: 'pending' | 'completed' | 'cancelled';
+          format?: 'json' | 'pdf';
+          created_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+          download_count?: number | null;
+          completed_at?: string | null;
+          download_url?: string | null;
+        };
+        Relationships: [];
+      };
+      marrai_audit_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          action: string;
+          actor: string;
+          timestamp: string;
+          metadata: Record<string, unknown> | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          action: string;
+          actor: string;
+          timestamp?: string;
+          metadata?: Record<string, unknown> | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          action?: string;
+          actor?: string;
+          timestamp?: string;
+          metadata?: Record<string, unknown> | null;
+        };
+        Relationships: [];
       };
     };
     Views: {

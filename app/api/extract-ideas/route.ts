@@ -217,8 +217,8 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown. Si auc
     // If no ideas extracted, still mark transcripts as processed and return
     if (extractedIdeas.length === 0) {
       // Mark transcripts as processed
-      const transcriptIds = transcripts.map((t) => t.id);
-      await supabase
+      const transcriptIds = (transcripts as any[])?.map((t: any) => t.id) || [];
+      await (supabase as any)
         .from('marrai_transcripts')
         .update({
           processed: true,
@@ -247,7 +247,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown. Si auc
 
     // Insert each extracted idea into marrai_conversation_ideas
     const insertedIdeas: string[] = [];
-    const transcriptIds = transcripts.map((t) => t.id);
+    const transcriptIds = (transcripts as any[])?.map((t: any) => t.id) || [];
 
     for (const idea of extractedIdeas) {
       try {
@@ -273,7 +273,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown. Si auc
           status: 'pending_validation',
         };
 
-        const { data: inserted, error: insertError } = await supabase
+        const { data: inserted, error: insertError } = await (supabase as any)
           .from('marrai_conversation_ideas')
           .insert(conversationIdea)
           .select('id')
@@ -293,7 +293,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown. Si auc
 
     // Mark transcripts as processed
     try {
-      await supabase
+      await (supabase as any)
         .from('marrai_transcripts')
         .update({
           processed: true,

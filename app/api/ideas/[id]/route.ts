@@ -15,7 +15,7 @@ export async function GET(
     const supabase = await createClient();
 
     // Fetch idea
-    const { data: idea, error: ideaError } = await supabase
+    const { data: idea, error: ideaError } = await (supabase as any)
       .from('marrai_ideas')
       .select('*')
       .eq('id', ideaId)
@@ -28,8 +28,10 @@ export async function GET(
       );
     }
 
+    const ideaData = idea as any;
+
     // Fetch scores
-    const { data: scores } = await supabase
+    const { data: scores } = await (supabase as any)
       .from('marrai_idea_scores')
       .select('*')
       .eq('idea_id', ideaId)
@@ -55,45 +57,46 @@ export async function GET(
       .eq('idea_id', ideaId);
 
     // Determine qualification tier
-    const totalScore = scores?.stage2_total || scores?.stage1_total || 0;
+    const scoresData = scores as any;
+    const totalScore = scoresData?.stage2_total || scoresData?.stage1_total || 0;
     let qualificationTier: 'exceptional' | 'qualified' | 'developing' | undefined;
     if (totalScore >= 30) qualificationTier = 'exceptional';
     else if (totalScore >= 25) qualificationTier = 'qualified';
     else if (totalScore >= 15) qualificationTier = 'developing';
 
     return NextResponse.json({
-      id: idea.id,
-      title: idea.title,
-      title_darija: idea.title_darija,
-      problem_statement: idea.problem_statement,
-      proposed_solution: idea.proposed_solution,
-      current_manual_process: idea.current_manual_process,
-      location: idea.location,
-      category: idea.category,
+      id: ideaData.id,
+      title: ideaData.title,
+      title_darija: ideaData.title_darija,
+      problem_statement: ideaData.problem_statement,
+      proposed_solution: ideaData.proposed_solution,
+      current_manual_process: ideaData.current_manual_process,
+      location: ideaData.location,
+      category: ideaData.category,
       total_score: totalScore,
-      stage1_total: scores?.stage1_total,
-      stage2_total: scores?.stage2_total,
-      stage1_breakdown: scores ? {
-        problemStatement: scores.stage1_problem || 0,
-        asIsAnalysis: scores.stage1_as_is || 0,
-        benefitStatement: scores.stage1_benefits || 0,
-        operationalNeeds: scores.stage1_operations || 0,
+      stage1_total: scoresData?.stage1_total,
+      stage2_total: scoresData?.stage2_total,
+      stage1_breakdown: scoresData ? {
+        problemStatement: scoresData.stage1_problem || 0,
+        asIsAnalysis: scoresData.stage1_as_is || 0,
+        benefitStatement: scoresData.stage1_benefits || 0,
+        operationalNeeds: scoresData.stage1_operations || 0,
       } : undefined,
-      stage2_breakdown: scores ? {
-        strategicFit: scores.stage2_strategic || 0,
-        feasibility: scores.stage2_feasibility || 0,
-        differentiation: scores.stage2_differentiation || 0,
-        evidenceOfDemand: scores.stage2_evidence || 0,
+      stage2_breakdown: scoresData ? {
+        strategicFit: scoresData.stage2_strategic || 0,
+        feasibility: scoresData.stage2_feasibility || 0,
+        differentiation: scoresData.stage2_differentiation || 0,
+        evidenceOfDemand: scoresData.stage2_evidence || 0,
       } : undefined,
       receipt_count: receiptCount || 0,
       upvote_count: upvoteCount || 0,
       problem_validation_count: validationCount || 0,
-      sdg_alignment: idea.sdg_alignment || [],
-      funding_status: idea.funding_status,
+      sdg_alignment: ideaData.sdg_alignment || [],
+      funding_status: ideaData.funding_status,
       qualification_tier: qualificationTier,
-      created_at: idea.created_at,
-      submitter_name: idea.submitter_name,
-      break_even_months: scores?.break_even_months,
+      created_at: ideaData.created_at,
+      submitter_name: ideaData.submitter_name,
+      break_even_months: scoresData?.break_even_months,
     });
   } catch (error) {
     console.error('Error fetching idea:', error);

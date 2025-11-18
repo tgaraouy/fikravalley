@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch idea from database
-    const { data: idea, error: ideaError } = await supabase
+    const { data: idea, error: ideaError } = await (supabase as any)
       .from('marrai_ideas')
       .select('*')
       .eq('id', ideaId)
@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ideaData = idea as IdeaRow;
+
     // Fetch agent solution (optional)
     const { data: agentSolution } = await supabase
       .from('marrai_agent_solutions')
@@ -52,19 +54,34 @@ export async function POST(request: NextRequest) {
 
     // Generate PDF
     const pdfDoc = React.createElement(IdeaPDFDocument, {
-      idea: idea as IdeaRow,
+      idea: ideaData,
       agentSolution: agentSolution || null,
       baseUrl,
     });
 
     // Generate PDF buffer (works in Node.js/server environment)
-    const pdfBuffer = await pdf(pdfDoc).toBuffer();
+    const pdfStream = await pdf(pdfDoc as any).toBuffer();
+    
+    // Convert ReadableStream to Buffer
+    const chunks: Uint8Array[] = [];
+    const reader = (pdfStream as any).getReader();
+    let done = false;
+    
+    while (!done) {
+      const { value, done: streamDone } = await reader.read();
+      done = streamDone;
+      if (value) {
+        chunks.push(value);
+      }
+    }
+    
+    const pdfBuffer = Buffer.concat(chunks.map(chunk => Buffer.from(chunk)));
 
     // Return PDF file
     return new NextResponse(pdfBuffer, {
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="idee-${idea.id}-${new Date().toISOString().split('T')[0]}.pdf"`,
+        'Content-Disposition': `attachment; filename="idee-${ideaData.id}-${new Date().toISOString().split('T')[0]}.pdf"`,
         'Content-Length': pdfBuffer.length.toString(),
       },
     });

@@ -59,12 +59,12 @@ function cleanJsonResponse(text: string): string {
 /**
  * Generate fallback analysis when Claude API fails
  */
-function generateFallbackAnalysis(idea: IdeaRow): ClaudeAnalysisResponse {
+function generateFallbackAnalysis(idea: any): ClaudeAnalysisResponse {
   return {
     feasibility_score: 6.0,
     automation_potential: 'medium',
     agent_architecture: {
-      agent_name: `${idea.title} - Agent de Numérisation`,
+      agent_name: `${idea?.title || 'Idée'} - Agent de Numérisation`,
       agent_type: 'workflow',
       triggers: ['daily_schedule', 'manual_trigger'],
       actions: ['process_data', 'send_notification', 'update_database'],
@@ -99,7 +99,7 @@ function generateFallbackAnalysis(idea: IdeaRow): ClaudeAnalysisResponse {
       market_size: 'À déterminer',
     },
     impact_score: 6.5,
-    summary: `Analyse de base pour ${idea.title}. Une analyse plus approfondie est recommandée.`,
+    summary: `Analyse de base pour ${idea?.title || 'cette idée'}. Une analyse plus approfondie est recommandée.`,
   };
 }
 
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch idea from database
-    const { data: idea, error: fetchError } = await supabase
+    const { data: idea, error: fetchError } = await (supabase as any)
       .from('marrai_ideas')
       .select('*')
       .eq('id', ideaId)
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update status to 'analyzing'
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('marrai_ideas')
       .update({ status: 'analyzing' })
       .eq('id', ideaId)
@@ -151,22 +151,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Build prompt for Claude API
+    const ideaData = idea as any;
     const prompt = `Tu es un expert en architecture d'agents IA et en numérisation de processus pour le secteur public marocain.
 
 Analyse cette idée de numérisation et fournis une analyse complète au format JSON.
 
 IDÉE À ANALYSER:
-- Titre: ${idea.title}
-- Problème: ${idea.problem_statement}
-- Solution proposée: ${idea.proposed_solution || 'Non spécifiée'}
-- Catégorie: ${idea.category || 'Non spécifiée'}
-- Localisation: ${idea.location || 'Non spécifiée'}
-- Processus manuel actuel: ${idea.current_manual_process || 'Non spécifié'}
-- Opportunité de numérisation: ${idea.digitization_opportunity || 'Non spécifiée'}
-- Fréquence: ${idea.frequency || 'Non spécifiée'}
-- Sources de données: ${idea.data_sources?.join(', ') || 'Non spécifiées'}
-- Points d'intégration: ${idea.integration_points?.join(', ') || 'Non spécifiés'}
-- Capacités IA nécessaires: ${idea.ai_capabilities_needed?.join(', ') || 'Non spécifiées'}
+- Titre: ${ideaData.title}
+- Problème: ${ideaData.problem_statement}
+- Solution proposée: ${ideaData.proposed_solution || 'Non spécifiée'}
+- Catégorie: ${ideaData.category || 'Non spécifiée'}
+- Localisation: ${ideaData.location || 'Non spécifiée'}
+- Processus manuel actuel: ${ideaData.current_manual_process || 'Non spécifié'}
+- Opportunité de numérisation: ${ideaData.digitization_opportunity || 'Non spécifiée'}
+- Fréquence: ${ideaData.frequency || 'Non spécifiée'}
+- Sources de données: ${ideaData.data_sources?.join(', ') || 'Non spécifiées'}
+- Points d'intégration: ${ideaData.integration_points?.join(', ') || 'Non spécifiés'}
+- Capacités IA nécessaires: ${ideaData.ai_capabilities_needed?.join(', ') || 'Non spécifiées'}
 
 Fournis une réponse JSON avec cette structure exacte:
 {
@@ -236,13 +237,13 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown.`;
     } catch (claudeError) {
       console.error('Claude API error:', claudeError);
       // Use fallback analysis
-      analysis = generateFallbackAnalysis(idea);
+      analysis = generateFallbackAnalysis(ideaData);
     }
 
     // Validate analysis structure
     if (!analysis || typeof analysis !== 'object') {
       console.error('Invalid analysis structure, using fallback');
-      analysis = generateFallbackAnalysis(idea);
+      analysis = generateFallbackAnalysis(ideaData);
     }
 
     // Update marrai_ideas with analysis results
@@ -256,7 +257,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown.`;
                    analysis.agent_architecture.agent_type === 'decision' ? 'decision_agent' :
                    analysis.agent_architecture.agent_type === 'interface' ? 'interface_agent' :
                    'hybrid_agent',
-      ai_category_suggested: idea.category || analysis.agent_architecture.agent_type,
+      ai_category_suggested: ideaData.category || analysis.agent_architecture.agent_type,
       ai_cost_estimate: analysis.technical_feasibility.estimated_cost,
       roi_time_saved_hours: analysis.roi_analysis.time_saved_per_month,
       roi_cost_saved_eur: analysis.roi_analysis.cost_saved_per_month,
@@ -268,7 +269,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown.`;
       updated_at: new Date().toISOString(),
     };
 
-    const { error: ideaUpdateError } = await supabase
+    const { error: ideaUpdateError } = await (supabase as any)
       .from('marrai_ideas')
       .update(ideaUpdate)
       .eq('id', ideaId)
@@ -314,7 +315,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte supplémentaire ni markdown.`;
       },
     };
 
-    const { data: insertedSolution, error: solutionError } = await supabase
+    const { data: insertedSolution, error: solutionError } = await (supabase as any)
       .from('marrai_agent_solutions')
       .insert(agentSolution)
       .select()

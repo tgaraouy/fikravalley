@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already has a pending or approved request
-    const { data: existingRequest } = await supabase
-      .from('marrai_access_requests')
+    const { data: existingRequest } = await (supabase
+      .from('marrai_access_requests') as any)
       .select('id, status')
       .eq('email', email.toLowerCase())
       .in('status', ['pending', 'approved'])
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert access request
-    const { data, error } = await supabase
-      .from('marrai_access_requests')
+    const { data, error } = await (supabase
+      .from('marrai_access_requests') as any)
       .insert({
         email: email.toLowerCase(),
         name,

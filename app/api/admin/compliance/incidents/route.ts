@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
+import type { Database } from '@/lib/supabase';
 import { checkAdminAccess, logAdminAccess } from '@/lib/privacy/admin-auth';
 import { randomUUID } from 'crypto';
 
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
     const incidentId = randomUUID();
     const notificationDeadline = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72 hours
 
-    const { error } = await supabase.from('privacy_incidents').insert({
+    const { error } = await (supabase.from('privacy_incidents') as any).insert({
       id: incidentId,
       title,
       description,
@@ -91,8 +92,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createClient();
 
-    const { data: incidents, error } = await supabase
-      .from('privacy_incidents')
+    const { data: incidents, error } = await (supabase
+      .from('privacy_incidents') as any)
       .select('*')
       .order('created_at', { ascending: false })
       .limit(100);
@@ -102,8 +103,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate time until notification deadline
-    const incidentsWithDeadline = incidents?.map((incident) => {
-      const deadline = new Date(incident.notification_deadline);
+    const incidentsWithDeadline = incidents?.map(
+      (incident: Database['public']['Tables']['privacy_incidents']['Row']) => {
+        const deadline = incident.notification_deadline
+          ? new Date(incident.notification_deadline)
+          : new Date();
       const now = new Date();
       const hoursRemaining = Math.floor((deadline.getTime() - now.getTime()) / (1000 * 60 * 60));
 
@@ -112,7 +116,8 @@ export async function GET(request: NextRequest) {
         hoursUntilNotification: hoursRemaining,
         notificationOverdue: hoursRemaining < 0,
       };
-    });
+      }
+    );
 
     return NextResponse.json({ incidents: incidentsWithDeadline || [] });
   } catch (error) {
@@ -157,8 +162,8 @@ export async function PUT(request: NextRequest) {
     if (remediationSteps) updateData.remediation_steps = remediationSteps;
     if (notes) updateData.notes = notes;
 
-    const { error } = await supabase
-      .from('privacy_incidents')
+    const { error } = await (supabase
+      .from('privacy_incidents') as any)
       .update(updateData)
       .eq('id', id);
 

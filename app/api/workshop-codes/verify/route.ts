@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark code as used
-    const { error: updateError } = await supabase
-      .from('marrai_workshop_codes')
+    const { error: updateError } = await (supabase
+      .from('marrai_workshop_codes') as any)
       .update({
         used: true,
         used_at: new Date().toISOString(),
@@ -83,8 +83,8 @@ export async function POST(request: NextRequest) {
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
 
-        await supabase
-          .from('marrai_access_requests')
+        await (supabase
+          .from('marrai_access_requests') as any)
           .update({
             status: 'approved',
             activation_token: token,

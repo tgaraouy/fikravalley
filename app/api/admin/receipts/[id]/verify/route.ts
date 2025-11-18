@@ -17,7 +17,7 @@ export async function POST(
 
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('marrai_idea_receipts')
       .update({ verified, verified_at: new Date().toISOString() })
       .eq('id', receiptId);
@@ -27,7 +27,7 @@ export async function POST(
     }
 
     // Log audit
-    await supabase.from('admin_audit_log').insert({
+    await (supabase as any).from('admin_audit_log').insert({
       id: randomUUID(),
       action: verified ? 'verify_receipt' : 'reject_receipt',
       admin_email: 'admin@fikravalley.com',

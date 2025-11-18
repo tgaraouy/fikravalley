@@ -23,14 +23,21 @@ export async function POST(request: NextRequest) {
     // For now, we'll just log and update the database
     console.log('Email to send:', { to, subject, body: emailBody });
 
+    // Get current contact_attempts value first
+    const { data: currentIdea } = await (supabase as any)
+      .from('marrai_ideas')
+      .select('contact_attempts')
+      .eq('id', ideaId)
+      .single();
+
     // Update idea with contact information
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('marrai_ideas')
       .update({
         last_contacted_at: new Date().toISOString(),
         contact_method: method || 'email',
         follow_up_status: 'contacted',
-        contact_attempts: supabase.raw('COALESCE(contact_attempts, 0) + 1'),
+        contact_attempts: (currentIdea?.contact_attempts || 0) + 1,
         next_follow_up_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
       })
       .eq('id', ideaId);

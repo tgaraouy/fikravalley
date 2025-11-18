@@ -54,7 +54,7 @@ export async function GET(
       .eq('submitter_email', userData.anonymousEmail);
 
     // Get access logs
-    const { data: accessLogs } = await supabase
+    const { data: accessLogs } = await (supabase as any)
       .from('admin_access_logs')
       .select('*')
       .eq('user_id', userId)
@@ -78,7 +78,7 @@ export async function GET(
         date: c.createdAt.toISOString(),
       })),
       submissions: submissions || [],
-      accessLogs: accessLogs?.map((log) => ({
+      accessLogs: (accessLogs as any[])?.map((log: any) => ({
         action: log.action,
         reason: log.reason,
         timestamp: log.timestamp,

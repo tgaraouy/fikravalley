@@ -34,7 +34,7 @@ export async function POST(
     }
 
     // Create upvote
-    const { error } = await supabase.from('marrai_idea_upvotes').insert({
+    const { error } = await (supabase as any).from('marrai_idea_upvotes').insert({
       id: randomUUID(),
       idea_id: ideaId,
       voter_ip: ip,

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Create mentor match
-    const { error } = await supabase.from('marrai_mentor_matches').insert({
+    const { error } = await (supabase as any).from('marrai_mentor_matches').insert({
       id: randomUUID(),
       idea_id: ideaId,
       mentor_id: mentorId,
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log audit
-    await supabase.from('admin_audit_log').insert({
+    await (supabase as any).from('admin_audit_log').insert({
       id: randomUUID(),
       action: 'match_mentor',
       admin_email: 'admin@fikravalley.com',

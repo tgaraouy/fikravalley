@@ -12,8 +12,8 @@ export async function POST(
     const requestId = id;
 
     // Update request status to approved
-    const { data, error } = await supabase
-      .from('marrai_access_requests')
+    const { data, error } = await (supabase
+      .from('marrai_access_requests') as any)
       .update({
         status: 'approved',
         reviewed_at: new Date().toISOString(),
@@ -38,8 +38,8 @@ export async function POST(
 
     // Store token in database (create activation_tokens table or use existing)
     // For now, we'll store it in the access request
-    await supabase
-      .from('marrai_access_requests')
+    await (supabase
+      .from('marrai_access_requests') as any)
       .update({
         activation_token: token,
         activation_expires_at: expiresAt.toISOString(),

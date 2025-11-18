@@ -21,7 +21,7 @@ export async function POST(
     // For now, log the action
 
     // Log audit
-    await supabase.from('admin_audit_log').insert({
+    await (supabase as any).from('admin_audit_log').insert({
       id: randomUUID(),
       action: ban ? 'ban_user' : 'unban_user',
       admin_email: 'admin@fikravalley.com',

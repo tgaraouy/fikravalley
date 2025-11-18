@@ -72,7 +72,7 @@ export async function GET(
     const { createClient } = await import('@/lib/supabase-server');
     const supabase = await createClient();
 
-    const { data: idea } = await supabase
+    const { data: idea } = await (supabase as any)
       .from('marrai_ideas')
       .select('intilaka_pdf_url, intilaka_pdf_generated, intilaka_pdf_generated_at')
       .eq('id', ideaId)
@@ -86,11 +86,12 @@ export async function GET(
     }
 
     const qualifies = await qualifiesForIntilaka(ideaId);
+    const ideaData = idea as any;
 
     return NextResponse.json({
-      generated: idea.intilaka_pdf_generated || false,
-      pdfUrl: idea.intilaka_pdf_url || null,
-      generatedAt: idea.intilaka_pdf_generated_at || null,
+      generated: ideaData.intilaka_pdf_generated || false,
+      pdfUrl: ideaData.intilaka_pdf_url || null,
+      generatedAt: ideaData.intilaka_pdf_generated_at || null,
       qualifies,
     });
   } catch (error) {

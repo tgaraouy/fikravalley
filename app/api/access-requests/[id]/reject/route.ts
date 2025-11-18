@@ -20,8 +20,8 @@ export async function POST(
     }
 
     // Update request status to rejected
-    const { data, error } = await supabase
-      .from('marrai_access_requests')
+    const { data, error } = await (supabase
+      .from('marrai_access_requests') as any)
       .update({
         status: 'rejected',
         rejection_reason: reason,

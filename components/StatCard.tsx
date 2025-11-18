@@ -8,7 +8,7 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
-  color?: 'blue' | 'green' | 'yellow' | 'red' | 'indigo';
+  color?: 'blue' | 'green' | 'yellow' | 'red' | 'indigo' | 'emerald';
 }
 
 const colorStyles: Record<NonNullable<StatCardProps['color']>, string> = {
@@ -17,6 +17,7 @@ const colorStyles: Record<NonNullable<StatCardProps['color']>, string> = {
   yellow: 'bg-yellow-50 border-yellow-200 text-yellow-900',
   red: 'bg-red-50 border-red-200 text-red-900',
   indigo: 'bg-indigo-50 border-indigo-200 text-indigo-900',
+  emerald: 'bg-emerald-50 border-emerald-200 text-emerald-900',
 };
 
 const trendColorStyles: Record<NonNullable<StatCardProps['color']>, { positive: string; negative: string }> = {
@@ -25,6 +26,7 @@ const trendColorStyles: Record<NonNullable<StatCardProps['color']>, { positive: 
   yellow: { positive: 'text-yellow-700', negative: 'text-yellow-500' },
   red: { positive: 'text-red-700', negative: 'text-red-500' },
   indigo: { positive: 'text-indigo-700', negative: 'text-indigo-500' },
+  emerald: { positive: 'text-emerald-700', negative: 'text-emerald-500' },
 };
 
 export default function StatCard({ icon, label, value, trend, color = 'indigo' }: StatCardProps) {

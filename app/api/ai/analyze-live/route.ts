@@ -49,10 +49,11 @@ export async function POST(request: NextRequest) {
     const weaknesses: string[] = [];
 
     feedback.items.forEach((item) => {
+      const lang = (language || 'fr') as 'fr' | 'darija';
       if (item.score >= 7) {
-        strengths.push(`${item.criterionName[language || 'fr']}: ${item.suggestions[0] || 'Bien détaillé'}`);
+        strengths.push(`${(item.criterionName as any)[lang]}: ${item.suggestions[0] || 'Bien détaillé'}`);
       } else if (item.score < 6) {
-        weaknesses.push(`${item.criterionName[language || 'fr']}: ${item.issues[0] || 'À améliorer'}`);
+        weaknesses.push(`${(item.criterionName as any)[lang]}: ${item.issues[0] || 'À améliorer'}`);
       }
     });
 
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
       clarityScore: Math.min(10, clarityScore),
       stage1Score: scoringResult.stage1.total,
       stage2Score: scoringResult.stage2?.total || null,
-      qualificationTier: scoringResult.overall.qualificationTier,
+      qualificationTier: (scoringResult.overall as any).qualificationTier || null,
       strengths,
       weaknesses,
       nextSteps,

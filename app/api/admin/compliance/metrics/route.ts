@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
+import type { Database } from '@/lib/supabase';
 import { checkAdminAccess } from '@/lib/privacy/admin-auth';
 
 /**
@@ -41,8 +42,11 @@ export async function GET(request: NextRequest) {
       .eq('granted', true)
       .order('created_at', { ascending: false });
 
+    const consentRows =
+      (consents as Database['public']['Tables']['marrai_consents']['Row'][] | null) ?? [];
+
     const usersWithConsent = new Set(
-      consents?.filter((c) => c.consent_type === 'submission').map((c) => c.user_id) || []
+      consentRows.filter((c) => c.consent_type === 'submission').map((c) => c.user_id)
     );
 
     // Users pending deletion
@@ -65,7 +69,10 @@ export async function GET(request: NextRequest) {
       expiresLater: 0,
     };
 
-    users?.forEach((user) => {
+    const userRows =
+      (users as Database['public']['Tables']['marrai_secure_users']['Row'][] | null) ?? [];
+
+    userRows.forEach((user) => {
       const expiry = new Date(user.data_retention_expiry);
       const daysUntilExpiry = Math.floor((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
@@ -94,9 +101,14 @@ export async function GET(request: NextRequest) {
       .select('created_at')
       .gte('created_at', thirtyDaysAgo);
 
+    const withdrawalRows =
+      (withdrawals as Database['public']['Tables']['marrai_consents']['Row'][] | null) ?? [];
+    const totalConsentRows =
+      (totalConsents as Database['public']['Tables']['marrai_consents']['Row'][] | null) ?? [];
+
     const withdrawalRate =
-      totalConsents && totalConsents.length > 0
-        ? (withdrawals?.length || 0) / totalConsents.length
+      totalConsentRows.length > 0
+        ? withdrawalRows.length / totalConsentRows.length
         : 0;
 
     // Export requests (last 30 days)
@@ -119,7 +131,10 @@ export async function GET(request: NextRequest) {
       .eq('granted', true)
       .not('metadata', 'is', null);
 
-    const retentionDays = retentionConsents
+    const retentionConsentRows =
+      (retentionConsents as Database['public']['Tables']['marrai_consents']['Row'][] | null) ?? [];
+
+    const retentionDays = retentionConsentRows
       ?.map((c) => (c.metadata as any)?.retentionDays)
       .filter((d) => typeof d === 'number') || [];
 
@@ -144,7 +159,10 @@ export async function GET(request: NextRequest) {
 
     // Group by date
     const consentByDate: Record<string, { granted: number; total: number }> = {};
-    consentHistory?.forEach((consent) => {
+    const consentHistoryRows =
+      (consentHistory as Database['public']['Tables']['marrai_consents']['Row'][] | null) ?? [];
+
+    consentHistoryRows.forEach((consent) => {
       const date = consent.created_at.split('T')[0];
       if (!consentByDate[date]) {
         consentByDate[date] = { granted: 0, total: 0 };
@@ -171,7 +189,10 @@ export async function GET(request: NextRequest) {
       .order('timestamp', { ascending: true });
 
     const requestsByDate: Record<string, { exports: number; deletions: number; withdrawals: number }> = {};
-    privacyRequests?.forEach((req) => {
+    const privacyRequestRows =
+      (privacyRequests as Database['public']['Tables']['marrai_audit_logs']['Row'][] | null) ?? [];
+
+    privacyRequestRows.forEach((req) => {
       const date = req.timestamp.split('T')[0];
       if (!requestsByDate[date]) {
         requestsByDate[date] = { exports: 0, deletions: 0, withdrawals: 0 };

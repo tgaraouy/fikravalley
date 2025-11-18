@@ -34,7 +34,7 @@ export async function POST(
     }
 
     // Create validation
-    const { error } = await supabase.from('marrai_problem_validations').insert({
+    const { error } = await (supabase as any).from('marrai_problem_validations').insert({
       id: randomUUID(),
       idea_id: ideaId,
       validator_ip: ip,
@@ -50,7 +50,7 @@ export async function POST(
     }
 
     // Update idea's pain score (increment)
-    await supabase.rpc('increment_pain_score', { idea_id: ideaId });
+    await (supabase as any).rpc('increment_pain_score', { idea_id: ideaId });
 
     return NextResponse.json({ success: true });
   } catch (error) {

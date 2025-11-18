@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find access request with matching token and email
-    const { data: accessRequest, error: findError } = await supabase
+    const { data: accessRequest, error: findError } = await (supabase as any)
       .from('marrai_access_requests')
       .select('*')
       .eq('email', email.toLowerCase())
@@ -29,9 +29,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requestData = accessRequest as any;
+
     // Check if token is expired
-    if (accessRequest.activation_expires_at) {
-      const expiresAt = new Date(accessRequest.activation_expires_at);
+    if (requestData.activation_expires_at) {
+      const expiresAt = new Date(requestData.activation_expires_at);
       if (expiresAt < new Date()) {
         return NextResponse.json(
           { error: 'Ce lien d\'activation a expiré. Veuillez demander un nouveau lien.' },
@@ -41,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already activated
-    if (accessRequest.activated_at) {
+    if (requestData.activated_at) {
       return NextResponse.json(
         { 
           success: true,
@@ -53,12 +55,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark as activated
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('marrai_access_requests')
       .update({
         activated_at: new Date().toISOString(),
       })
-      .eq('id', accessRequest.id);
+      .eq('id', requestData.id);
 
     if (updateError) {
       console.error('Error activating account:', updateError);

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('marrai_idea_receipts')
       .update({ verified, verified_at: new Date().toISOString() })
       .in('id', receiptIds);
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Log audit
-    await supabase.from('admin_audit_log').insert({
+    await (supabase as any).from('admin_audit_log').insert({
       id: randomUUID(),
       action: `bulk_${verified ? 'verify' : 'reject'}_receipts`,
       admin_email: 'admin@fikravalley.com',

@@ -56,19 +56,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Check for users without consent
-    const { data: allUsers } = await supabase
-      .from('marrai_secure_users')
+    const { data: allUsers } = await (supabase
+      .from('marrai_secure_users') as any)
       .select('id')
       .is('deleted_at', null);
 
-    const { data: usersWithConsent } = await supabase
-      .from('marrai_consents')
+    const { data: usersWithConsent } = await (supabase
+      .from('marrai_consents') as any)
       .select('user_id')
       .eq('consent_type', 'submission')
       .eq('granted', true);
 
-    const usersWithConsentSet = new Set(usersWithConsent?.map((c) => c.user_id) || []);
-    const usersWithoutConsent = (allUsers || []).filter((u) => !usersWithConsentSet.has(u.id));
+    const usersWithConsentSet = new Set((usersWithConsent as any[])?.map((c: any) => c.user_id) || []);
+    const usersWithoutConsent = ((allUsers as any[]) || []).filter((u: any) => !usersWithConsentSet.has(u.id));
 
     if (usersWithoutConsent.length > 0) {
       alerts.push({
@@ -138,15 +138,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Check for suspicious access patterns
-    const { data: recentAccess } = await supabase
-      .from('admin_access_logs')
+    const { data: recentAccess } = await (supabase
+      .from('admin_access_logs') as any)
       .select('admin_id, timestamp, action')
       .gte('timestamp', thirtyDaysAgo)
       .order('timestamp', { ascending: false });
 
     // Group by admin and check for unusual patterns
     const adminAccessCounts: Record<string, number> = {};
-    recentAccess?.forEach((access) => {
+    (recentAccess as any[])?.forEach((access: any) => {
       adminAccessCounts[access.admin_id] = (adminAccessCounts[access.admin_id] || 0) + 1;
     });
 

@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert comment
-    const { data: comment, error: insertError } = await supabase
+    const { data: comment, error: insertError } = await (supabase as any)
       .from('marrai_idea_comments')
       .insert({
         idea_id,

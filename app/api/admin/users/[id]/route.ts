@@ -71,7 +71,7 @@ export async function POST(
     const consents = await consentManager.getConsents(userId);
 
     // Get access logs
-    const { data: accessLogs } = await supabase
+    const { data: accessLogs } = await (supabase as any)
       .from('admin_access_logs')
       .select('*')
       .eq('user_id', userId)
@@ -92,7 +92,7 @@ export async function POST(
         consentMethod: c.consentMethod,
         createdAt: c.createdAt.toISOString(),
       })),
-      accessLogs: accessLogs?.map((log) => ({
+      accessLogs: (accessLogs as any[])?.map((log: any) => ({
         id: log.id,
         adminId: log.admin_id,
         action: log.action,

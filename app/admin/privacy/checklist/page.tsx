@@ -25,7 +25,7 @@ interface ChecklistItem {
 export default function PrivacyChecklist() {
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [overallStatus, setOverallStatus] = useState<'ready' | 'not-ready' | 'warning'>('pending');
+  const [overallStatus, setOverallStatus] = useState<'ready' | 'not-ready' | 'warning'>('not-ready');
 
   useEffect(() => {
     verifyChecklist();
