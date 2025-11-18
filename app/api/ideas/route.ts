@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     };
 
     // Insert into database
-    const { data: insertedIdea, error: insertError } = await supabase
+    const { data: insertedIdea, error: insertError } = await (supabase as any)
       .from('marrai_ideas')
       .insert(ideaData)
       .select('id')
