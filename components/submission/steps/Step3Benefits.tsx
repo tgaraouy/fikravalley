@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -79,14 +80,14 @@ export default function Step3Benefits({
               />
               <div className="flex gap-2 mt-2">
                 <Button
-                  variant={timeframe === 'month' ? 'default' : 'outline'}
+                  variant={timeframe === 'month' ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setTimeframe('month')}
                 >
                   Par mois
                 </Button>
                 <Button
-                  variant={timeframe === 'year' ? 'default' : 'outline'}
+                  variant={timeframe === 'year' ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setTimeframe('year')}
                 >

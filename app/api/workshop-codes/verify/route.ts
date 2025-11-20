@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find workshop code
-    const { data: workshopCode, error } = await supabase
+    const { data: workshopCode, error } = await (supabase as any)
       .from('marrai_workshop_codes')
       .select('*')
       .eq('code', code.toUpperCase())
@@ -31,8 +31,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const workshopCodeData = workshopCode as any;
+
     // Check if code is expired
-    if (workshopCode.expires_at && new Date(workshopCode.expires_at) < new Date()) {
+    if (workshopCodeData.expires_at && new Date(workshopCodeData.expires_at) < new Date()) {
       return NextResponse.json(
         {
           valid: false,
@@ -43,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if code already used
-    if (workshopCode.used) {
+    if (workshopCodeData.used) {
       return NextResponse.json(
         {
           valid: false,
@@ -54,14 +56,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark code as used
-    const { error: updateError } = await (supabase
-      .from('marrai_workshop_codes') as any)
+    const { error: updateError } = await ((supabase as any)
+      .from('marrai_workshop_codes'))
       .update({
         used: true,
         used_at: new Date().toISOString(),
         // TODO: Set used_by from Supabase auth session when available
       })
-      .eq('id', workshopCode.id);
+      .eq('id', workshopCodeData.id);
 
     if (updateError) {
       console.error('Error updating workshop code:', updateError);
@@ -69,15 +71,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Auto-approve access request for this email if provided
-    if (workshopCode.email) {
-      const { data: accessRequest } = await supabase
+    if (workshopCodeData.email) {
+      const { data: accessRequest } = await (supabase as any)
         .from('marrai_access_requests')
         .select('*')
-        .eq('email', workshopCode.email.toLowerCase())
+        .eq('email', workshopCodeData.email.toLowerCase())
         .eq('status', 'pending')
         .single();
 
       if (accessRequest) {
+        const accessRequestData = accessRequest as any;
         // Auto-approve and activate
         const token = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date();
@@ -92,14 +95,14 @@ export async function POST(request: NextRequest) {
             activated_at: new Date().toISOString(),
             reviewed_at: new Date().toISOString(),
           })
-          .eq('id', accessRequest.id);
+          .eq('id', accessRequestData.id);
       }
     }
 
     return NextResponse.json(
       {
         valid: true,
-        workshop_id: workshopCode.workshop_id,
+        workshop_id: workshopCodeData.workshop_id,
         message: 'Code validé avec succès! Votre accès a été activé.',
       },
       { status: 200 }

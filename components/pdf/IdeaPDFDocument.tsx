@@ -6,6 +6,13 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 type IdeaRow = Database['public']['Tables']['marrai_ideas']['Row'];
 type AgentSolutionRow = Database['public']['Tables']['marrai_agent_solutions']['Row'];
 
+interface AIAnalysis {
+  strengths?: string[];
+  challenges?: string[];
+  roi_analysis?: string | Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 // PDF Styles
 const styles = StyleSheet.create({
   page: {
@@ -141,7 +148,7 @@ export const IdeaPDFDocument = ({
 }) => {
   const categoryLabel = idea.category ? CATEGORY_LABELS[idea.category] || idea.category : 'Autre';
   const statusLabel = idea.status ? STATUS_LABELS[idea.status] || idea.status : 'Inconnu';
-  const aiAnalysis = idea.ai_analysis as Record<string, unknown> | null;
+  const aiAnalysis = idea.ai_analysis as unknown as AIAnalysis | null;
 
   return (
     <Document>
@@ -186,10 +193,10 @@ export const IdeaPDFDocument = ({
           <Text style={styles.sectionTitle}>Problème Identifié</Text>
           <Text style={styles.text}>{idea.problem_statement}</Text>
           {idea.current_manual_process && (
-            <>
+            <View>
               <Text style={[styles.text, { marginTop: 10, fontWeight: 'bold' }]}>Processus manuel actuel:</Text>
               <Text style={styles.text}>{idea.current_manual_process}</Text>
-            </>
+            </View>
           )}
         </View>
 
@@ -220,7 +227,7 @@ export const IdeaPDFDocument = ({
               )}
             </View>
             {aiAnalysis.strengths && Array.isArray(aiAnalysis.strengths) && (
-              <>
+              <View>
                 <Text style={[styles.text, { fontWeight: 'bold', marginTop: 10 }]}>Points forts:</Text>
                 <View style={styles.list}>
                   {aiAnalysis.strengths.map((strength: string, i: number) => (
@@ -229,10 +236,10 @@ export const IdeaPDFDocument = ({
                     </Text>
                   ))}
                 </View>
-              </>
+              </View>
             )}
             {aiAnalysis.challenges && Array.isArray(aiAnalysis.challenges) && (
-              <>
+              <View>
                 <Text style={[styles.text, { fontWeight: 'bold', marginTop: 10 }]}>Défis:</Text>
                 <View style={styles.list}>
                   {aiAnalysis.challenges.map((challenge: string, i: number) => (
@@ -241,7 +248,7 @@ export const IdeaPDFDocument = ({
                     </Text>
                   ))}
                 </View>
-              </>
+              </View>
             )}
           </View>
         )}
@@ -260,15 +267,13 @@ export const IdeaPDFDocument = ({
                 <Text style={styles.value}>{agentSolution.agent_type}</Text>
               </View>
             )}
-            {agentSolution.architecture && (
-              <>
+            {agentSolution.workflow_description && (
+              <View>
                 <Text style={[styles.text, { fontWeight: 'bold', marginTop: 10 }]}>Architecture:</Text>
                 <Text style={styles.text}>
-                  {typeof agentSolution.architecture === 'string'
-                    ? agentSolution.architecture
-                    : JSON.stringify(agentSolution.architecture, null, 2)}
+                  {agentSolution.workflow_description}
                 </Text>
-              </>
+              </View>
             )}
           </View>
         )}

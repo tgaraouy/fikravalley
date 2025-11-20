@@ -128,21 +128,21 @@ export function FollowUpDashboard() {
       {/* Filters */}
       <div className="flex gap-2">
         <Button
-          variant={filter === 'pending' ? 'default' : 'outline'}
+          variant={filter === 'pending' ? 'primary' : 'outline'}
           onClick={() => setFilter('pending')}
           size="sm"
         >
           En attente ({pendingIdeas.length})
         </Button>
         <Button
-          variant={filter === 'contacted' ? 'default' : 'outline'}
+          variant={filter === 'contacted' ? 'primary' : 'outline'}
           onClick={() => setFilter('contacted')}
           size="sm"
         >
           Contactées ({contactedIdeas.length})
         </Button>
         <Button
-          variant={filter === 'all' ? 'default' : 'outline'}
+          variant={filter === 'all' ? 'primary' : 'outline'}
           onClick={() => setFilter('all')}
           size="sm"
         >

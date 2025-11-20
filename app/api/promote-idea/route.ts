@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the conversation idea
-    const { data: conversationIdea, error: fetchError } = await supabase
+    const { data: conversationIdea, error: fetchError } = await (supabase as any)
       .from('marrai_conversation_ideas')
       .select('*')
       .eq('id', conversation_idea_id)
@@ -36,24 +36,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const conversationIdeaData = conversationIdea as any;
+
     // Verify status is 'speaker_validated'
-    if (conversationIdea.status !== 'speaker_validated') {
+    if (conversationIdeaData.status !== 'speaker_validated') {
       return NextResponse.json(
         {
           error: 'Conversation idea must be validated before promotion',
-          currentStatus: conversationIdea.status,
+          currentStatus: conversationIdeaData.status,
         },
         { status: 400 }
       );
     }
 
     // Check if already promoted
-    if (conversationIdea.promoted_to_idea_id) {
+    if (conversationIdeaData.promoted_to_idea_id) {
       return NextResponse.json(
         {
           success: true,
           message: 'Already promoted',
-          ideaId: conversationIdea.promoted_to_idea_id,
+          ideaId: conversationIdeaData.promoted_to_idea_id,
         },
         { status: 200 }
       );
@@ -61,19 +63,19 @@ export async function POST(request: NextRequest) {
 
     // Create idea in main table
     const ideaData: IdeaInsert = {
-      title: conversationIdea.problem_title,
-      problem_statement: conversationIdea.problem_statement,
-      proposed_solution: conversationIdea.proposed_solution || null,
-      current_manual_process: conversationIdea.current_manual_process || null,
-      category: (conversationIdea.category as any) || null,
-      digitization_opportunity: conversationIdea.digitization_opportunity || null,
-      workshop_session: conversationIdea.session_id || null,
+      title: conversationIdeaData.problem_title,
+      problem_statement: conversationIdeaData.problem_statement,
+      proposed_solution: conversationIdeaData.proposed_solution || null,
+      current_manual_process: conversationIdeaData.current_manual_process || null,
+      category: (conversationIdeaData.category as any) || null,
+      digitization_opportunity: conversationIdeaData.digitization_opportunity || null,
+      workshop_session: conversationIdeaData.session_id || null,
       submitted_via: 'workshop_conversation',
-      submitter_name: conversationIdea.speaker_context || null,
+      submitter_name: conversationIdeaData.speaker_context || null,
       status: 'submitted', // Will be changed to 'analyzing' by analyze-idea API
     };
 
-    const { data: newIdea, error: insertError } = await supabase
+    const { data: newIdea, error: insertError } = await (supabase as any)
       .from('marrai_ideas')
       .insert(ideaData)
       .select('id')
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
       status: 'promoted_to_idea',
     };
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await (supabase as any)
       .from('marrai_conversation_ideas')
       .update(updateData)
       .eq('id', conversation_idea_id);

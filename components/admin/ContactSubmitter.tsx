@@ -185,14 +185,14 @@ export function ContactSubmitter({ idea, onContacted }: ContactSubmitterProps) {
         {/* Contact Method Selection */}
         <div className="flex gap-2">
           <Button
-            variant={contactMethod === 'email' ? 'default' : 'outline'}
+            variant={contactMethod === 'email' ? 'primary' : 'outline'}
             onClick={() => setContactMethod('email')}
             size="sm"
           >
             📧 Email
           </Button>
           <Button
-            variant={contactMethod === 'whatsapp' ? 'default' : 'outline'}
+            variant={contactMethod === 'whatsapp' ? 'primary' : 'outline'}
             onClick={() => setContactMethod('whatsapp')}
             size="sm"
             disabled={!idea.submitter_phone}
@@ -249,7 +249,7 @@ export function ContactSubmitter({ idea, onContacted }: ContactSubmitterProps) {
             <span className="text-sm text-slate-600">Statut:</span>
             <Badge variant={
               idea.follow_up_status === 'responded' ? 'default' :
-              idea.follow_up_status === 'contacted' ? 'secondary' :
+              idea.follow_up_status === 'contacted' ? 'success' :
               'outline'
             }>
               {idea.follow_up_status}

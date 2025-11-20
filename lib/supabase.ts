@@ -48,6 +48,10 @@ export interface Database {
           submitted_via: 'web' | 'whatsapp' | 'workshop_form' | 'workshop_conversation' | null;
           admin_notes: string | null;
           rejected_reason: string | null;
+          intilaka_pdf_generated: boolean | null;
+          intilaka_pdf_url: string | null;
+          intilaka_pdf_generated_at: string | null;
+          alignment: Record<string, any> | null;
           last_contacted_at: string | null;
           contact_method: 'email' | 'phone' | 'whatsapp' | 'other' | null;
           follow_up_status: 'pending' | 'contacted' | 'completed' | 'escalated' | null;
@@ -96,6 +100,9 @@ export interface Database {
           submitted_via?: 'web' | 'whatsapp' | 'workshop_form' | 'workshop_conversation' | null;
           admin_notes?: string | null;
           rejected_reason?: string | null;
+          intilaka_pdf_generated?: boolean | null;
+          intilaka_pdf_url?: string | null;
+          intilaka_pdf_generated_at?: string | null;
           last_contacted_at?: string | null;
           contact_method?: 'email' | 'phone' | 'whatsapp' | 'other' | null;
           follow_up_status?: 'pending' | 'contacted' | 'completed' | 'escalated' | null;
@@ -144,6 +151,9 @@ export interface Database {
           submitted_via?: 'web' | 'whatsapp' | 'workshop_form' | 'workshop_conversation' | null;
           admin_notes?: string | null;
           rejected_reason?: string | null;
+          intilaka_pdf_generated?: boolean | null;
+          intilaka_pdf_url?: string | null;
+          intilaka_pdf_generated_at?: string | null;
           last_contacted_at?: string | null;
           contact_method?: 'email' | 'phone' | 'whatsapp' | 'other' | null;
           follow_up_status?: 'pending' | 'contacted' | 'completed' | 'escalated' | null;
@@ -604,6 +614,73 @@ export interface Database {
           updated_at?: string | null;
         };
       };
+      marrai_self_ask_questions: {
+        Row: {
+          id: string;
+          idea_id: string;
+          question_id: string;
+          question_order: number;
+          question_text: string;
+          status: 'asked' | 'answered' | 'skipped';
+          asked_at: string;
+          answered_at: string | null;
+        };
+        Insert: {
+          id: string;
+          idea_id: string;
+          question_id: string;
+          question_order: number;
+          question_text: string;
+          status: 'asked' | 'answered' | 'skipped';
+          asked_at: string;
+          answered_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          idea_id?: string;
+          question_id?: string;
+          question_order?: number;
+          question_text?: string;
+          status?: 'asked' | 'answered' | 'skipped';
+          asked_at?: string;
+          answered_at?: string | null;
+        };
+      };
+      marrai_self_ask_responses: {
+        Row: {
+          id: string;
+          idea_id: string;
+          question_id: string;
+          original_text: string;
+          extracted_data: Record<string, any>;
+          entities: Record<string, any>;
+          sentiment: 'positive' | 'neutral' | 'negative';
+          confidence: number;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          idea_id: string;
+          question_id: string;
+          original_text: string;
+          extracted_data: Record<string, any>;
+          entities: Record<string, any>;
+          sentiment: 'positive' | 'neutral' | 'negative';
+          confidence: number;
+          created_at: string;
+        };
+        Update: {
+          id?: string;
+          idea_id?: string;
+          question_id?: string;
+          original_text?: string;
+          extracted_data?: Record<string, any>;
+          entities?: Record<string, any>;
+          sentiment?: 'positive' | 'neutral' | 'negative';
+          confidence?: number;
+          created_at?: string;
+        };
+      };
       marrai_access_requests: {
         Row: {
           id: string;
@@ -611,13 +688,13 @@ export interface Database {
           name: string;
           organization: string | null;
           user_type:
-            | 'workshop_attendee'
-            | 'student'
-            | 'professional'
-            | 'diaspora'
-            | 'government'
-            | 'entrepreneur'
-            | 'other';
+          | 'workshop_attendee'
+          | 'student'
+          | 'professional'
+          | 'diaspora'
+          | 'government'
+          | 'entrepreneur'
+          | 'other';
           reason: string;
           how_heard: string | null;
           status: 'pending' | 'approved' | 'rejected';
@@ -635,13 +712,13 @@ export interface Database {
           name: string;
           organization?: string | null;
           user_type:
-            | 'workshop_attendee'
-            | 'student'
-            | 'professional'
-            | 'diaspora'
-            | 'government'
-            | 'entrepreneur'
-            | 'other';
+          | 'workshop_attendee'
+          | 'student'
+          | 'professional'
+          | 'diaspora'
+          | 'government'
+          | 'entrepreneur'
+          | 'other';
           reason: string;
           how_heard?: string | null;
           status?: 'pending' | 'approved' | 'rejected';
@@ -659,13 +736,13 @@ export interface Database {
           name?: string;
           organization?: string | null;
           user_type?:
-            | 'workshop_attendee'
-            | 'student'
-            | 'professional'
-            | 'diaspora'
-            | 'government'
-            | 'entrepreneur'
-            | 'other';
+          | 'workshop_attendee'
+          | 'student'
+          | 'professional'
+          | 'diaspora'
+          | 'government'
+          | 'entrepreneur'
+          | 'other';
           reason?: string;
           how_heard?: string | null;
           status?: 'pending' | 'approved' | 'rejected';
@@ -989,7 +1066,8 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const safeUrl = supabaseUrl || 'https://placeholder.supabase.co';
 const safeKey = supabaseAnonKey || 'placeholder-key';
 
-export const supabase = createClient<Database>(safeUrl, safeKey);
+// Create client with Database types, but allow any table access
+export const supabase = createClient<Database>(safeUrl, safeKey) as any;
 
 // Export a function to check if Supabase is properly configured
 export function isSupabaseConfigured(): boolean {

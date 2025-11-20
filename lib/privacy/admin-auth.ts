@@ -120,7 +120,7 @@ export async function logAdminAccess(
   try {
     const supabase = await createClient();
 
-    await supabase.from('admin_access_logs').insert({
+    await (supabase as any).from('admin_access_logs').insert({
       id: randomUUID(),
       admin_id: adminId,
       user_id: userId,
@@ -146,7 +146,7 @@ export async function getUserAccessLogs(
   try {
     const supabase = await createClient();
 
-    const { data: logs, error } = await supabase
+    const { data: logs, error } = await (supabase as any)
       .from('admin_access_logs')
       .select('*')
       .eq('user_id', userId)
@@ -158,7 +158,7 @@ export async function getUserAccessLogs(
     }
 
     return (
-      logs?.map((log) => ({
+      logs?.map((log: any) => ({
         id: log.id,
         adminId: log.admin_id,
         userId: log.user_id,

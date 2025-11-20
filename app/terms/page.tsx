@@ -242,14 +242,14 @@ export default function TermsOfServicePage() {
       {/* Language Switcher */}
       <div className="flex justify-end gap-2 mb-6">
         <Button
-          variant={language === 'fr' ? 'default' : 'outline'}
+          variant={language === 'fr' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => setLanguage('fr')}
         >
           Français
         </Button>
         <Button
-          variant={language === 'ar' ? 'default' : 'outline'}
+          variant={language === 'ar' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => setLanguage('ar')}
         >

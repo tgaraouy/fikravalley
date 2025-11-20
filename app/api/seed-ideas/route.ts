@@ -296,7 +296,7 @@ export async function POST() {
     }
 
     // Insert ideas into marrai_ideas table
-    const { data: insertedIdeas, error } = await supabase
+    const { data: insertedIdeas, error } = await (supabase as any)
       .from('marrai_ideas')
       .insert(SAMPLE_IDEAS)
       .select('id, title, category, location');
@@ -314,7 +314,9 @@ export async function POST() {
       );
     }
 
-    if (!insertedIdeas || insertedIdeas.length === 0) {
+    const insertedList = (insertedIdeas as any[]) || [];
+
+    if (insertedList.length === 0) {
       return NextResponse.json(
         {
           success: false,
@@ -325,7 +327,7 @@ export async function POST() {
     }
 
     // Trigger analysis for each inserted idea (non-blocking, background)
-    const analysisPromises = insertedIdeas.map((idea) =>
+    const analysisPromises = insertedList.map((idea: any) =>
       fetch(ANALYSIS_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -345,8 +347,8 @@ export async function POST() {
       {
         success: true,
         message: 'Sample ideas seeded successfully',
-        ideasCreated: insertedIdeas.length,
-        ideas: insertedIdeas.map((idea) => ({
+        ideasCreated: insertedList.length,
+        ideas: insertedList.map((idea: any) => ({
           id: idea.id,
           title: idea.title,
           category: idea.category,

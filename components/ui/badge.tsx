@@ -2,14 +2,15 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-const variantStyles: Record<'default' | 'success' | 'outline', string> = {
+const variantStyles: Record<'default' | 'success' | 'outline' | 'secondary', string> = {
   default: 'bg-indigo-100 text-indigo-700 border border-indigo-200',
   success: 'bg-emerald-100 text-emerald-700 border border-emerald-200',
   outline: 'border border-slate-300 text-slate-700 bg-white/60',
+  secondary: 'bg-slate-100 text-slate-700 border border-slate-200',
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'success' | 'outline';
+  variant?: 'default' | 'success' | 'outline' | 'secondary';
 }
 
 export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(

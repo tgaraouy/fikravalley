@@ -89,20 +89,6 @@ CREATE TABLE marrai_ideas (
   featured BOOLEAN DEFAULT FALSE,
   priority TEXT CHECK (priority IN ('critical', 'high', 'medium', 'low')),
   
-  -- Workshop-specific
-  workshop_session TEXT, -- which session it was submitted/captured in
-  submitted_via TEXT DEFAULT 'web' CHECK (submitted_via IN (
-    'web', 'whatsapp', 'workshop_form', 'workshop_conversation'
-  )),
-  
-  -- Admin fields
-  admin_notes TEXT,
-  rejected_reason TEXT
-);
-
--- Diaspora profiles (for matching)
-CREATE TABLE marrai_diaspora_profiles (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   
@@ -340,18 +326,6 @@ CREATE TABLE marrai_conversation_ideas (
   promoted_to_idea_id UUID REFERENCES marrai_ideas(id),
   promoted_at TIMESTAMP,
   
-  -- Admin workflow
-  flagged_for_review BOOLEAN DEFAULT FALSE,
-  admin_notes TEXT
-);
-
--- ============================================
--- SUPPORTING TABLES
--- ============================================
-
--- Comments/discussions on ideas
-CREATE TABLE marrai_idea_comments (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   created_at TIMESTAMP DEFAULT NOW(),
   
   idea_id UUID REFERENCES marrai_ideas(id) ON DELETE CASCADE,

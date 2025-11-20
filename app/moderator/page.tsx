@@ -89,7 +89,7 @@ export default function ModeratorPanel() {
         .select('word_count')
         .eq('session_id', currentSessionId);
 
-      const wordsCaptured = transcripts?.reduce((sum, t) => sum + (t.word_count || 0), 0) || 0;
+      const wordsCaptured = (transcripts as any[])?.reduce((sum: number, t: any) => sum + (t.word_count || 0), 0) || 0;
 
       // Ideas stats
       const { data: ideas } = await supabase
@@ -97,10 +97,11 @@ export default function ModeratorPanel() {
         .select('status')
         .eq('session_id', currentSessionId);
 
-      const ideasDetected = ideas?.length || 0;
-      const ideasPending = ideas?.filter((i) => i.status === 'pending_validation').length || 0;
-      const ideasValidated = ideas?.filter((i) => i.status === 'speaker_validated').length || 0;
-      const ideasRejected = ideas?.filter((i) => i.status === 'speaker_rejected').length || 0;
+      const ideasArray = (ideas as any[]) || [];
+      const ideasDetected = ideasArray.length || 0;
+      const ideasPending = ideasArray.filter((i: any) => i.status === 'pending_validation').length || 0;
+      const ideasValidated = ideasArray.filter((i: any) => i.status === 'speaker_validated').length || 0;
+      const ideasRejected = ideasArray.filter((i: any) => i.status === 'speaker_rejected').length || 0;
 
       // Recording duration
       let recordingDuration = 0;
@@ -206,7 +207,7 @@ export default function ModeratorPanel() {
           table: 'marrai_workshop_sessions',
           filter: `id=eq.${currentSessionId}`,
         },
-        (payload) => {
+        (payload: any) => {
           setCurrentSession(payload.new as WorkshopSessionRow);
           setIsRecording((payload.new as WorkshopSessionRow).recording_started || false);
         }

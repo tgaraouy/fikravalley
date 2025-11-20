@@ -215,14 +215,15 @@ export default function WorkshopDashboard() {
   // Fetch session name
   useEffect(() => {
     async function fetchSessionName() {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('marrai_workshop_sessions')
         .select('name, name_french')
         .eq('id', sessionId)
         .single();
 
       if (data) {
-        setSessionName(data.name_french || data.name || sessionId);
+        const sessionData = data as any;
+        setSessionName(sessionData.name_french || sessionData.name || sessionId);
       }
     }
     fetchSessionName();
@@ -232,24 +233,25 @@ export default function WorkshopDashboard() {
   const fetchStats = async () => {
     try {
       // Words captured
-      const { data: transcripts } = await supabase
+      const { data: transcripts } = await (supabase as any)
         .from('marrai_transcripts')
         .select('word_count')
         .eq('session_id', sessionId);
 
       const wordsCaptured =
-        transcripts?.reduce((sum, t) => sum + (t.word_count || 0), 0) || 0;
+        (transcripts as any[])?.reduce((sum: number, t: any) => sum + (t.word_count || 0), 0) || 0;
 
       // Conversation ideas stats
-      const { data: ideas } = await supabase
+      const { data: ideas } = await (supabase as any)
         .from('marrai_conversation_ideas')
         .select('*')
         .eq('session_id', sessionId);
 
-      const ideasDetected = ideas?.length || 0;
-      const validated = ideas?.filter((i) => i.status === 'speaker_validated').length || 0;
-      const pending = ideas?.filter((i) => i.status === 'pending_validation').length || 0;
-      const rejected = ideas?.filter((i) => i.status === 'speaker_rejected').length || 0;
+      const ideasArray = (ideas as any[]) || [];
+      const ideasDetected = ideasArray.length || 0;
+      const validated = ideasArray.filter((i: any) => i.status === 'speaker_validated').length || 0;
+      const pending = ideasArray.filter((i: any) => i.status === 'pending_validation').length || 0;
+      const rejected = ideasArray.filter((i: any) => i.status === 'speaker_rejected').length || 0;
 
       setStats({
         wordsCaptured,
@@ -260,18 +262,18 @@ export default function WorkshopDashboard() {
       });
 
       // Latest pending idea
-      const latestPendingIdea = ideas
-        ?.filter((i) => i.status === 'pending_validation')
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+      const latestPendingIdea = ideasArray
+        .filter((i: any) => i.status === 'pending_validation')
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
 
       if (latestPendingIdea) {
         setLatestPending(latestPendingIdea);
       }
 
       // Validated ideas
-      const validatedList = ideas
-        ?.filter((i) => i.status === 'speaker_validated')
-        .sort((a, b) => {
+      const validatedList = ideasArray
+        .filter((i: any) => i.status === 'speaker_validated')
+        .sort((a: any, b: any) => {
           const aTime = a.validated_at ? new Date(a.validated_at).getTime() : 0;
           const bTime = b.validated_at ? new Date(b.validated_at).getTime() : 0;
           return bTime - aTime;
@@ -313,7 +315,7 @@ export default function WorkshopDashboard() {
           table: 'marrai_conversation_ideas',
           filter: `session_id=eq.${sessionId}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log('Changement détecté:', payload);
 
           if (payload.eventType === 'INSERT') {

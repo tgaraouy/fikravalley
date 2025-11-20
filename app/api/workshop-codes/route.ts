@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const codesToInsert = [];
+    const codesToInsert: any[] = [];
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expires_in_days);
 
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert codes
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('marrai_workshop_codes')
       .insert(codesToInsert)
       .select();

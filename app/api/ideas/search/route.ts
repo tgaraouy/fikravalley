@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
     // Apply Morocco priorities filter (PRIMARY)
     if (priorities.length > 0) {
       filteredIdeas = filteredIdeas.filter((idea: any) => {
-        const ideaPriorities = idea.alignment?.moroccoPriorities || [];
+        const ideaPriorities = (idea.alignment as any)?.moroccoPriorities || [];
         return priorities.some((p) => ideaPriorities.includes(p));
       });
     }
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
     // Apply SDG filter if specified (SECONDARY, advanced)
     if (sdgs.length > 0) {
       filteredIdeas = filteredIdeas.filter((idea: any) => {
-        const ideaSDGs = idea.alignment?.sdgTags || idea.sdg_alignment || [];
+        const ideaSDGs = (idea.alignment as any)?.sdgTags || idea.sdg_alignment || [];
         return ideaSDGs.some((sdg: number) => sdgs.includes(sdg.toString()));
       });
     }

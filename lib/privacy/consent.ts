@@ -135,7 +135,7 @@ export class ConsentManager {
   ): Promise<void> {
     try {
       const supabase = await this.getSupabase();
-      const { error } = await supabase.from('marrai_audit_logs').insert({
+      const { error } = await (supabase as any).from('marrai_audit_logs').insert({
         id: randomUUID(),
         user_id: userId,
         action,
@@ -206,7 +206,7 @@ export class ConsentManager {
         metadata: data.metadata || null,
       };
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('marrai_consents')
         .insert({
           id: consentId,
@@ -253,7 +253,7 @@ export class ConsentManager {
     try {
       const supabase = await this.getSupabase();
 
-      const { data: consents, error } = await supabase
+      const { data: consents, error } = await (supabase as any)
         .from('marrai_consents')
         .select('*')
         .eq('user_id', userId)
@@ -305,7 +305,7 @@ export class ConsentManager {
       const supabase = await this.getSupabase();
 
       // Get most recent consent for this type
-      const { data: consent, error } = await supabase
+      const { data: consent, error } = await (supabase as any)
         .from('marrai_consents')
         .select('*')
         .eq('user_id', userId)
@@ -369,7 +369,7 @@ export class ConsentManager {
       const supabase = await this.getSupabase();
 
       // Get most recent consent to reuse phone_hash (for consistency)
-      const { data: existingConsent } = await supabase
+      const { data: existingConsent } = await (supabase as any)
         .from('marrai_consents')
         .select('phone_hash')
         .eq('user_id', userId)
@@ -383,7 +383,7 @@ export class ConsentManager {
       if (existingConsent) {
         phoneHash = existingConsent.phone_hash;
       } else {
-        const { data: user } = await supabase
+        const { data: user } = await (supabase as any)
           .from('marrai_secure_users')
           .select('phone_hash')
           .eq('id', userId)
@@ -399,7 +399,7 @@ export class ConsentManager {
       const consentId = randomUUID();
       const consentVersion = this.getConsentVersion();
 
-      const { error } = await supabase.from('marrai_consents').insert({
+      const { error } = await (supabase as any).from('marrai_consents').insert({
         id: consentId,
         user_id: userId,
         phone_hash: phoneHash,

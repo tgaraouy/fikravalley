@@ -52,10 +52,10 @@ export default function AIAgentChat({
   const [isLoading, setIsLoading] = useState(false);
   const [minimized, setMinimized] = useState(initialMinimized);
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<any>(null);
   const [micPermissionDenied, setMicPermissionDenied] = useState(false);
   const [micNotFound, setMicNotFound] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Initialize messages and speech recognition on client side only
   useEffect(() => {
@@ -78,11 +78,11 @@ export default function AIAgentChat({
         const recognitionInstance = new SpeechRecognition();
         recognitionInstance.continuous = false;
         recognitionInstance.interimResults = true; // Show interim results for better UX
-        recognitionInstance.lang = context?.language === 'darija' || context?.language === 'ar' 
+        recognitionInstance.lang = (context?.language as string) === 'darija' || (context?.language as string) === 'ar' 
           ? 'ar-MA' 
           : 'fr-FR';
 
-        recognitionInstance.onresult = (event: SpeechRecognitionEvent) => {
+        recognitionInstance.onresult = (event: any) => {
           let finalTranscript = '';
           let interimTranscript = '';
 
@@ -282,7 +282,7 @@ export default function AIAgentChat({
         // Clear any previous interim text
         setInput(prev => prev.replace(' [en cours...]', ''));
         
-        rec.lang = context?.language === 'darija' || context?.language === 'ar' 
+        rec.lang = (context?.language as string) === 'darija' || (context?.language as string) === 'ar' 
           ? 'ar-MA' 
           : 'fr-FR';
         rec.start();

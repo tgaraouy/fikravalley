@@ -4,6 +4,9 @@
  */
 
 import { createClient } from '@/lib/supabase-server';
+import type { Database } from '@/lib/supabase';
+
+type AccessRequestRow = Database['public']['Tables']['marrai_access_requests']['Row'];
 
 /**
  * Check if user has approved and activated access
@@ -17,15 +20,17 @@ export async function checkUserAccessStatus(email: string): Promise<{
 }> {
   try {
     const supabase = await createClient();
-    
+
     // Check access request
-    const { data: accessRequest } = await supabase
+    const { data } = await supabase
       .from('marrai_access_requests')
       .select('*')
       .eq('email', email.toLowerCase())
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
+
+    const accessRequest = data as AccessRequestRow | null;
 
     if (!accessRequest) {
       return { hasAccess: false, status: null, activated: false };

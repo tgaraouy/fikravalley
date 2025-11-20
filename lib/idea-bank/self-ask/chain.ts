@@ -186,10 +186,10 @@ export const CORE_QUESTIONS: Question[] = [
  */
 const DARIJA_NUMBERS: Record<string, number> = {
   'wahd': 1, 'wahed': 1, 'w7ed': 1,
-  'juj': 2, 'joj': 2, 'juj': 2, 'j2': 2,
+  'juj': 2, 'joj': 2, 'j2': 2,
   'tlata': 3, 'tlatha': 3, 't3': 3,
   'rb3a': 4, 'rba3a': 4, 'r4': 4,
-  'khamsa': 5, 'khamsa': 5, 'kh5': 5,
+  'khamsa': 5, 'kh5': 5,
   'sitta': 6, 's6': 6,
   'sba3': 7, 's7': 7,
   'tmania': 8, 't8': 8,
@@ -276,13 +276,13 @@ export function extractEntities(text: string): {
  */
 export function detectSentiment(text: string): 'positive' | 'neutral' | 'negative' {
   const lower = text.toLowerCase();
-  
+
   const positiveKeywords = [
     'mzyan', 'mzyana', 'bghiti', 'bghit', 'khass', 'khassna', 'm7im', 'm7ima',
     'bien', 'bon', 'excellent', 'parfait', 'génial', 'super',
     'جيد', 'ممتاز', 'رائع', 'ممتاز',
   ];
-  
+
   const negativeKeywords = [
     'mashi', 'mach', 'walo', 'ma kaynach', 'ma kaynch', 's3ib', 's3iba',
     'non', 'pas', 'difficile', 'compliqué', 'problème',
@@ -350,9 +350,9 @@ export function parseResponse(
       return {
         amount: entities.prices[0] || entities.numbers[0] || null,
         currency: text.includes('dh') || text.includes('dirham') || text.includes('درهم') ? 'MAD' :
-                 text.includes('eur') || text.includes('euro') || text.includes('يورو') ? 'EUR' : 'MAD',
+          text.includes('eur') || text.includes('euro') || text.includes('يورو') ? 'EUR' : 'MAD',
         frequency: text.includes('shahar') || text.includes('mois') || text.includes('شهر') ? 'monthly' :
-                  text.includes('sana') || text.includes('an') || text.includes('سنة') ? 'yearly' : 'one_time',
+          text.includes('sana') || text.includes('an') || text.includes('سنة') ? 'yearly' : 'one_time',
         sentiment,
       };
 
@@ -375,7 +375,7 @@ export function parseResponse(
       // Extract Morocco priority IDs from response
       const detectedPriorities: string[] = [];
       const lowerText = text.toLowerCase();
-      
+
       // Map user input to priority IDs
       const priorityMap: Record<string, string> = {
         // Green Morocco
@@ -431,14 +431,14 @@ export function parseResponse(
         'la': '',
         '8': '',
       };
-      
+
       // Check for priority mentions
       Object.entries(priorityMap).forEach(([keyword, priorityId]) => {
         if (lowerText.includes(keyword) && priorityId && !detectedPriorities.includes(priorityId)) {
           detectedPriorities.push(priorityId);
         }
       });
-      
+
       // Also check for numbers (1-8) - handle multiple numbers
       const numberMatches = text.match(/\b([1-8])\b/g);
       if (numberMatches) {
@@ -449,7 +449,7 @@ export function parseResponse(
           }
         });
       }
-      
+
       return {
         moroccoPriorities: detectedPriorities,
         rawText: text,
@@ -504,7 +504,7 @@ export class SelfAskChain {
    * Ask next question
    */
   async askNext(ideaId: string, userPhone: string): Promise<Question | null> {
-    const supabase = await this.getSupabase();
+    const supabase = await this.getSupabase() as any;
 
     // Get progress
     const progress = await this.getProgress(ideaId);
@@ -561,7 +561,7 @@ export class SelfAskChain {
     questionId: string,
     response: string
   ): Promise<void> {
-    const supabase = await this.getSupabase();
+    const supabase = await this.getSupabase() as any;
 
     // Find question
     const question = CORE_QUESTIONS.find((q) => q.id === questionId);
@@ -682,13 +682,13 @@ export class SelfAskChain {
   async getProgress(ideaId: string): Promise<Progress> {
     const supabase = await this.getSupabase();
 
-    const { data: questions } = await supabase
+    const { data: questions } = await (supabase as any)
       .from('marrai_self_ask_questions')
       .select('question_id, status')
       .eq('idea_id', ideaId);
 
-    const completedQuestions = questions?.filter((q) => q.status === 'answered').map((q) => q.question_id) || [];
-    const skippedQuestions = questions?.filter((q) => q.status === 'skipped').map((q) => q.question_id) || [];
+    const completedQuestions = (questions as any[])?.filter((q: any) => q.status === 'answered').map((q: any) => q.question_id) || [];
+    const skippedQuestions = (questions as any[])?.filter((q: any) => q.status === 'skipped').map((q: any) => q.question_id) || [];
 
     const currentQuestion = CORE_QUESTIONS.find(
       (q) => !completedQuestions.includes(q.id) && !skippedQuestions.includes(q.id)
@@ -714,7 +714,7 @@ export class SelfAskChain {
   async generateStructuredData(ideaId: string): Promise<StructuredData> {
     const supabase = await this.getSupabase();
 
-    const { data: responses } = await supabase
+    const { data: responses } = await (supabase as any)
       .from('marrai_self_ask_responses')
       .select('*')
       .eq('idea_id', ideaId)
@@ -734,7 +734,7 @@ export class SelfAskChain {
 
     let totalConfidence = 0;
 
-    responses.forEach((response) => {
+    (responses as any[]).forEach((response: any) => {
       const question = CORE_QUESTIONS.find((q) => q.id === response.question_id);
       if (!question) return;
 
@@ -798,14 +798,15 @@ export class SelfAskChain {
   private async shouldSkipQuestion(ideaId: string, question: Question): Promise<boolean> {
     // Skip regulatory if no government involvement mentioned
     if (question.questionType === 'regulatory') {
-      const { data: idea } = await (await this.getSupabase())
+      const { data: idea } = await ((await this.getSupabase()) as any)
         .from('marrai_ideas')
         .select('problem_statement, proposed_solution')
         .eq('id', ideaId)
         .single();
 
       if (idea) {
-        const text = ((idea.problem_statement || '') + ' ' + (idea.proposed_solution || '')).toLowerCase();
+        const ideaData = idea as any;
+        const text = ((ideaData.problem_statement || '') + ' ' + (ideaData.proposed_solution || '')).toLowerCase();
         const hasGovernment = /(gouvernement|government|ministère|ministry|wilaya|commune|baladiya|حكومة|وزارة)/i.test(text);
         if (!hasGovernment) return true;
       }
@@ -813,12 +814,12 @@ export class SelfAskChain {
 
     // Skip team if already mentioned
     if (question.questionType === 'team') {
-      const { data: responses } = await (await this.getSupabase())
+      const { data: responses } = await ((await this.getSupabase()) as any)
         .from('marrai_self_ask_responses')
         .select('original_text')
         .eq('idea_id', ideaId);
 
-      const hasTeamMention = responses?.some((r) =>
+      const hasTeamMention = (responses as any[])?.some((r: any) =>
         /(équipe|team|partenaire|partner|شريك|فريق)/i.test(r.original_text)
       );
       if (hasTeamMention) return true;
@@ -832,7 +833,7 @@ export class SelfAskChain {
    */
   private async markQuestionSkipped(ideaId: string, questionId: string): Promise<void> {
     const supabase = await this.getSupabase();
-    await supabase.from('marrai_self_ask_questions').insert({
+    await (supabase as any).from('marrai_self_ask_questions').insert({
       id: randomUUID(),
       idea_id: ideaId,
       question_id: questionId,
@@ -848,13 +849,13 @@ export class SelfAskChain {
    */
   async getUserPhone(ideaId: string): Promise<string> {
     const supabase = await this.getSupabase();
-    const { data: idea } = await supabase
+    const { data: idea } = await (supabase as any)
       .from('marrai_ideas')
       .select('submitter_phone')
       .eq('id', ideaId)
       .single();
 
-    return idea?.submitter_phone || '';
+    return (idea as any)?.submitter_phone || '';
   }
 }
 
@@ -874,7 +875,7 @@ export async function processSelfAskResponse(
   message: string
 ): Promise<{ nextQuestion: Question | null; progress: Progress }> {
   const chain = new SelfAskChain();
-  
+
   // Get current question using public method
   const progress = await chain.getProgress(ideaId);
   const currentQuestionId = CORE_QUESTIONS.find(
@@ -887,13 +888,13 @@ export async function processSelfAskResponse(
 
   // Get user phone from idea
   const supabase = await createClient();
-  const { data: idea } = await supabase
+  const { data: idea } = await (supabase as any)
     .from('marrai_ideas')
     .select('submitter_phone')
     .eq('id', ideaId)
     .single();
 
-  const userPhone = idea?.submitter_phone || '';
+  const userPhone = (idea as any)?.submitter_phone || '';
   const nextQuestion = await chain.askNext(ideaId, userPhone);
   const updatedProgress = await chain.getProgress(ideaId);
 

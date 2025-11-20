@@ -15,7 +15,7 @@ import path from 'path';
  * Returns PDF as buffer or saves to file
  */
 export async function generateIntilakaPDFSimple(ideaId: string): Promise<string> {
-  const supabase = await createClient();
+  const supabase = await createClient() as any;
 
   // Fetch idea data
   const { data: idea, error: ideaError } = await supabase
@@ -39,7 +39,7 @@ export async function generateIntilakaPDFSimple(ideaId: string): Promise<string>
       intilaka_pdf_generated: true,
       intilaka_pdf_url: pdfUrl,
       intilaka_pdf_generated_at: new Date().toISOString(),
-    })
+    } as any)
     .eq('id', ideaId);
 
   return pdfUrl;
@@ -53,10 +53,10 @@ async function generatePDFViaAPI(idea: any): Promise<string> {
   // Option 1: Use a PDF generation API (e.g., PDFShift, HTMLtoPDF)
   // Option 2: Use Puppeteer to generate from HTML
   // Option 3: Use a serverless function
-  
+
   // For now, create an HTML version that can be converted to PDF
   const html = generateHTMLVersion(idea);
-  
+
   // Save HTML temporarily
   const tempDir = path.join(process.cwd(), 'tmp');
   if (!fs.existsSync(tempDir)) {
@@ -170,3 +170,19 @@ function generateHTMLVersion(idea: any): string {
   `;
 }
 
+
+/**
+ * Check if idea qualifies for Intilaka PDF generation
+ */
+export async function qualifiesForIntilaka(ideaId: string): Promise<boolean> {
+  const supabase = await createClient() as any;
+
+  const { data: scores } = await supabase
+    .from('marrai_idea_scores')
+    .select('total_score, stage2_total')
+    .eq('idea_id', ideaId)
+    .single();
+
+  // Qualifies if Stage 2 score ≥ 25/40 or total score ≥ 25/40
+  return (scores?.total_score || scores?.stage2_total || 0) >= 25;
+}

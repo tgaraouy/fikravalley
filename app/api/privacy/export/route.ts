@@ -29,7 +29,7 @@ function generateOTP(): string {
 async function checkRateLimit(userId: string): Promise<{ allowed: boolean; nextAllowedAt?: Date }> {
   const supabase = await createClient();
 
-  const { data: recentExports } = await supabase
+  const { data: recentExports } = await (supabase as any)
     .from('marrai_export_requests')
     .select('created_at')
     .eq('user_id', userId)
@@ -41,7 +41,7 @@ async function checkRateLimit(userId: string): Promise<{ allowed: boolean; nextA
     return { allowed: true };
   }
 
-  const lastExport = new Date(recentExports[0].created_at);
+  const lastExport = new Date((recentExports as any[])[0].created_at);
   const now = new Date();
   const hoursSinceLastExport = (now.getTime() - lastExport.getTime()) / (1000 * 60 * 60);
 
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     const exportId = randomUUID();
 
     // Create export request
-    const { error: insertError } = await supabase.from('marrai_export_requests').insert({
+    const { error: insertError } = await (supabase as any).from('marrai_export_requests').insert({
       id: exportId,
       user_id: userId,
       otp: otp,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     // TODO: Send email OTP if email provided
 
     // Log export request
-    await supabase.from('marrai_audit_logs').insert({
+    await (supabase as any).from('marrai_audit_logs').insert({
       id: randomUUID(),
       user_id: userId,
       action: 'export_requested',
@@ -156,7 +156,7 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
 
     // Get export request
-    const { data: exportRequest, error: fetchError } = await supabase
+    const { data: exportRequest, error: fetchError } = await (supabase as any)
       .from('marrai_export_requests')
       .select('*')
       .eq('id', exportId)
@@ -169,8 +169,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const exportRequestData = exportRequest as any;
+
     // Verify OTP
-    if (exportRequest.otp !== otp) {
+    if (exportRequestData.otp !== otp) {
       return NextResponse.json(
         { error: 'Invalid OTP' },
         { status: 401 }
@@ -178,7 +180,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if already used
-    if (exportRequest.status === 'completed') {
+    if (exportRequestData.status === 'completed') {
       return NextResponse.json(
         { error: 'Export link already used' },
         { status: 410 }
@@ -186,7 +188,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check expiration (24 hours)
-    const createdAt = new Date(exportRequest.created_at);
+    const createdAt = new Date(exportRequestData.created_at);
     const now = new Date();
     const hoursSinceCreation = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
 
@@ -198,34 +200,34 @@ export async function GET(request: NextRequest) {
     }
 
     // Generate export data
-    const exportData = await generateExportData(exportRequest.user_id);
+    const exportData = await generateExportData(exportRequestData.user_id);
 
     // Mark as completed
-    await supabase
+    await (supabase as any)
       .from('marrai_export_requests')
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
-        download_count: (exportRequest.download_count || 0) + 1,
+        download_count: (exportRequestData.download_count || 0) + 1,
       })
       .eq('id', exportId);
 
     // Log download
-    await supabase.from('marrai_audit_logs').insert({
+    await (supabase as any).from('marrai_audit_logs').insert({
       id: randomUUID(),
-      user_id: exportRequest.user_id,
+      user_id: exportRequestData.user_id,
       action: 'export_downloaded',
       actor: 'user',
       timestamp: new Date().toISOString(),
-      metadata: { exportId, format: exportRequest.format },
+      metadata: { exportId, format: exportRequestData.format },
     });
 
     // Return appropriate format
-    if (exportRequest.format === 'json') {
+    if (exportRequestData.format === 'json') {
       return NextResponse.json(exportData, {
         headers: {
           'Content-Type': 'application/json',
-          'Content-Disposition': `attachment; filename="my-data-${exportRequest.user_id}.json"`,
+          'Content-Disposition': `attachment; filename="my-data-${exportRequestData.user_id}.json"`,
         },
       });
     } else {
@@ -256,7 +258,7 @@ async function generateExportData(userId: string): Promise<any> {
   const userData = await storage.getUserData(userId);
 
   // Get submissions
-  const { data: submissions } = await supabase
+  const { data: submissions } = await (supabase as any)
     .from('marrai_ideas')
     .select('*')
     .eq('submitter_email', userData.anonymousEmail);
@@ -265,13 +267,13 @@ async function generateExportData(userId: string): Promise<any> {
   const consents = await consentManager.getConsents(userId);
 
   // Get analysis results
-  const { data: analyses } = await supabase
+  const { data: analyses } = await (supabase as any)
     .from('marrai_ideas')
     .select('ai_analysis, ai_feasibility_score, ai_impact_score')
     .eq('submitter_email', userData.anonymousEmail);
 
   // Get access logs
-  const { data: accessLogs } = await supabase
+  const { data: accessLogs } = await (supabase as any)
     .from('admin_access_logs')
     .select('*')
     .eq('user_id', userId)
@@ -297,7 +299,7 @@ async function generateExportData(userId: string): Promise<any> {
       date: c.createdAt.toISOString(),
     })),
     analyses: analyses || [],
-    accessLogs: accessLogs?.map((log) => ({
+    accessLogs: (accessLogs as any[])?.map((log: any) => ({
       action: log.action,
       reason: log.reason,
       timestamp: log.timestamp,

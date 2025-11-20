@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { generateIntilakaPDF, qualifiesForIntilaka } from '@/lib/idea-bank/intilaka/pdf-generator';
+import { generateIntilakaPDFSimple as generateIntilakaPDF, qualifiesForIntilaka } from '@/lib/idea-bank/intilaka/pdf-generator-simple';
 
 /**
  * POST /api/ideas/[id]/intilaka-pdf

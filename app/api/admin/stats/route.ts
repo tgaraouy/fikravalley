@@ -115,16 +115,16 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      if (alignment && alignment.moroccoPriorities) {
+      if (alignment && (alignment as any).moroccoPriorities) {
         totalIdeasWithAlignment++;
-        alignment.moroccoPriorities.forEach((priorityId: string) => {
+        (alignment as any).moroccoPriorities.forEach((priorityId: string) => {
           priorityCounts[priorityId] = (priorityCounts[priorityId] || 0) + 1;
         });
       }
 
       // Collect SDGs
-      if (alignment && alignment.sdgTags) {
-        alignment.sdgTags.forEach((sdg: number) => {
+      if (alignment && (alignment as any).sdgTags) {
+        (alignment as any).sdgTags.forEach((sdg: number) => {
           sdgSet.add(sdg);
         });
       }

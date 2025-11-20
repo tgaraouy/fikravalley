@@ -19,8 +19,9 @@ export default function MyIdeasPage() {
     if (!user) return;
 
     async function fetchMyIdeas() {
+      if (!user) return;
       const supabase = createClient();
-      
+
       // Filter by user_id (you need to add this column to marrai_ideas)
       const { data, error } = await supabase
         .from('marrai_ideas')

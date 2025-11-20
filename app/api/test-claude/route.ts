@@ -83,7 +83,7 @@ export async function POST() {
       });
 
       // Extract text content from response
-      const textContent = message.content.find((block) => block.type === 'text');
+      const textContent = message.content.find((block: any) => block.type === 'text');
       const responseText = textContent && 'text' in textContent ? textContent.text : 'No text response';
 
       // Log successful response

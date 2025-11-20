@@ -138,10 +138,12 @@ export default function ConsentDialog({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onDecline()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir={language === 'ar' ? 'rtl' : 'ltr'}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div dir={language === 'ar' ? 'rtl' : 'ltr'}>
         <DialogHeader>
           <DialogTitle className="text-2xl">{t.title}</DialogTitle>
-          <DialogDescription className="text-base">
+          <DialogDescription>
+            <div className="text-base">
             {t.description}
             <br />
             <Link
@@ -151,6 +153,7 @@ export default function ConsentDialog({
             >
               {t.privacyLink} →
             </Link>
+            </div>
           </DialogDescription>
         </DialogHeader>
 
@@ -274,6 +277,7 @@ export default function ConsentDialog({
                 : 'جاري المعالجة...'
               : t.accept}
           </Button>
+        </div>
         </div>
       </DialogContent>
     </Dialog>

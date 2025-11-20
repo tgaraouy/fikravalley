@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
           }
         }
         
-        if (alignment && alignment.moroccoPriorities) {
-          alignment.moroccoPriorities.forEach((priorityId: string) => {
+        if (alignment && (alignment as any).moroccoPriorities) {
+          (alignment as any).moroccoPriorities.forEach((priorityId: string) => {
             if (!priorityGroups[priorityId]) priorityGroups[priorityId] = [];
             priorityGroups[priorityId].push({
               ...idea,
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
           }
         }
         
-        const sdgs = alignment?.sdgTags || [];
+        const sdgs = (alignment as any)?.sdgTags || [];
         sdgs.forEach((sdg: number) => {
           if (!sdgGroups[sdg]) sdgGroups[sdg] = [];
           sdgGroups[sdg].push({
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
             title: i.title,
             problem: i.problem_statement?.substring(0, 100),
             score: i.total_score || 0,
-            morocco_priorities: i.alignment?.moroccoPriorities || [],
+            morocco_priorities: (i.alignment as any)?.moroccoPriorities || [],
           })) || [],
         };
       }).filter(s => s.idea_count > 0).sort((a, b) => a.sdg - b.sdg);

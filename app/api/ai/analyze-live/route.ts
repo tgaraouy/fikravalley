@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
       frequency: formData.frequency || 'daily',
       receipts: formData.receipts || 0,
       alignment: formData.alignment || {
-        moroccoPriorities: [],
-        sdgTags: [],
+        moroccoPriorities: [] as string[],
+        sdgTags: [] as number[],
         sdgAutoTagged: false,
         sdgConfidence: {},
       },

@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
         };
 
         // Insert transcript
-        const { data: inserted, error: insertError } = await supabase
+        const { data: inserted, error: insertError } = await (supabase as any)
           .from('marrai_transcripts')
           .insert(transcriptData)
           .select('id')
@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check unprocessed word count for this session
-    const { data: unprocessedTranscripts, error: countError } = await supabase
+    const { data: unprocessedTranscripts, error: countError } = await (supabase as any)
       .from('marrai_transcripts')
       .select('word_count')
       .eq('session_id', sessionId)
@@ -324,7 +324,7 @@ export async function POST(request: NextRequest) {
     let extractionTriggered = false;
 
     if (!countError && unprocessedTranscripts) {
-      totalUnprocessedWords = unprocessedTranscripts.reduce((sum, t) => {
+      totalUnprocessedWords = (unprocessedTranscripts as any[]).reduce((sum: number, t: any) => {
         return sum + (t.word_count || 0);
       }, 0);
 

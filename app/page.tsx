@@ -69,19 +69,19 @@ async function getDashboardData(): Promise<{ stats: Stats; featured: FeaturedIde
     }
 
     const totalIdeas = data.length;
-    const analyzedIdeas = data.filter((idea) => COMPLETED_STATUSES.has(idea.status ?? ''));
+    const analyzedIdeas = data.filter((idea: any) => COMPLETED_STATUSES.has(idea.status ?? ''));
 
-    const scoredIdeas = data.filter((idea) => typeof idea.ai_feasibility_score === 'number');
-    const totalScore = scoredIdeas.reduce((sum, idea) => sum + (idea.ai_feasibility_score ?? 0), 0);
+    const scoredIdeas = data.filter((idea: any) => typeof idea.ai_feasibility_score === 'number');
+    const totalScore = scoredIdeas.reduce((sum: number, idea: any) => sum + (idea.ai_feasibility_score ?? 0), 0);
     const feasibilityRate = scoredIdeas.length > 0 ? Math.round((totalScore / (scoredIdeas.length * 10)) * 100) : null;
 
-    const totalFunding = data.reduce((sum, idea) => sum + (idea.roi_cost_saved_eur ?? 0), 0);
+    const totalFunding = data.reduce((sum: number, idea: any) => sum + (idea.roi_cost_saved_eur ?? 0), 0);
 
     const featured = scoredIdeas
-      .filter((idea) => typeof idea.ai_feasibility_score === 'number')
-      .sort((a, b) => (b.ai_feasibility_score ?? 0) - (a.ai_feasibility_score ?? 0))
+      .filter((idea: any) => typeof idea.ai_feasibility_score === 'number')
+      .sort((a: any, b: any) => (b.ai_feasibility_score ?? 0) - (a.ai_feasibility_score ?? 0))
       .slice(0, 3)
-      .map((idea) => ({
+        .map((idea: any) => ({
         id: idea.id,
         title: idea.title,
         category: idea.category,

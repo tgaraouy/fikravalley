@@ -41,7 +41,7 @@ function log(message: string, color: keyof typeof colors = 'reset') {
 
 async function testScoring() {
   log('\n📊 Testing Two-Stage Scoring System...', 'cyan');
-  
+
   // Test case 1: High-quality idea
   const highQualityIdea = {
     problemStatement: 'Les infirmières du CHU Ibn Sina à Rabat perdent en moyenne 4 heures par équipe de 8 heures à chercher du matériel médical mobile (défibrillateurs, pompes à perfusion, moniteurs de signes vitaux). Chaque infirmière effectue environ 6-8 recherches par shift. Sur un service de 30 infirmières, cela représente 180-240 recherches par jour. Le système actuel utilise un cahier papier où l\'équipement est supposé être enregistré lorsqu\'il change de service, mais 50% des mouvements ne sont pas enregistrés.',
@@ -62,17 +62,17 @@ async function testScoring() {
 
   try {
     const result = scoreIdeaComplete(highQualityIdea);
-    
+
     log('✅ Scoring completed', 'green');
-    log(`   Stage 1 (Clarity): ${result.stage1.total}/40 - ${result.stage1.passed ? 'PASSED' : 'FAILED'}`, 
-        result.stage1.passed ? 'green' : 'red');
-    log(`   Stage 2 (Decision): ${result.stage2?.total || 0}/20 - ${result.stage2?.passed ? 'PASSED' : 'FAILED'}`, 
-        result.stage2?.passed ? 'green' : 'red');
-    log(`   Qualification Tier: ${result.overall.qualificationTier}`, 'blue');
+    log(`   Stage 1 (Clarity): ${result.stage1.total}/40 - ${result.stage1.passed ? 'PASSED' : 'FAILED'}`,
+      result.stage1.passed ? 'green' : 'red');
+    log(`   Stage 2 (Decision): ${result.stage2?.total || 0}/20 - ${result.stage2?.passed ? 'PASSED' : 'FAILED'}`,
+      result.stage2?.passed ? 'green' : 'red');
+    log(`   Recommendation: ${result.overall.recommendation}`, 'blue');
     log(`   Morocco Priorities: ${result.alignment?.moroccoPriorities.join(', ') || 'None'}`, 'blue');
     log(`   SDG Tags: ${result.alignment?.sdgTags.join(', ') || 'None'}`, 'blue');
     log(`   Break-even: ${result.breakEven?.months || 'N/A'} months`, 'blue');
-    
+
     if (result.stage1.total < 24) {
       log('   ⚠️  Stage 1 score is below 24 (60% threshold)', 'yellow');
     }
@@ -105,11 +105,11 @@ async function testScoring() {
 
   try {
     const result = scoreIdeaComplete(lowQualityIdea);
-    
+
     log('✅ Scoring completed', 'green');
-    log(`   Stage 1 (Clarity): ${result.stage1.total}/40 - ${result.stage1.passed ? 'PASSED' : 'FAILED'}`, 
-        result.stage1.passed ? 'green' : 'yellow');
-    
+    log(`   Stage 1 (Clarity): ${result.stage1.total}/40 - ${result.stage1.passed ? 'PASSED' : 'FAILED'}`,
+      result.stage1.passed ? 'green' : 'yellow');
+
     if (!result.stage1.passed) {
       log('   ✓ Correctly identified as needing revision', 'green');
     }
@@ -123,7 +123,7 @@ async function testScoring() {
 
 async function testFeedback() {
   log('\n💬 Testing Clarity Feedback Generation...', 'cyan');
-  
+
   const lowClarityIdea = {
     problemStatement: 'Problème avec le système',
     asIsAnalysis: 'Processus actuel',
@@ -143,14 +143,14 @@ async function testFeedback() {
 
   try {
     const feedback = generateClarityFeedback(lowClarityIdea);
-    
+
     log('✅ Feedback generated', 'green');
     log(`   Overall Score: ${feedback.overall.score}/10`, 'blue');
     log(`   Status: ${feedback.overall.status}`, 'blue');
     log(`   Items with feedback: ${feedback.items.length}`, 'blue');
     log(`   Quick Wins: ${feedback.quickWins.length}`, 'blue');
     log(`   Estimated Time to Fix: ${feedback.estimatedTotalTime} minutes`, 'blue');
-    
+
     if (feedback.items.length > 0) {
       log('\n   Sample Feedback Item:', 'cyan');
       const sampleItem = feedback.items[0];
@@ -169,7 +169,7 @@ async function testFeedback() {
 
 async function testDatabaseIdeas() {
   log('\n🗄️  Testing Database Ideas...', 'cyan');
-  
+
   try {
     // Get ideas with AI analysis
     const { data: analyzedIdeas, error: analyzedError } = await supabase
@@ -182,7 +182,7 @@ async function testDatabaseIdeas() {
     if (analyzedError) throw analyzedError;
 
     log(`✅ Found ${analyzedIdeas?.length || 0} ideas with AI analysis`, 'green');
-    
+
     if (analyzedIdeas && analyzedIdeas.length > 0) {
       log('\n   Sample analyzed ideas:', 'cyan');
       analyzedIdeas.forEach((idea, i) => {
@@ -206,7 +206,7 @@ async function testDatabaseIdeas() {
     if (scoredError) throw scoredError;
 
     log(`\n✅ Found ${scoredIdeas?.length || 0} ideas with scores`, 'green');
-    
+
     if (scoredIdeas && scoredIdeas.length > 0) {
       log('\n   Top scored ideas:', 'cyan');
       scoredIdeas.forEach((score, i) => {
@@ -227,9 +227,9 @@ async function testDatabaseIdeas() {
 
 async function testAPIEndpoints() {
   log('\n🌐 Testing API Endpoints...', 'cyan');
-  
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  
+
   // Test 1: Check if analyze-idea endpoint exists
   try {
     const response = await fetch(`${baseUrl}/api/analyze-idea`, {
@@ -237,7 +237,7 @@ async function testAPIEndpoints() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ideaId: '00000000-0000-0000-0000-000000000000' })
     });
-    
+
     const status = response.status;
     if (status === 404 || status === 400) {
       log('✅ /api/analyze-idea endpoint exists', 'green');
@@ -256,7 +256,7 @@ async function testAPIEndpoints() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ideaId: '00000000-0000-0000-0000-000000000000' })
     });
-    
+
     const status = response.status;
     if (status === 404 || status === 400) {
       log('✅ /api/ideas/feedback endpoint exists', 'green');
@@ -272,8 +272,8 @@ async function testAPIEndpoints() {
 
 async function main() {
   log('🚀 Starting AI Validation Tests\n', 'cyan');
-  log('=' .repeat(50), 'cyan');
-  
+  log('='.repeat(50), 'cyan');
+
   const results = {
     scoring: false,
     feedback: false,
@@ -291,7 +291,7 @@ async function main() {
   log('\n' + '='.repeat(50), 'cyan');
   log('📋 Test Summary', 'cyan');
   log('='.repeat(50), 'cyan');
-  
+
   Object.entries(results).forEach(([test, passed]) => {
     const icon = passed ? '✅' : '❌';
     const color = passed ? 'green' : 'red';
@@ -299,7 +299,7 @@ async function main() {
   });
 
   const allPassed = Object.values(results).every(r => r);
-  
+
   if (allPassed) {
     log('\n🎉 All AI validation tests passed!', 'green');
   } else {

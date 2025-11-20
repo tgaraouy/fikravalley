@@ -176,7 +176,7 @@ async function createAuditLog(
 ): Promise<void> {
   try {
     const supabase = await createClient();
-    await supabase.from('marrai_audit_logs').insert({
+    await (supabase as any).from('marrai_audit_logs').insert({
       id: randomUUID(),
       user_id: userId,
       action,
@@ -244,7 +244,7 @@ export class WhatsAppPrivacyHandler {
     const emptyData: ConversationData = {};
     const encrypted = encryptData(emptyData);
 
-    const { data: state, error } = await supabase
+    const { data: state, error } = await (supabase as any)
       .from('whatsapp_conversations')
       .insert({
         id: conversationId,
@@ -281,13 +281,13 @@ export class WhatsAppPrivacyHandler {
     const encrypted = encryptData(data);
 
     // Get current message count
-    const { data: currentState } = await supabase
+    const { data: currentState } = await (supabase as any)
       .from('whatsapp_conversations')
       .select('message_count')
       .eq('id', stateId)
       .single();
 
-    await supabase
+    await (supabase as any)
       .from('whatsapp_conversations')
       .update({
         stage,
@@ -296,7 +296,7 @@ export class WhatsAppPrivacyHandler {
         data_tag: encrypted.tag,
         updated_at: new Date().toISOString(),
         last_message_at: new Date().toISOString(),
-        message_count: (currentState?.message_count || 0) + 1,
+        message_count: ((currentState as any)?.message_count || 0) + 1,
       })
       .eq('id', stateId);
   }
@@ -455,7 +455,7 @@ export class WhatsAppPrivacyHandler {
 
     // Get deletion request ID
     const supabase = await this.getSupabase();
-    const { data: deletionRequest } = await supabase
+    const { data: deletionRequest } = await (supabase as any)
       .from('marrai_deletion_requests')
       .select('id')
       .eq('user_id', state.user_id)
@@ -475,7 +475,7 @@ export class WhatsAppPrivacyHandler {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deletionId: deletionRequest.id,
+        deletionId: (deletionRequest as any).id,
         verificationCode,
         action: 'confirm',
       }),
@@ -486,7 +486,7 @@ export class WhatsAppPrivacyHandler {
         context.phone,
         'Suppression confirmée. Vos données seront supprimées dans les 24 heures.'
       );
-      await supabase
+      await (supabase as any)
         .from('whatsapp_conversations')
         .update({ stage: 'completed' })
         .eq('id', state.id);
@@ -515,7 +515,7 @@ export class WhatsAppPrivacyHandler {
     }
 
     const supabase = await this.getSupabase();
-    const { data: deletionRequest } = await supabase
+    const { data: deletionRequest } = await (supabase as any)
       .from('marrai_deletion_requests')
       .select('id')
       .eq('user_id', state.user_id)
@@ -535,7 +535,7 @@ export class WhatsAppPrivacyHandler {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        deletionId: deletionRequest.id,
+        deletionId: (deletionRequest as any).id,
         verificationCode: 'CANCEL', // Special code for cancellation
         action: 'cancel',
       }),
@@ -546,7 +546,7 @@ export class WhatsAppPrivacyHandler {
         context.phone,
         'Demande de suppression annulée. Vos données sont conservées.'
       );
-      await supabase
+      await (supabase as any)
         .from('whatsapp_conversations')
         .update({ stage: 'completed' })
         .eq('id', state.id);
@@ -599,7 +599,7 @@ Vous pouvez retirer votre consentement à tout moment.`;
 
         // Update conversation state with user ID
         const supabase = await this.getSupabase();
-        await supabase
+        await (supabase as any)
           .from('whatsapp_conversations')
           .update({ user_id: userId })
           .eq('id', state.id);
@@ -813,7 +813,7 @@ Commandes disponibles:
     }
 
     const supabase = await this.getSupabase();
-    const { data: user } = await supabase
+    const { data: user } = await (supabase as any)
       .from('marrai_secure_users')
       .select('anonymous_email')
       .eq('id', state.user_id)
@@ -823,11 +823,11 @@ Commandes disponibles:
       return;
     }
 
-    await supabase.from('marrai_ideas').insert({
+    await (supabase as any).from('marrai_ideas').insert({
       title: `Idée WhatsApp - ${data.name || 'Utilisateur'}`,
       problem_statement: data.problem,
       submitter_name: data.name,
-      submitter_email: user.anonymous_email,
+      submitter_email: (user as any).anonymous_email,
       source: 'whatsapp',
       status: 'submitted',
     });
@@ -889,7 +889,7 @@ Commandes disponibles:
 
     // Update conversation stage
     const supabase = await this.getSupabase();
-    await supabase
+    await (supabase as any)
       .from('whatsapp_conversations')
       .update({ stage: 'deletion_requested' })
       .eq('id', state.id);
@@ -938,7 +938,7 @@ Commandes disponibles:
 
     // Update conversation stage
     const supabase = await this.getSupabase();
-    await supabase
+    await (supabase as any)
       .from('whatsapp_conversations')
       .update({ stage: 'export_requested' })
       .eq('id', state.id);

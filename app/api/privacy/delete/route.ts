@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Check if deletion already requested
-    const { data: existingRequest } = await supabase
+    const { data: existingRequest } = await (supabase as any)
       .from('marrai_deletion_requests')
       .select('*')
       .eq('user_id', userId)
@@ -49,11 +49,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingRequest) {
+      const request = existingRequest as any;
       return NextResponse.json({
         success: true,
         message: 'Deletion request already pending',
-        deletionId: existingRequest.id,
-        scheduledDate: existingRequest.scheduled_deletion_date,
+        deletionId: request.id,
+        scheduledDate: request.scheduled_deletion_date,
       });
     }
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
 
     // Create deletion request
     const deletionId = randomUUID();
-    const { error: insertError } = await supabase.from('marrai_deletion_requests').insert({
+    const { error: insertError } = await (supabase as any).from('marrai_deletion_requests').insert({
       id: deletionId,
       user_id: userId,
       verification_code: verificationCode,
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     // await sendEmail(email, 'Data Deletion Request', ...);
 
     // Log deletion request
-    await supabase.from('marrai_audit_logs').insert({
+    await (supabase as any).from('marrai_audit_logs').insert({
       id: randomUUID(),
       user_id: userId,
       action: 'deletion_requested',
@@ -136,7 +137,7 @@ export async function PUT(request: NextRequest) {
     const supabase = await createClient();
 
     // Get deletion request
-    const { data: deletionRequest, error: fetchError } = await supabase
+    const { data: deletionRequest, error: fetchError } = await (supabase as any)
       .from('marrai_deletion_requests')
       .select('*')
       .eq('id', deletionId)
@@ -150,8 +151,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const deletionRequestData = deletionRequest as any;
+
     // Verify code
-    if (deletionRequest.verification_code !== verificationCode.toUpperCase()) {
+    if (deletionRequestData.verification_code !== verificationCode.toUpperCase()) {
       return NextResponse.json(
         { error: 'Invalid verification code' },
         { status: 401 }
@@ -160,15 +163,15 @@ export async function PUT(request: NextRequest) {
 
     if (action === 'cancel') {
       // Cancel deletion
-      await supabase
+      await (supabase as any)
         .from('marrai_deletion_requests')
         .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
         .eq('id', deletionId);
 
       // Log cancellation
-      await supabase.from('marrai_audit_logs').insert({
+      await (supabase as any).from('marrai_audit_logs').insert({
         id: randomUUID(),
-        user_id: deletionRequest.user_id,
+        user_id: deletionRequestData.user_id,
         action: 'deletion_cancelled',
         actor: 'user',
         timestamp: new Date().toISOString(),
@@ -181,7 +184,7 @@ export async function PUT(request: NextRequest) {
       });
     } else if (action === 'confirm') {
       // Confirm deletion - mark for immediate deletion
-      await supabase
+      await (supabase as any)
         .from('marrai_deletion_requests')
         .update({
           status: 'confirmed',
@@ -191,15 +194,15 @@ export async function PUT(request: NextRequest) {
         .eq('id', deletionId);
 
       // Mark user data for deletion (hide from queries)
-      await supabase
+      await (supabase as any)
         .from('marrai_secure_users')
         .update({ deleted_at: new Date().toISOString() })
-        .eq('id', deletionRequest.user_id);
+        .eq('id', deletionRequestData.user_id);
 
       // Log confirmation
-      await supabase.from('marrai_audit_logs').insert({
+      await (supabase as any).from('marrai_audit_logs').insert({
         id: randomUUID(),
-        user_id: deletionRequest.user_id,
+        user_id: deletionRequestData.user_id,
         action: 'deletion_confirmed',
         actor: 'user',
         timestamp: new Date().toISOString(),
@@ -208,7 +211,7 @@ export async function PUT(request: NextRequest) {
 
       // Actually delete data (or schedule for background job)
       // For now, we'll mark it - actual deletion happens in background job
-      await deleteUserData(deletionRequest.user_id);
+      await deleteUserData(deletionRequestData.user_id);
 
       return NextResponse.json({
         success: true,
@@ -239,22 +242,23 @@ async function deleteUserData(userId: string): Promise<void> {
     const consentManager = new ConsentManager();
 
     // Get user data to find submissions
-    const { data: user } = await supabase
-      .from('secure_users')
+    const { data: user } = await (supabase as any)
+      .from('marrai_secure_users')
       .select('anonymous_email')
       .eq('id', userId)
       .single();
 
     if (user) {
+      const userData = user as any;
       // Delete all idea submissions
-      await supabase
+      await (supabase as any)
         .from('marrai_ideas')
         .delete()
-        .eq('submitter_email', user.anonymous_email);
+        .eq('submitter_email', userData.anonymous_email);
 
       // Delete all comments
-      await supabase
-        .from('marrai_comments')
+      await (supabase as any)
+        .from('marrai_idea_comments')
         .delete()
         .eq('user_id', userId);
     }
@@ -268,7 +272,7 @@ async function deleteUserData(userId: string): Promise<void> {
     await storage.deleteUserData(userId);
 
     // Mark deletion request as completed
-    await supabase
+    await (supabase as any)
       .from('marrai_deletion_requests')
       .update({
         status: 'completed',
@@ -277,7 +281,7 @@ async function deleteUserData(userId: string): Promise<void> {
       .eq('user_id', userId);
 
     // Log completion
-    await supabase.from('marrai_audit_logs').insert({
+    await (supabase as any).from('marrai_audit_logs').insert({
       id: randomUUID(),
       user_id: userId,
       action: 'data_deleted',

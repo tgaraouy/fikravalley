@@ -244,7 +244,7 @@ export class SecureUserStorage {
   ): Promise<void> {
     try {
       const supabase = await this.getSupabase();
-      const { error } = await supabase.from('marrai_audit_logs').insert({
+      const { error } = await (supabase as any).from('marrai_audit_logs').insert({
         id: randomUUID(),
         user_id: userId,
         action,
@@ -311,7 +311,7 @@ export class SecureUserStorage {
 
       // Store in database
       const supabase = await this.getSupabase();
-      const { error, data: insertedData } = await supabase
+      const { error, data: insertedData } = await (supabase as any)
         .from('marrai_secure_users')
         .insert({
           id: userId,
@@ -512,7 +512,7 @@ export class SecureUserStorage {
       const newExpiry = new Date();
       newExpiry.setDate(newExpiry.getDate() + days);
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('marrai_secure_users')
         .update({
           data_retention_expiry: newExpiry.toISOString(),
@@ -551,7 +551,7 @@ export class SecureUserStorage {
       const now = new Date().toISOString();
 
       // Find expired users
-      const { data: expiredUsers, error: queryError } = await supabase
+      const { data: expiredUsers, error: queryError } = await (supabase as any)
         .from('marrai_secure_users')
         .select('id, anonymous_email, data_retention_expiry')
         .lte('data_retention_expiry', now);
@@ -567,7 +567,7 @@ export class SecureUserStorage {
       let deletedCount = 0;
 
       // Delete each expired user
-      for (const user of expiredUsers) {
+      for (const user of (expiredUsers as any[])) {
         try {
           // TODO: Send email notification if opted in
           // if (sendEmailNotification) {

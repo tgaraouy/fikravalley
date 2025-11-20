@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     // Find idea by phone number if ideaId not provided
     let finalIdeaId = ideaId;
     if (!finalIdeaId) {
-      const { data: ideas } = await supabase
+      const { data: ideas } = await (supabase as any)
         .from('marrai_ideas')
         .select('id')
         .eq('submitter_phone', formattedPhone)
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         .limit(1);
 
       if (ideas && ideas.length > 0) {
-        finalIdeaId = ideas[0].id;
+        finalIdeaId = (ideas as any[])[0].id;
       } else {
         return NextResponse.json(
           { error: 'No idea found for this phone number' },
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if self-ask chain is active for this idea
-    const { data: activeQuestions } = await supabase
+    const { data: activeQuestions } = await (supabase as any)
       .from('marrai_self_ask_questions')
       .select('id')
       .eq('idea_id', finalIdeaId)

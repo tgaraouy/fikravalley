@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch idea
-    const { data: idea, error: ideaError } = await supabase
+    const { data: idea, error: ideaError } = await (supabase as any)
       .from('marrai_ideas')
       .select('*')
       .eq('id', ideaId)
@@ -219,9 +219,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate match scores for all profiles
-    const matches: MatchResult[] = profiles
-      .map((profile) => {
-        const { score, reasoning } = calculateMatchScore(idea, profile);
+    const ideaData = idea as any;
+    const matches: MatchResult[] = (profiles as any[])
+      .map((profile: any) => {
+        const { score, reasoning } = calculateMatchScore(ideaData as IdeaRow, profile);
         return {
           profile,
           score,
@@ -236,14 +237,13 @@ export async function POST(request: NextRequest) {
     if (matches.length > 0) {
       const matchedDiasporaIds = matches.map((m) => m.profile.id);
       const topScore = matches[0].score;
-
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('marrai_ideas')
         .update({
           matched_diaspora: matchedDiasporaIds,
           matching_score: topScore,
           matched_at: new Date().toISOString(),
-          status: idea.status === 'analyzed' ? 'matched' : idea.status,
+          status: ideaData.status === 'analyzed' ? 'matched' : ideaData.status,
         })
         .eq('id', ideaId);
 
@@ -257,8 +257,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: `Found ${matches.length} matching diaspora profile(s)`,
-        ideaId: idea.id,
-        ideaTitle: idea.title,
+        ideaId: ideaData.id,
+        ideaTitle: ideaData.title,
         matches: matches.map((match) => ({
           profileId: match.profile.id,
           profileName: match.profile.name || match.profile.email || 'Anonymous',

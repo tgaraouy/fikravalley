@@ -53,9 +53,9 @@ export default function AIAnalysisAgent({
   useEffect(() => {
     // Check if we have enough data to analyze
     const hasEnoughData =
-      formData.problemStatement?.length > 50 &&
-      formData.asIsAnalysis?.length > 50 &&
-      formData.benefitStatement?.length > 50;
+      (formData.problemStatement?.length ?? 0) > 50 &&
+      (formData.asIsAnalysis?.length ?? 0) > 50 &&
+      (formData.benefitStatement?.length ?? 0) > 50;
 
     if (!hasEnoughData) {
       setAnalysis(null);

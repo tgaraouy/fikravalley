@@ -94,21 +94,21 @@ export default function Step1Problem({
       {/* Language Toggle */}
       <div className="flex justify-end gap-2">
         <Button
-          variant={language === 'fr' ? 'default' : 'outline'}
+          variant={language === 'fr' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => onLanguageChange('fr')}
         >
           🇫🇷 Français
         </Button>
         <Button
-          variant={language === 'ar' ? 'default' : 'outline'}
+          variant={language === 'ar' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => onLanguageChange('ar')}
         >
           🇸🇦 العربية
         </Button>
         <Button
-          variant={language === 'darija' ? 'default' : 'outline'}
+          variant={language === 'darija' ? 'primary' : 'outline'}
           size="sm"
           onClick={() => onLanguageChange('darija')}
         >

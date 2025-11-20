@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Get suggestions from idea titles and categories
     // Filter for visible ideas if column exists
-    let suggestionsQuery = supabase
+    let suggestionsQuery = (supabase as any)
       .from('marrai_ideas')
       .select('title, category, location, visible')
       .ilike('title', `%${query}%`)
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const { data: ideas } = await suggestionsQuery;
     
     // Filter for visible ideas in application layer
-    const visibleIdeas = (ideas || []).filter((idea: any) => {
+    const visibleIdeas = ((ideas as any[]) || []).filter((idea: any) => {
       // If visible column exists, filter by it; otherwise show all
       return idea.visible !== false;
     }).slice(0, 5);
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     // Add matching titles from visible ideas
     if (visibleIdeas) {
-      visibleIdeas.forEach((idea) => {
+      visibleIdeas.forEach((idea: any) => {
         if (idea.title && !suggestions.includes(idea.title)) {
           suggestions.push(idea.title);
         }
