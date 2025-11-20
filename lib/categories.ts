@@ -83,7 +83,6 @@ export const MOROCCAN_CITIES: LocationOption[] = [
   { value: 'taroudant', label: 'Taroudant', region: 'Souss-Massa' },
   { value: 'essaouira', label: 'Essaouira', region: 'Marrakech-Safi' },
   { value: 'azilal', label: 'Azilal', region: 'Béni Mellal-Khénifra' },
-  { value: 'khouribga', label: 'Khouribga', region: 'Béni Mellal-Khénifra' },
   { value: 'ifrane', label: 'Ifrane', region: 'Fès-Meknès' },
   { value: 'chefchaouen', label: 'Chefchaouen', region: 'Tanger-Tétouan-Al Hoceïma' },
   { value: 'asilah', label: 'Asilah', region: 'Tanger-Tétouan-Al Hoceïma' },
@@ -108,7 +107,6 @@ export const MOROCCAN_CITIES: LocationOption[] = [
   { value: 'demnate', label: 'Demnate', region: 'Béni Mellal-Khénifra' },
   { value: 'kasba_tadla', label: 'Kasba Tadla', region: 'Béni Mellal-Khénifra' },
   { value: 'khenifra', label: 'Khénifra', region: 'Béni Mellal-Khénifra' },
-  { value: 'khouribga', label: 'Khouribga', region: 'Béni Mellal-Khénifra' },
   { value: 'fquih_ben_salah', label: 'Fquih Ben Salah', region: 'Béni Mellal-Khénifra' },
   { value: 'other', label: 'Autre', region: 'Autre' },
 ];
