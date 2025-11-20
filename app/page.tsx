@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/Logo';
+import SuccessStream from '@/components/success/SuccessStream';
 import { formatCurrency } from '@/lib/utils';
 
 export const revalidate = 60;
@@ -200,6 +201,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Success Stream - LIVE user wins feed */}
+      <div className="-mx-6 md:-mx-10 lg:-mx-12">
+        <SuccessStream />
+      </div>
 
       <section>
         <div className="mb-6 flex items-center justify-between">
