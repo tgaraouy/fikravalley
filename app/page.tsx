@@ -8,6 +8,7 @@ import SuccessStream from '@/components/success/SuccessStream';
 import HowItWorks from '@/components/how-it-works/HowItWorks';
 import SocialProofWall from '@/components/social-proof/SocialProofWall';
 import UrgencySection from '@/components/urgency/UrgencySection';
+import InteractiveCTA from '@/components/cta/InteractiveCTA';
 import { formatCurrency } from '@/lib/utils';
 
 export const revalidate = 60;
@@ -223,6 +224,11 @@ export default async function HomePage() {
       {/* Urgency Section - Act now with positive scarcity */}
       <div className="-mx-6 md:-mx-10 lg:-mx-12">
         <UrgencySection />
+      </div>
+
+      {/* Interactive CTA - Multi-path conversion */}
+      <div className="-mx-6 md:-mx-10 lg:-mx-12">
+        <InteractiveCTA />
       </div>
     </main>
   );
