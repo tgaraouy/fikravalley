@@ -1,5 +1,7 @@
 @tailwind base;
 @tailwind components;
+@tailwind base;
+@tailwind components;
 @tailwind utilities;
 
 :root {
@@ -7,7 +9,15 @@
 }
 
 body {
-  @apply antialiased text-slate-900 bg-gradient-to-br from-blue-50 via-white to-indigo-50;
+  @apply antialiased text-slate-900 bg-sand-50;
+}
+
+.bg-zellige {
+  background-color: #fdfcfb;
+  background-image: radial-gradient(#d4b98c 0.5px, transparent 0.5px), radial-gradient(#d4b98c 0.5px, #fdfcfb 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  opacity: 0.4;
 }
 
 a {

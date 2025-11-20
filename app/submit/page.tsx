@@ -22,7 +22,9 @@ import ClarityFeedbackDisplay from '@/components/submission/ClarityFeedback';
 import AIAgentChat from '@/components/ai/AIAgentChat';
 import AISuggestionAgent from '@/components/ai/AISuggestionAgent';
 import AIAnalysisAgent from '@/components/ai/AIAnalysisAgent';
-import { Combobox } from '@/components/ui/combobox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { CATEGORIES, MOROCCAN_CITIES } from '@/lib/categories';
 import { scoreProblemStatement, scoreAsIsAnalysis, scoreBenefitStatement, scoreOperationalNeeds } from '@/lib/idea-bank/scoring';
 import type { IdeaScoringInput } from '@/lib/idea-bank/scoring';
@@ -51,6 +53,7 @@ export default function SubmitIdeaPage() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showQuickSubmit, setShowQuickSubmit] = useState(false);
 
   // Form data
   const [language, setLanguage] = useState<'fr' | 'ar' | 'darija'>('fr');
@@ -75,7 +78,7 @@ export default function SubmitIdeaPage() {
   const [title, setTitle] = useState('');
   const [moroccoPriorities, setMoroccoPriorities] = useState<string[]>([]);
   const [otherAlignment, setOtherAlignment] = useState('');
-  
+
   // Submitter contact information
   const [submitterName, setSubmitterName] = useState('');
   const [submitterEmail, setSubmitterEmail] = useState('');
@@ -235,6 +238,65 @@ export default function SubmitIdeaPage() {
     }
   };
 
+  const handleQuickSubmit = async () => {
+    if (!title || !category || !location || !problemStatement || !submitterName || !submitterEmail) {
+      alert('Veuillez remplir tous les champs requis (Titre, Catégorie, Localisation, Problème, Nom, Email).');
+      return;
+    }
+
+    setIsSubmitting(true);
+    saveDraft();
+
+    try {
+      const response = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: title,
+          problem_statement: problemStatement,
+          current_manual_process: "Non spécifié (Soumission Rapide)",
+          digitization_opportunity: "Non spécifié (Soumission Rapide)",
+          proposed_solution: "Non spécifié (Soumission Rapide)",
+          roi_time_saved_hours: 0,
+          roi_cost_saved_eur: 0,
+          estimated_cost: "Non spécifié",
+          data_sources: [],
+          integration_points: [],
+          ai_capabilities_needed: [],
+          location,
+          category,
+          status: 'submitted',
+          submitted_via: 'web_quick',
+          alignment: {
+            morocco_priorities: [],
+            other_alignment: "",
+          },
+          submitter_name: submitterName,
+          submitter_email: submitterEmail,
+          submitter_phone: submitterPhone || null,
+          submitter_type: submitterType || 'other',
+          submitter_skills: [],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la soumission');
+      }
+
+      const result = await response.json();
+      localStorage.removeItem('fikravalley_submission_draft');
+      setShowQuickSubmit(false);
+      setShowCelebration(true);
+      setTimeout(() => {
+        router.push(`/ideas/${result.id}?submitted=true`);
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting:', error);
+      setIsSubmitting(false);
+      alert('Erreur lors de la soumission. Veuillez réessayer.');
+    }
+  };
+
   const totalTime = processSteps.reduce((sum, step) => sum + step.timeMinutes, 0);
   const totalCost = processSteps.reduce((sum, step) => sum + step.costEur, 0);
 
@@ -251,9 +313,8 @@ export default function SubmitIdeaPage() {
         </div>
       )}
 
-      <div className={`container mx-auto px-4 py-8 transition-all duration-300 ease-in-out ${
-        isChatOpen ? 'max-w-[calc(100%-420px)] pr-[420px]' : 'max-w-5xl'
-      }`}>
+      <div className={`container mx-auto px-4 py-8 transition-all duration-300 ease-in-out ${isChatOpen ? 'max-w-[calc(100%-420px)] pr-[420px]' : 'max-w-5xl'
+        }`}>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -289,13 +350,12 @@ export default function SubmitIdeaPage() {
                 <button
                   key={step.id}
                   onClick={() => setCurrentStep(step.id)}
-                  className={`text-xs ${
-                    step.id === currentStep
+                  className={`text-xs ${step.id === currentStep
                       ? 'font-bold text-indigo-600'
                       : step.id < currentStep
-                      ? 'text-green-600'
-                      : 'text-slate-400'
-                  }`}
+                        ? 'text-green-600'
+                        : 'text-slate-400'
+                    }`}
                 >
                   <div className="text-center">
                     <div className="text-lg mb-1">{step.icon}</div>
@@ -314,7 +374,7 @@ export default function SubmitIdeaPage() {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Titre de l'idée
+                    Titre de l'idée <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -327,37 +387,41 @@ export default function SubmitIdeaPage() {
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Catégorie
+                      Catégorie <span className="text-red-500">*</span>
                     </label>
-                    <Combobox
-                      options={CATEGORIES.map(cat => ({
-                        value: cat.value,
-                        label: language === 'ar' && cat.labelAr ? cat.labelAr :
-                               language === 'darija' && cat.labelDarija ? cat.labelDarija :
-                               cat.label
-                      }))}
+                    <select
                       value={category}
-                      onChange={setCategory}
-                      placeholder={language === 'darija' ? 'Khtar kategoriya' : 'Sélectionnez une catégorie...'}
-                      allowCustom={true}
-                      customLabel={language === 'darija' ? 'Zid kategoriya jdida' : 'Ajouter une catégorie'}
-                    />
+                      onChange={(e) => setCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                    >
+                      <option value="">{language === 'darija' ? 'Khtar kategoriya' : 'Sélectionnez une catégorie...'}</option>
+                      {CATEGORIES.map(cat => (
+                        <option key={cat.value} value={cat.value}>
+                          {language === 'ar' && cat.labelAr ? cat.labelAr :
+                            language === 'darija' && cat.labelDarija ? cat.labelDarija :
+                              cat.label}
+                        </option>
+                      ))}
+                      <option value="other">Autre</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Localisation
+                      Localisation <span className="text-red-500">*</span>
                     </label>
-                    <Combobox
-                      options={MOROCCAN_CITIES.map(city => ({
-                        value: city.value,
-                        label: city.label
-                      }))}
+                    <select
                       value={location}
-                      onChange={setLocation}
-                      placeholder={language === 'darija' ? 'Khtar blasa' : 'Sélectionnez une ville...'}
-                      allowCustom={true}
-                      customLabel={language === 'darija' ? 'Zid blasa jdida' : 'Ajouter une ville'}
-                    />
+                      onChange={(e) => setLocation(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white"
+                    >
+                      <option value="">{language === 'darija' ? 'Khtar blasa' : 'Sélectionnez une ville...'}</option>
+                      {MOROCCAN_CITIES.map(city => (
+                        <option key={city.value} value={city.value}>
+                          {city.label}
+                        </option>
+                      ))}
+                      <option value="other">Autre</option>
+                    </select>
                   </div>
                 </div>
                 <Step1Problem
@@ -367,7 +431,7 @@ export default function SubmitIdeaPage() {
                   onLanguageChange={setLanguage}
                   clarityScore={clarityScore}
                 />
-                
+
                 {/* Feedback Display */}
                 {clarityScore < 6 && problemStatement.length > 10 && (
                   <ClarityFeedbackDisplay
@@ -518,6 +582,46 @@ export default function SubmitIdeaPage() {
             </Button>
           )}
         </div>
+
+        {/* Quick Submit Dialog */}
+        {currentStep === 1 && (
+          <div className="mt-8 border-t pt-6">
+            <Dialog open={showQuickSubmit} onOpenChange={setShowQuickSubmit}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full border-terracotta-200 text-terracotta-700 hover:bg-terracotta-50">
+                  ⚡ Soumission Rapide (Passer les détails)
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Soumission Rapide</DialogTitle>
+                  <DialogDescription>
+                    Envoyez votre idée maintenant. Vous pourrez ajouter les détails plus tard.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Nom complet <span className="text-red-500">*</span></Label>
+                    <Input id="name" value={submitterName} onChange={(e) => setSubmitterName(e.target.value)} placeholder="Votre nom" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+                    <Input id="email" type="email" value={submitterEmail} onChange={(e) => setSubmitterEmail(e.target.value)} placeholder="votre@email.com" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">Téléphone (Optionnel)</Label>
+                    <Input id="phone" type="tel" value={submitterPhone} onChange={(e) => setSubmitterPhone(e.target.value)} placeholder="06..." />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleQuickSubmit} disabled={isSubmitting} className="bg-terracotta-600 hover:bg-terracotta-700 text-white">
+                    {isSubmitting ? 'Envoi...' : 'Envoyer l\'idée'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
 
         {/* AI Analysis Agent - Shows live analysis */}
         {(currentStep >= 2 && currentStep <= 6) && (

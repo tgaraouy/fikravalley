@@ -49,7 +49,7 @@ async function getDashboardData(): Promise<{ stats: Stats; featured: FeaturedIde
   try {
     // Dynamically import supabase to handle missing env vars gracefully
     const { supabase } = await import('@/lib/supabase');
-    
+
     const { data, error } = await supabase
       .from('marrai_ideas')
       .select('id,title,status,ai_feasibility_score,roi_cost_saved_eur,category,problem_statement')
@@ -81,7 +81,7 @@ async function getDashboardData(): Promise<{ stats: Stats; featured: FeaturedIde
       .filter((idea: any) => typeof idea.ai_feasibility_score === 'number')
       .sort((a: any, b: any) => (b.ai_feasibility_score ?? 0) - (a.ai_feasibility_score ?? 0))
       .slice(0, 3)
-        .map((idea: any) => ({
+      .map((idea: any) => ({
         id: idea.id,
         title: idea.title,
         category: idea.category,
@@ -144,57 +144,57 @@ export default async function HomePage() {
 
   const steps = [
     {
-      title: 'Soumettez votre problème',
+      title: 'Décrivez votre Défi',
       description:
-        "Décrivez votre contexte local et les contraintes terrain. Nous acceptons les idées en français, arabe ou darija.",
+        "Partagez votre contexte local et vos obstacles. Nous acceptons les soumissions en français, arabe ou darija pour une accessibilité totale.",
       icon: '1',
     },
     {
-      title: 'Analyse IA Instantanée',
+      title: 'Validation IA Immédiate',
       description:
-        "Recevez un score de faisabilité technique et une architecture de solution. Analyse générée par un LLM spécialisé et dédié.",
+        "Recevez instantanément un score de faisabilité et une feuille de route technique générée par notre IA spécialisée.",
       icon: '2',
     },
     {
-      title: 'Sélection Compétitive',
+      title: 'Accélération & Financement',
       description:
-        "Les idées à fort potentiel (25% des soumissions) peuvent être considérées pour un appariement avec des experts et des opportunités de financement.",
+        "Les projets validés accèdent à notre réseau d'experts et aux opportunités de financement pour passer du concept au prototype.",
       icon: '3',
     },
   ];
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-16 md:px-10 lg:px-12">
-      <section className="relative overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/80 p-10 shadow-soft backdrop-blur-2xl">
-        <div className="absolute -left-20 top-10 h-56 w-56 rounded-full bg-indigo-100 blur-3xl" aria-hidden />
-        <div className="absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-violet-100 blur-3xl" aria-hidden />
-        <div className="relative flex flex-col gap-6 md:w-3/4">
+      <section className="relative overflow-hidden rounded-[2.5rem] border border-white/40 bg-white/40 p-10 shadow-soft backdrop-blur-xl">
+        <div className="absolute -left-20 top-10 h-56 w-56 rounded-full bg-terracotta-100 blur-3xl opacity-60" aria-hidden />
+        <div className="absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-brand-100 blur-3xl opacity-60" aria-hidden />
+        <div className="relative flex flex-col gap-6 md:w-3/4 mx-auto text-center items-center">
           <div className="flex items-center gap-4 mb-2">
             <Logo size="lg" showText={false} className="hidden sm:flex" />
             <Logo size="md" showText={false} className="sm:hidden" />
           </div>
-          <Badge variant="outline" className="w-fit border-indigo-200 bg-indigo-50 text-indigo-700">
+          <Badge variant="outline" className="w-fit border-terracotta-200 bg-terracotta-50 text-terracotta-700 font-medium">
             Fikra Valley 2025
           </Badge>
-          <h1 className="text-3xl font-bold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
-            Morocco&apos;s Valley of Ideas
+          <h1 className="font-heading text-4xl font-bold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
+            Transformez vos Idées en Réalité
           </h1>
-          <p className="text-lg leading-relaxed text-slate-700 sm:text-xl">
-            Where Moroccan ideas grow. Analyse instantanée de faisabilité technique pour vos problèmes locaux. Obtenez une évaluation IA.
+          <p className="text-lg leading-relaxed text-slate-700 sm:text-xl max-w-2xl">
+            Obtenez une validation technique instantanée et accédez à un réseau d'experts pour concrétiser vos projets au Maroc.
           </p>
-          <p className="text-base text-slate-600">
-            Les idées à fort potentiel (25% des soumissions) peuvent être considérées pour un appariement avec des experts et des opportunités de financement.
+          <p className="text-base text-slate-600 max-w-2xl">
+            Rejoignez les 25% d'innovateurs qui passent de l'idée au financement grâce à notre écosystème d'accompagnement.
           </p>
-          <div className="flex flex-col gap-4 pt-2">
+          <div className="flex flex-col gap-4 pt-4 items-center">
             <div className="flex flex-col gap-4 sm:flex-row">
-              <Button asChild size="lg">
-                <Link href="/submit">Soumettre pour Analyse IA Gratuite</Link>
+              <Button asChild size="lg" className="bg-terracotta-600 hover:bg-terracotta-700 text-white border-none shadow-lg shadow-terracotta-500/20">
+                <Link href="/submit">Tester mon Idée Gratuitement</Link>
               </Button>
-              <Button asChild variant="secondary" size="lg">
-                <Link href="/ideas">Parcourir les Idées</Link>
+              <Button asChild variant="secondary" size="lg" className="bg-white/80 hover:bg-white text-slate-700 border border-sand-200">
+                <Link href="/ideas">Explorer les Projets</Link>
               </Button>
             </div>
-            <p className="text-xs text-slate-500 text-center sm:text-left">
+            <p className="text-xs text-slate-500">
               Accès restreint pour le premier atelier • Demande d'accès requise
             </p>
           </div>
@@ -208,13 +208,13 @@ export default async function HomePage() {
         </div>
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {statsItems.map((item) => (
-            <Card key={item.label} className="border-white/80 bg-white/90">
-              <CardHeader className="flex-row items-center justify-between">
+            <Card key={item.label} className="border-white/40 bg-white/60 backdrop-blur-sm hover:bg-white/80 transition-colors duration-300">
+              <CardHeader className="flex-row items-center justify-between pb-2">
                 <span className="text-3xl">{item.icon}</span>
-                <span className="text-sm font-medium text-indigo-600">{item.description}</span>
+                <span className="text-sm font-medium text-terracotta-600">{item.description}</span>
               </CardHeader>
               <CardContent>
-                <CardTitle className="text-3xl font-bold text-slate-900">{item.value}</CardTitle>
+                <CardTitle className="text-3xl font-bold text-slate-900 font-heading">{item.value}</CardTitle>
                 <CardDescription className="text-base text-slate-600">{item.label}</CardDescription>
               </CardContent>
             </Card>
@@ -222,25 +222,25 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-8 rounded-[2rem] border border-indigo-100 bg-indigo-50/60 p-8 shadow-sm backdrop-blur xl:grid-cols-3">
+      <section className="grid gap-8 rounded-[2rem] border border-sand-200 bg-sand-50/50 p-8 shadow-sm backdrop-blur xl:grid-cols-3">
         <div className="xl:col-span-1">
-          <Badge variant="outline" className="border-indigo-200 bg-white text-indigo-700">
+          <Badge variant="outline" className="border-brand-200 bg-white text-brand-700">
             Comment ça marche ?
           </Badge>
-          <h2 className="mt-4 text-2xl font-semibold text-slate-900">Un parcours simple et transparent</h2>
-            <p className="mt-2 text-base text-slate-600">
-            Fikra Valley offre une évaluation professionnelle gratuite. Chaque soumission est examinée par notre équipe. 
+          <h2 className="mt-4 text-2xl font-semibold text-slate-900 font-heading">Un parcours simple et transparent</h2>
+          <p className="mt-2 text-base text-slate-600">
+            Fikra Valley offre une évaluation professionnelle gratuite. Chaque soumission est examinée par notre équipe.
             Les idées sélectionnées sont contactées dans un délai de 2-3 semaines.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-3 xl:col-span-2">
           {steps.map((step) => (
-            <Card key={step.title} className="border-transparent bg-white/90 shadow-md">
+            <Card key={step.title} className="border-transparent bg-white/80 shadow-sm hover:shadow-md transition-shadow duration-300">
               <CardHeader className="flex flex-col gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-600 text-xl font-bold text-white shadow-lg">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-600 text-xl font-bold text-white shadow-lg shadow-terracotta-500/20">
                   {step.icon}
                 </div>
-                <CardTitle className="text-lg font-semibold text-slate-900">{step.title}</CardTitle>
+                <CardTitle className="text-lg font-semibold text-slate-900 font-heading">{step.title}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm leading-relaxed text-slate-600">{step.description}</p>
@@ -272,10 +272,10 @@ export default async function HomePage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-3">
             {featured.map((idea) => (
-              <Card key={idea.id} className="border-white/80 bg-white/95">
+              <Card key={idea.id} className="border-white/60 bg-white/80 backdrop-blur-sm hover:shadow-warm hover:-translate-y-1 transition-all duration-300 group">
                 <CardHeader className="gap-3">
                   <div className="flex items-center gap-3">
-                    <Badge variant="default" className="capitalize">
+                    <Badge variant="default" className="capitalize bg-brand-100 text-brand-700 hover:bg-brand-200 border-brand-200 shadow-none">
                       {idea.category ? CATEGORY_LABELS[idea.category] ?? idea.category : 'Idée Fikra Labs'}
                     </Badge>
                     {idea.feasibilityScore !== null && (
@@ -287,7 +287,7 @@ export default async function HomePage() {
                       </Badge>
                     )}
                   </div>
-                  <CardTitle className="text-xl font-semibold text-slate-900">{idea.title}</CardTitle>
+                  <CardTitle className="text-xl font-semibold text-slate-900 font-heading group-hover:text-terracotta-700 transition-colors">{idea.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-relaxed text-slate-600">
