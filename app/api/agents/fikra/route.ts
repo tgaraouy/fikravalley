@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import FikraAgent from '@/lib/agents/fikra-agent';
 
-const fikraAgent = new FikraAgent(process.env.ANTHROPIC_API_KEY);
+const fikraAgent = new FikraAgent();
 
 export async function POST(request: NextRequest) {
   try {

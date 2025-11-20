@@ -176,6 +176,209 @@ export default function AgentDashboard({ idea, onAgentUpdate }: AgentDashboardPr
     analyzeProof();
   }, [idea?.receipts?.length]);
 
+  // Run MENTOR agent (if idea is qualified)
+  useEffect(() => {
+    if (!idea?.problem?.description || !agents.score.data?.current?.total) return;
+    if (agents.score.data.current.total < 25) return; // Only for qualified ideas
+
+    const findMentors = async () => {
+      setAgents(prev => ({
+        ...prev,
+        mentor: { ...prev.mentor, status: 'thinking' }
+      }));
+
+      try {
+        const res = await fetch('/api/agents/mentor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'find_matches',
+            data: { 
+              idea,
+              creatorProfile: {}
+            }
+          })
+        });
+
+        const result = await res.json();
+        
+        if (result.success && result.data.length > 0) {
+          setAgents(prev => ({
+            ...prev,
+            mentor: {
+              ...prev.mentor,
+              status: 'complete',
+              score: result.data[0].matchScore,
+              message: `${result.data.length} mentors trouvés`,
+              data: result.data
+            }
+          }));
+          onAgentUpdate?.('mentor', result.data);
+        }
+      } catch (error) {
+        setAgents(prev => ({
+          ...prev,
+          mentor: { ...prev.mentor, status: 'idle', message: 'Will activate when qualified' }
+        }));
+      }
+    };
+
+    const timer = setTimeout(findMentors, 1200);
+    return () => clearTimeout(timer);
+  }, [agents.score.data?.current?.total]);
+
+  // Run DOC agent (if idea is qualified)
+  useEffect(() => {
+    if (!idea?.problem?.description || !agents.score.data?.current?.total) return;
+    if (agents.score.data.current.total < 25) return;
+
+    const analyzeCompleteness = async () => {
+      setAgents(prev => ({
+        ...prev,
+        doc: { ...prev.doc, status: 'thinking' }
+      }));
+
+      try {
+        const res = await fetch('/api/agents/doc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'check_readiness',
+            data: { idea }
+          })
+        });
+
+        const result = await res.json();
+        
+        if (result.success) {
+          setAgents(prev => ({
+            ...prev,
+            doc: {
+              ...prev.doc,
+              status: 'complete',
+              score: result.data.completenessScore,
+              message: `${result.data.completenessScore}% complete`,
+              data: result.data
+            }
+          }));
+          onAgentUpdate?.('doc', result.data);
+        }
+      } catch (error) {
+        setAgents(prev => ({
+          ...prev,
+          doc: { ...prev.doc, status: 'idle', message: 'Will activate when qualified' }
+        }));
+      }
+    };
+
+    const timer = setTimeout(analyzeCompleteness, 1500);
+    return () => clearTimeout(timer);
+  }, [agents.score.data?.current?.total]);
+
+  // Run NETWORK agent (if problem defined)
+  useEffect(() => {
+    if (!idea?.problem?.description || idea.problem.description.length < 50) return;
+
+    const findSimilar = async () => {
+      setAgents(prev => ({
+        ...prev,
+        network: { ...prev.network, status: 'thinking' }
+      }));
+
+      try {
+        const res = await fetch('/api/agents/network', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'find_similar_ideas',
+            data: { idea, limit: 3 }
+          })
+        });
+
+        const result = await res.json();
+        
+        if (result.success) {
+          setAgents(prev => ({
+            ...prev,
+            network: {
+              ...prev.network,
+              status: 'complete',
+              message: `${result.data.length} idées similaires`,
+              data: result.data
+            }
+          }));
+          onAgentUpdate?.('network', result.data);
+        }
+      } catch (error) {
+        setAgents(prev => ({
+          ...prev,
+          network: { ...prev.network, status: 'complete', message: 'No similar ideas yet' }
+        }));
+      }
+    };
+
+    const timer = setTimeout(findSimilar, 2000);
+    return () => clearTimeout(timer);
+  }, [idea?.problem?.description]);
+
+  // Run COACH agent (ongoing journey tracking)
+  useEffect(() => {
+    if (!agents.score.data?.current) return;
+
+    const getCoaching = async () => {
+      setAgents(prev => ({
+        ...prev,
+        coach: { ...prev.coach, status: 'thinking' }
+      }));
+
+      try {
+        const journey = {
+          userId: 'temp_user',
+          ideaId: 'temp_idea',
+          phase: agents.score.data.current.total < 15 ? 'ideation' :
+                 agents.score.data.current.total < 25 ? 'validation' : 'building',
+          milestonesAchieved: [],
+          currentMilestones: [],
+          intimacyScore: agents.score.data.current.intimacy,
+          daysSinceStart: 1,
+          lastActivity: new Date()
+        };
+
+        const res = await fetch('/api/agents/coach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'get_daily_coaching',
+            data: { userId: 'temp_user', userName: 'Entrepreneur', journey }
+          })
+        });
+
+        const result = await res.json();
+        
+        if (result.success) {
+          setAgents(prev => ({
+            ...prev,
+            coach: {
+              ...prev.coach,
+              status: 'complete',
+              message: result.data.message?.french,
+              data: result.data
+            }
+          }));
+          onAgentUpdate?.('coach', result.data);
+        }
+      } catch (error) {
+        setAgents(prev => ({
+          ...prev,
+          coach: { ...prev.coach, status: 'complete', message: 'Journey tracking active' }
+        }));
+      }
+    };
+
+    const timer = setTimeout(getCoaching, 2500);
+    return () => clearTimeout(timer);
+  }, [agents.score.data?.current?.total]);
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -189,31 +392,36 @@ export default function AgentDashboard({ idea, onAgentUpdate }: AgentDashboardPr
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* FIKRA Agent */}
+          {/* FIKRA Agent - Always active */}
           <AgentCard agent={agents.fikra} />
 
-          {/* SCORE Agent */}
+          {/* SCORE Agent - Always active */}
           <AgentCard agent={agents.score} />
 
-          {/* PROOF Agent */}
-          {idea?.receipts?.length > 0 && (
+          {/* PROOF Agent - Active when receipts exist */}
+          {idea?.receipts && idea.receipts.length > 0 && (
             <AgentCard agent={agents.proof} />
           )}
 
-          {/* Other agents (coming soon badges) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-4 border-t">
-            {['mentor', 'doc', 'network', 'coach'].map((key) => (
-              <div key={key} className="text-center p-2 border rounded-lg opacity-50">
-                <div className="text-2xl">{agents[key as keyof typeof agents].icon}</div>
-                <div className="text-xs font-semibold mt-1">
-                  {agents[key as keyof typeof agents].name}
-                </div>
-                <Badge variant="secondary" className="mt-1 text-xs">
-                  Coming Soon
-                </Badge>
-              </div>
-            ))}
-          </div>
+          {/* MENTOR Agent - Active when qualified (score >= 25) */}
+          {agents.mentor.status !== 'idle' && (
+            <AgentCard agent={agents.mentor} />
+          )}
+
+          {/* DOC Agent - Active when qualified */}
+          {agents.doc.status !== 'idle' && (
+            <AgentCard agent={agents.doc} />
+          )}
+
+          {/* NETWORK Agent - Active when problem defined */}
+          {agents.network.status !== 'idle' && (
+            <AgentCard agent={agents.network} />
+          )}
+
+          {/* COACH Agent - Always active (journey tracking) */}
+          {agents.coach.status !== 'idle' && (
+            <AgentCard agent={agents.coach} />
+          )}
         </div>
       </CardContent>
     </Card>

@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import ProofAgent from '@/lib/agents/proof-agent';
 
-const proofAgent = new ProofAgent(process.env.ANTHROPIC_API_KEY);
+const proofAgent = new ProofAgent();
 
 // Generate receipt collection strategy
 export async function POST(request: NextRequest) {
