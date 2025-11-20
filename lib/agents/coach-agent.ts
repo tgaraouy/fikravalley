@@ -553,7 +553,7 @@ Faites de même aujourd'hui. 📚`
   /**
    * Get action type for milestone
    */
-  private getMilestoneAction(milestone: Milestone): CoachingMessage['action']['type'] {
+  private getMilestoneAction(milestone: Milestone): 'complete_section' | 'collect_receipts' | 'refine' | 'connect' | 'reflect' {
     if (milestone.category === 'validation') return 'collect_receipts';
     if (milestone.category === 'intimacy') return 'reflect';
     if (milestone.category === 'building') return 'refine';
