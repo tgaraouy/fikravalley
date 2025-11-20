@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Outfit } from 'next/font/google';
 import React from 'react';
 import Link from 'next/link';
 
@@ -9,7 +9,8 @@ import UserMenu from '@/components/UserMenu';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 
 export const metadata: Metadata = {
   title: 'Fikra Valley - Morocco\'s Valley of Ideas',
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={cn('min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 text-slate-900 antialiased', inter.className)}>
+      <body className={cn('min-h-screen bg-sand-50 text-slate-900 antialiased font-sans', inter.variable, outfit.variable)} suppressHydrationWarning>
         {/* Simple Navigation Bar */}
         <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
