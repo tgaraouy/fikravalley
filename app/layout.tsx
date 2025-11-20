@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import UserMenu from '@/components/UserMenu';
+import EngagingFooter from '@/components/footer/EngagingFooter';
 
 import './globals.css';
 
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </nav>
         {children}
+        <EngagingFooter />
       </body>
     </html>
   );
