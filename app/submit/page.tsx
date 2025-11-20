@@ -351,10 +351,10 @@ export default function SubmitIdeaPage() {
                   key={step.id}
                   onClick={() => setCurrentStep(step.id)}
                   className={`text-xs ${step.id === currentStep
-                      ? 'font-bold text-indigo-600'
-                      : step.id < currentStep
-                        ? 'text-green-600'
-                        : 'text-slate-400'
+                    ? 'font-bold text-indigo-600'
+                    : step.id < currentStep
+                      ? 'text-green-600'
+                      : 'text-slate-400'
                     }`}
                 >
                   <div className="text-center">
@@ -586,12 +586,14 @@ export default function SubmitIdeaPage() {
         {/* Quick Submit Dialog */}
         {currentStep === 1 && (
           <div className="mt-8 border-t pt-6">
+            <Button
+              variant="outline"
+              className="w-full border-terracotta-200 text-terracotta-700 hover:bg-terracotta-50"
+              onClick={() => setShowQuickSubmit(true)}
+            >
+              ⚡ Soumission Rapide (Passer les détails)
+            </Button>
             <Dialog open={showQuickSubmit} onOpenChange={setShowQuickSubmit}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full border-terracotta-200 text-terracotta-700 hover:bg-terracotta-50">
-                  ⚡ Soumission Rapide (Passer les détails)
-                </Button>
-              </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Soumission Rapide</DialogTitle>
