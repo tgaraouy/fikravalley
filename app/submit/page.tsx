@@ -22,6 +22,7 @@ import ClarityFeedbackDisplay from '@/components/submission/ClarityFeedback';
 import AIAgentChat from '@/components/ai/AIAgentChat';
 import AISuggestionAgent from '@/components/ai/AISuggestionAgent';
 import AIAnalysisAgent from '@/components/ai/AIAnalysisAgent';
+import AgentDashboard from '@/components/agents/AgentDashboard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -625,8 +626,42 @@ export default function SubmitIdeaPage() {
           </div>
         )}
 
-        {/* AI Analysis Agent - Shows live analysis */}
-        {(currentStep >= 2 && currentStep <= 6) && (
+        {/* 🤖 AI AGENTS DASHBOARD - Real-time analysis with all 7 agents */}
+        {problemStatement.length > 20 && (
+          <div className="mt-8">
+            <AgentDashboard
+              idea={{
+                problem: {
+                  description: problemStatement,
+                  who: '', // Extract from FIKRA analysis
+                  where: location,
+                  frequency: ''
+                },
+                asIs: {
+                  description: asIsAnalysis
+                },
+                benefits: {
+                  description: benefitStatement
+                },
+                solution: {
+                  description: solution
+                },
+                operations: {
+                  description: `Team: ${teamSize}, Budget: ${budget}`
+                },
+                receipts: photos.map((_, i) => ({ id: `photo_${i}`, amount: 3 })),
+                category
+              }}
+              onAgentUpdate={(agent, data) => {
+                console.log(`${agent} agent updated:`, data);
+                // You can save agent insights to state here
+              }}
+            />
+          </div>
+        )}
+        
+        {/* AI Analysis Agent - Shows live analysis (backup/legacy) */}
+        {(currentStep >= 2 && currentStep <= 6) && problemStatement.length < 20 && (
           <div className="mt-6">
             <AIAnalysisAgent
               formData={{
