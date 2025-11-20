@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/Logo';
 import SuccessStream from '@/components/success/SuccessStream';
+import HowItWorks from '@/components/how-it-works/HowItWorks';
 import { formatCurrency } from '@/lib/utils';
 
 export const revalidate = 60;
@@ -143,27 +144,6 @@ export default async function HomePage() {
     },
   ];
 
-  const steps = [
-    {
-      title: 'Décrivez votre Défi',
-      description:
-        "Partagez votre contexte local et vos obstacles. Nous acceptons les soumissions en français, arabe ou darija pour une accessibilité totale.",
-      icon: '1',
-    },
-    {
-      title: 'Validation IA Immédiate',
-      description:
-        "Recevez instantanément un score de faisabilité et une feuille de route technique générée par notre IA spécialisée.",
-      icon: '2',
-    },
-    {
-      title: 'Accélération & Financement',
-      description:
-        "Les projets validés accèdent à notre réseau d'experts et aux opportunités de financement pour passer du concept au prototype.",
-      icon: '3',
-    },
-  ];
-
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-6 py-16 md:px-10 lg:px-12">
       <section className="relative overflow-hidden rounded-[2.5rem] border border-white/40 bg-white/40 p-10 shadow-soft backdrop-blur-xl">
@@ -228,33 +208,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="grid gap-8 rounded-[2rem] border border-sand-200 bg-sand-50/50 p-8 shadow-sm backdrop-blur xl:grid-cols-3">
-        <div className="xl:col-span-1">
-          <Badge variant="outline" className="border-brand-200 bg-white text-brand-700">
-            Comment ça marche ?
-          </Badge>
-          <h2 className="mt-4 text-2xl font-semibold text-slate-900 font-heading">Un parcours simple et transparent</h2>
-          <p className="mt-2 text-base text-slate-600">
-            Fikra Valley offre une évaluation professionnelle gratuite. Chaque soumission est examinée par notre équipe.
-            Les idées sélectionnées sont contactées dans un délai de 2-3 semaines.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3 xl:col-span-2">
-          {steps.map((step) => (
-            <Card key={step.title} className="border-transparent bg-white/80 shadow-sm hover:shadow-md transition-shadow duration-300">
-              <CardHeader className="flex flex-col gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-terracotta-600 text-xl font-bold text-white shadow-lg shadow-terracotta-500/20">
-                  {step.icon}
-                </div>
-                <CardTitle className="text-lg font-semibold text-slate-900 font-heading">{step.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed text-slate-600">{step.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+      {/* Interactive How It Works - with live demos */}
+      <div className="-mx-6 md:-mx-10 lg:-mx-12">
+        <HowItWorks />
+      </div>
 
       <section className="flex flex-col gap-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
