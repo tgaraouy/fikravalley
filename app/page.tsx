@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Logo from '@/components/Logo';
 import SuccessStream from '@/components/success/SuccessStream';
 import HowItWorks from '@/components/how-it-works/HowItWorks';
+import SocialProofWall from '@/components/social-proof/SocialProofWall';
 import { formatCurrency } from '@/lib/utils';
 
 export const revalidate = 60;
@@ -213,55 +214,10 @@ export default async function HomePage() {
         <HowItWorks />
       </div>
 
-      <section className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-              Idées en lumière
-            </Badge>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-900">Les idées les plus prometteuses</h2>
-            <p className="text-base text-slate-600">
-              Idées analysées avec les meilleurs scores de faisabilité. En cours d&apos;évaluation pour la sélection.
-            </p>
-          </div>
-          <Button asChild variant="ghost" size="sm" className="sm:self-end">
-            <Link href="/ideas">Voir toutes les idées</Link>
-          </Button>
-        </div>
-        {featured.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/70 p-8 text-center text-slate-600">
-            Aucune analyse disponible pour le moment. Soumettez une nouvelle idée pour lancer l&apos;innovation !
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-3">
-            {featured.map((idea) => (
-              <Card key={idea.id} className="border-white/60 bg-white/80 backdrop-blur-sm hover:shadow-warm hover:-translate-y-1 transition-all duration-300 group">
-                <CardHeader className="gap-3">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="default" className="capitalize bg-brand-100 text-brand-700 hover:bg-brand-200 border-brand-200 shadow-none">
-                      {idea.category ? CATEGORY_LABELS[idea.category] ?? idea.category : 'Idée Fikra Labs'}
-                    </Badge>
-                    {idea.feasibilityScore !== null && (
-                      <Badge
-                        variant={idea.feasibilityScore >= 8 ? 'success' : 'outline'}
-                        className="font-medium text-sm"
-                      >
-                        Faisabilité {idea.feasibilityScore.toFixed(1)} / 10
-                      </Badge>
-                    )}
-                  </div>
-                  <CardTitle className="text-xl font-semibold text-slate-900 font-heading group-hover:text-terracotta-700 transition-colors">{idea.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm leading-relaxed text-slate-600">
-                    {idea.problemStatement ?? 'Analyse détaillée en cours de préparation.'}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+      {/* Social Proof Wall - Pinterest-style success stories */}
+      <div className="-mx-6 md:-mx-10 lg:-mx-12">
+        <SocialProofWall />
+      </div>
     </main>
   );
 }
