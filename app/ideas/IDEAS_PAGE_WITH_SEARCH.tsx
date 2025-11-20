@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { MultiLanguageSearch } from '@/components/search/MultiLanguageSearch';
-import { IdeaCard } from '@/components/IdeaCard';
+import IdeaCard from '@/components/IdeaCard';
 import { motion } from 'framer-motion';
 
 // ============================================================================
