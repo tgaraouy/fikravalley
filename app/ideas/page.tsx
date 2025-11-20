@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { IdeaCard } from '@/components/ideas/IdeaCard';
 import { FilterSidebar } from '@/components/ideas/FilterSidebar';
 import { SearchSuggestions } from '@/components/ideas/SearchSuggestions';
+import IdeasDatabaseHero from '@/components/database/IdeasDatabaseHero';
 
 interface Idea {
   id: string;
@@ -159,54 +160,17 @@ export default function IdeasPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-green-600 via-green-500 to-blue-600 text-white py-16 md:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 drop-shadow-lg">
-              Morocco's Innovation Database
-            </h1>
-            <p className="text-xl md:text-2xl mb-2 opacity-95">
-              {ideas?.total || 0} validated ideas building Morocco's future
-            </p>
-            <p className="text-lg opacity-90">
-              Discover, validate, and support innovative solutions for Morocco
-            </p>
-          </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-slate-50 to-transparent"></div>
-      </section>
-
-      {/* Search Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-        <div className="bg-white rounded-xl shadow-2xl p-4 md:p-6 border border-slate-200">
-          <div className="relative">
-              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl">🔍</span>
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setShowSuggestions(true);
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              placeholder="Search ideas in Darija, French, or Arabic... (e.g., 'santé', 'صحة', 'صحة')"
-              className="w-full text-lg p-4 pl-12 border-2 border-slate-300 rounded-lg focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition-all"
-            />
-            {showSuggestions && searchSuggestions && searchSuggestions.length > 0 && (
-              <SearchSuggestions
-                suggestions={searchSuggestions}
-                onSelect={(suggestion) => {
-                  setSearch(suggestion);
-                  setShowSuggestions(false);
-                }}
-              />
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Hero Section with Integrated Search */}
+      <IdeasDatabaseHero 
+        totalIdeas={ideas?.total || 0}
+        searchQuery={search}
+        onSearchChange={(query) => {
+          setSearch(query);
+          setShowSuggestions(true);
+        }}
+        onSearchFocus={() => setShowSuggestions(true)}
+        onSearchBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+      />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
