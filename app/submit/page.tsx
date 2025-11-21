@@ -49,6 +49,7 @@ const STEPS = [
 
 export default function SubmitIdeaPage() {
   const router = useRouter();
+  const [submissionMode, setSubmissionMode] = useState<'voice' | 'form'>('voice'); // Default to voice
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);

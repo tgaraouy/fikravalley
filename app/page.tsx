@@ -175,14 +175,17 @@ export default async function HomePage() {
           <div className="flex flex-col gap-4 pt-4 items-center">
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg" className="bg-terracotta-600 hover:bg-terracotta-700 text-white border-none shadow-lg shadow-terracotta-500/20">
-                <Link href="/submit">🚀 Valider ma Fikra Maintenant</Link>
+                <Link href="/submit-voice">🎤 Parler à l'IA Maintenant</Link>
+              </Button>
+              <Button asChild size="lg" className="bg-brand-600 hover:bg-brand-700 text-white border-none shadow-lg shadow-brand-500/20">
+                <Link href="/submit">✍️ Écrire mon Projet</Link>
               </Button>
               <Button asChild variant="secondary" size="lg" className="bg-white/80 hover:bg-white text-slate-700 border border-sand-200">
-                <Link href="/ideas">👀 Voir les Projets Financés</Link>
+                <Link href="/ideas">👀 Voir les Projets</Link>
               </Button>
             </div>
             <p className="text-xs text-slate-500">
-              💯 Gratuit • 🔒 Confidentiel • ⚡ Résultat en 30 minutes
+              💯 Gratuit • 🔒 Confidentiel • ⚡ 7 agents IA en direct
             </p>
           </div>
         </div>
