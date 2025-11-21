@@ -35,6 +35,10 @@ export default function VoiceSubmitPage() {
       // Generate a title from the first sentence or first 100 chars
       const title = description.split('.')[0].substring(0, 100) || description.substring(0, 100);
 
+      const frequency =
+        (idea.frequency && idea.frequency.trim().length > 0 && idea.frequency) ||
+        'À préciser (soumission vocale)';
+
       const response = await fetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -43,6 +47,7 @@ export default function VoiceSubmitPage() {
           problem_statement: description,
           category: idea.category || 'autre',
           location: idea.location || 'autre',
+          frequency,
           status: 'submitted',
           submitted_via: 'voice_guided',
           current_manual_process: 'Non spécifié (Soumission Vocale)',

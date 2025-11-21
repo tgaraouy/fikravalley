@@ -16,6 +16,8 @@ interface AgentStatus {
   icon: string;
   status: 'idle' | 'thinking' | 'complete' | 'error';
   score?: number;
+  maxScore?: number;
+  scorePrecision?: number;
   message?: string;
   data?: any;
 }
@@ -27,11 +29,11 @@ interface AgentDashboardProps {
 
 export default function AgentDashboard({ idea, onAgentUpdate }: AgentDashboardProps) {
   const [agents, setAgents] = useState<Record<string, AgentStatus>>({
-    fikra: { name: 'FIKRA', icon: '🎯', status: 'idle' },
-    score: { name: 'SCORE', icon: '📊', status: 'idle' },
-    proof: { name: 'PROOF', icon: '📸', status: 'idle' },
-    mentor: { name: 'MENTOR', icon: '🤝', status: 'idle' },
-    doc: { name: 'DOC', icon: '📄', status: 'idle' },
+    fikra: { name: 'FIKRA', icon: '🎯', status: 'idle', maxScore: 10, scorePrecision: 1 },
+    score: { name: 'SCORE', icon: '📊', status: 'idle', maxScore: 50, scorePrecision: 1 },
+    proof: { name: 'PROOF', icon: '📸', status: 'idle', maxScore: 5, scorePrecision: 1 },
+    mentor: { name: 'MENTOR', icon: '🤝', status: 'idle', maxScore: 10, scorePrecision: 1 },
+    doc: { name: 'DOC', icon: '📄', status: 'idle', maxScore: 100, scorePrecision: 0 },
     network: { name: 'NETWORK', icon: '🌐', status: 'idle' },
     coach: { name: 'COACH', icon: '🎓', status: 'idle' },
   });
@@ -458,7 +460,10 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
         
         {agent.status === 'complete' && agent.score !== undefined && (
           <Badge variant="default" className="bg-green-600">
-            {agent.score.toFixed(1)}/10
+            {agent.scorePrecision !== undefined
+              ? agent.score.toFixed(agent.scorePrecision)
+              : agent.score.toFixed(1)}
+            {agent.maxScore ? `/${agent.maxScore}` : ''}
           </Badge>
         )}
         
@@ -477,9 +482,9 @@ function AgentCard({ agent }: { agent: AgentStatus }) {
             <div>
               <div className="flex justify-between text-xs mb-1">
                 <span>Progress</span>
-                <span>{agent.data.progress}%</span>
+                <span>{Math.round(agent.data.progress)}%</span>
               </div>
-              <Progress value={agent.data.progress} className="h-2" />
+              <Progress value={Math.round(agent.data.progress)} className="h-2" />
             </div>
           )}
 

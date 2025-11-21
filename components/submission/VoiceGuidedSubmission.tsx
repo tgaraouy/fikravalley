@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,34 @@ import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import AgentDashboard from '@/components/agents/AgentDashboard';
 import { CATEGORIES, MOROCCAN_CITIES } from '@/lib/categories';
+
+function detectFrequency(text: string): string {
+  if (!text) return 'À préciser (soumission vocale)';
+
+  const lower = text.toLowerCase();
+
+  const exactPatterns = [
+    /(chaque|tous les|toutes les)\s+(jour|jours|semaine|semaines|mois|années|ans)/i,
+    /(une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s+(fois|par\s+semaine|par\s+mois|par\s+an)/i,
+    /(\d+)\s*(fois|jour|jours|semaine|semaines|mois|ans)/i,
+  ];
+
+  for (const pattern of exactPatterns) {
+    const match = lower.match(pattern);
+    if (match) {
+      return match[0]
+        .replace(/\s+/g, ' ')
+        .replace('par', '/')
+        .trim();
+    }
+  }
+
+  if (lower.includes('souvent')) return 'Souvent (à préciser)';
+  if (lower.includes('rarement')) return 'Rarement (à préciser)';
+  if (lower.includes('parfois')) return 'Parfois (à préciser)';
+
+  return 'À préciser (soumission vocale)';
+}
 
 interface VoiceGuidedSubmissionProps {
   onSubmit: (idea: any) => void;
@@ -234,6 +262,8 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
     setCurrentAgentMessage(getAgentGuidance());
   }, [ideaText, getAgentGuidance]);
 
+  const detectedFrequency = useMemo(() => detectFrequency(ideaText), [ideaText]);
+
   // Parse idea from text automatically
   const parsedIdea = {
     description: ideaText,  // Main text
@@ -241,13 +271,14 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
       description: ideaText,
       who: '', // FIKRA will extract
       where: location || '',
-      frequency: ''
+      frequency: detectedFrequency
     },
     solution: {
       description: '' // Will be asked after problem is clear
     },
     category: category || '',
-    location: location || ''
+    location: location || '',
+    frequency: detectedFrequency
   };
 
   return (
@@ -390,6 +421,12 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                     </p>
                   </div>
                 </div>
+
+                {ideaText.length > 30 && (
+                  <div className={`text-sm mt-3 ${detectedFrequency.startsWith('À préciser') ? 'text-amber-700' : 'text-green-700'} flex items-center gap-2`}>
+                    {detectedFrequency.startsWith('À préciser') ? '⚠️ Parle de la fréquence du problème (combien de fois?)' : `🕒 Fréquence détectée: ${detectedFrequency}`}
+                  </div>
+                )}
 
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
