@@ -18,6 +18,14 @@ import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import AgentDashboard from '@/components/agents/AgentDashboard';
 import { CATEGORIES, MOROCCAN_CITIES } from '@/lib/categories';
+import { 
+  saveDraftLocally, 
+  loadDraftLocally, 
+  trackInterruption, 
+  updateThinkTime,
+  type ThinkTimeSession 
+} from '@/lib/workflow/think-time-ux';
+import MicroValidation from '@/lib/workflow/micro-validation';
 
 function detectFrequency(text: string): string {
   if (!text) return 'À préciser (soumission vocale)';
@@ -69,6 +77,95 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
   const [currentAgentMessage, setCurrentAgentMessage] = useState('');
   const [showAgentDashboard, setShowAgentDashboard] = useState(true);
   const [voiceSupported, setVoiceSupported] = useState(false);
+  
+  // Think-Time UX tracking
+  const [thinkTimeSession, setThinkTimeSession] = useState<ThinkTimeSession | null>(null);
+  const [lastActivityTime, setLastActivityTime] = useState<Date>(new Date());
+  const [showMicroValidation, setShowMicroValidation] = useState(false);
+  const [currentStepId, setCurrentStepId] = useState<string>('');
+  
+  // Initialize Think-Time session
+  useEffect(() => {
+    const userId = `user_${Date.now()}`; // In production, use actual user ID
+    const savedDraft = loadDraftLocally(userId);
+    
+    if (savedDraft) {
+      setThinkTimeSession(savedDraft);
+      setIdeaText(savedDraft.steps[0]?.description || '');
+    } else {
+      const newSession: ThinkTimeSession = {
+        userId,
+        currentStep: 0,
+        steps: [{
+          id: 'step_problem',
+          name: 'Décrire le problème',
+          description: '',
+          estimatedTimeSeconds: 300
+        }],
+        startedAt: new Date(),
+        lastActivity: new Date(),
+        interruptions: 0,
+        totalThinkTime: 0
+      };
+      setThinkTimeSession(newSession);
+    }
+  }, []);
+  
+  // Auto-save draft every 30 seconds (Think-Time UX)
+  useEffect(() => {
+    if (!thinkTimeSession) return;
+    
+    const interval = setInterval(() => {
+      if (thinkTimeSession) {
+        const updated = {
+          ...thinkTimeSession,
+          steps: [{
+            ...thinkTimeSession.steps[0],
+            description: ideaText
+          }],
+          lastActivity: new Date()
+        };
+        saveDraftLocally(updated);
+        setThinkTimeSession(updated);
+      }
+    }, 30000); // Every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [thinkTimeSession, ideaText]);
+  
+  // Track interruptions (user leaves and comes back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && thinkTimeSession) {
+        // User left - track interruption
+        setThinkTimeSession(trackInterruption(thinkTimeSession));
+      } else if (!document.hidden && thinkTimeSession) {
+        // User returned - update think time
+        const secondsSinceLastActivity = Math.floor(
+          (new Date().getTime() - lastActivityTime.getTime()) / 1000
+        );
+        if (secondsSinceLastActivity > 60) { // Only count if >1 minute away
+          setThinkTimeSession(updateThinkTime(thinkTimeSession, 0));
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [thinkTimeSession, lastActivityTime]);
+  
+  // Track active think time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (thinkTimeSession && !document.hidden) {
+        const activeSeconds = 5; // Update every 5 seconds
+        setThinkTimeSession(updateThinkTime(thinkTimeSession, activeSeconds));
+        setLastActivityTime(new Date());
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [thinkTimeSession]);
   
   // Check voice support
   useEffect(() => {
@@ -431,15 +528,24 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                 {/* Action Buttons */}
                 <div className="flex gap-3 pt-4">
                   <Button
-                    onClick={() => onSaveDraft(parsedIdea)}
+                    onClick={() => {
+                      onSaveDraft(parsedIdea);
+                      if (thinkTimeSession) {
+                        saveDraftLocally(thinkTimeSession);
+                      }
+                    }}
                     variant="outline"
                     className="flex-1"
                     disabled={ideaText.length < 20}
                   >
-                    💾 Sauvegarder
+                    💾 Sauvegarder (24h)
                   </Button>
                   <Button
-                    onClick={() => onSubmit(parsedIdea)}
+                    onClick={() => {
+                      // Show micro-validation before submitting
+                      setCurrentStepId('step_problem');
+                      setShowMicroValidation(true);
+                    }}
                     disabled={ideaText.length < 50 || !category || !location}
                     className="flex-1 bg-terracotta-600 hover:bg-terracotta-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     title={
@@ -462,6 +568,15 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                     {!category && '⚠️ Sélectionne une catégorie '}
                     {!location && '⚠️ Sélectionne une ville '}
                     {ideaText.length < 50 && `⚠️ Écris encore ${50 - ideaText.length} caractères`}
+                  </div>
+                )}
+                
+                {/* Think-Time UX Info */}
+                {thinkTimeSession && (
+                  <div className="text-xs text-slate-500 text-center pt-2 border-t mt-2">
+                    💭 Temps de réflexion: {Math.floor(thinkTimeSession.totalThinkTime / 60)} min
+                    {thinkTimeSession.interruptions > 0 && ` • ${thinkTimeSession.interruptions} interruption(s)`}
+                    {thinkTimeSession.draftSavedAt && ` • Sauvegardé il y a ${Math.floor((new Date().getTime() - new Date(thinkTimeSession.draftSavedAt).getTime()) / 60000)} min`}
                   </div>
                 )}
               </CardContent>
@@ -608,6 +723,28 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
           </div>
         </div>
       </div>
+      
+      {/* Micro-Validation Modal (Think-Time UX) */}
+      {showMicroValidation && (
+        <MicroValidation
+          stepId={currentStepId}
+          stepName="Décrire le problème"
+          onComplete={(difficulty, blockers) => {
+            setShowMicroValidation(false);
+            // If difficulty < 3.5, flag for review
+            if (difficulty < 3.5) {
+              console.warn('⚠️ Low task ease score - needs attention');
+            }
+            // Proceed with submission
+            onSubmit(parsedIdea);
+          }}
+          onSkip={() => {
+            setShowMicroValidation(false);
+            // Skip validation, proceed anyway
+            onSubmit(parsedIdea);
+          }}
+        />
+      )}
     </div>
   );
 }
