@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import AgentDashboard from '@/components/agents/AgentDashboard';
+import { CATEGORIES, MOROCCAN_CITIES } from '@/lib/categories';
 
 interface VoiceGuidedSubmissionProps {
   onSubmit: (idea: any) => void;
@@ -342,41 +343,51 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                 <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Catégorie
+                      Catégorie <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full p-2 border rounded-lg"
+                      className="w-full p-3 border-2 border-slate-200 rounded-lg focus:border-terracotta-500 focus:ring-2 focus:ring-terracotta-200 bg-white"
                     >
-                      <option value="">Sélectionne...</option>
-                      <option value="sante">🏥 Santé</option>
-                      <option value="education">📚 Éducation</option>
-                      <option value="agriculture">🌾 Agriculture</option>
-                      <option value="tech">💻 Tech</option>
-                      <option value="commerce">🏪 Commerce</option>
-                      <option value="transport">🚗 Transport</option>
-                      <option value="autre">Autre</option>
+                      <option value="">Sélectionne une catégorie...</option>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </option>
+                      ))}
                     </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {CATEGORIES.length} catégories disponibles
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Ville
+                      Ville <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
-                      className="w-full p-2 border rounded-lg"
+                      className="w-full p-3 border-2 border-slate-200 rounded-lg focus:border-terracotta-500 focus:ring-2 focus:ring-terracotta-200 bg-white"
                     >
-                      <option value="">Sélectionne...</option>
-                      <option value="casablanca">Casablanca</option>
-                      <option value="rabat">Rabat</option>
-                      <option value="fes">Fès</option>
-                      <option value="marrakech">Marrakech</option>
-                      <option value="tanger">Tanger</option>
-                      <option value="agadir">Agadir</option>
-                      <option value="autre">Autre</option>
+                      <option value="">Sélectionne une ville...</option>
+                      {/* Group by region */}
+                      {Array.from(new Set(MOROCCAN_CITIES.map(c => c.region || 'Autre'))).map((region) => {
+                        const citiesInRegion = MOROCCAN_CITIES.filter(c => (c.region || 'Autre') === region);
+                        return (
+                          <optgroup key={region} label={region}>
+                            {citiesInRegion.map((city) => (
+                              <option key={city.value} value={city.value}>
+                                {city.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
                     </select>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {MOROCCAN_CITIES.length} villes disponibles
+                    </p>
                   </div>
                 </div>
 
