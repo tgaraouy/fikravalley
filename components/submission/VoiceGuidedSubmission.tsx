@@ -157,29 +157,76 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
     }
   }, [isListening]);
 
-  // Get agent guidance based on current state
+  // Smart agent guidance based on content analysis
   const getAgentGuidance = useCallback(() => {
-    if (ideaText.length < 20) {
-      return "🎯 FIKRA: Clique sur 🎤 pour parler, ou commence à écrire ton problème...";
+    const text = ideaText.toLowerCase();
+    const words = ideaText.split(' ').filter(w => w);
+    const wordCount = words.length;
+    
+    // Phase 1: Get them started
+    if (wordCount < 10) {
+      return "🎯 FIKRA: Raconte-moi le problème que tu as observé. Commence par 'J'ai vu que...' ou 'J'ai remarqué que...'";
     }
     
-    if (ideaText.length < 50) {
-      return "🎯 FIKRA: Continue! Qui EXACTEMENT a ce problème? Où ça se passe?";
+    // Phase 2: Analyze what they said and ask specific follow-ups
+    if (wordCount < 30) {
+      // Check if they mentioned a general group
+      if (text.includes('touristes') || text.includes('gens') || text.includes('personnes') || text.includes('clients')) {
+        return "🎯 FIKRA: Qui EXACTEMENT? Par exemple: 'Touristes français de 30-40 ans' ou 'Familles avec enfants de Casablanca'. Sois précis!";
+      }
+      if (text.includes('maroc') || text.includes('casa') || text.includes('rabat')) {
+        return "📊 SCORE: Bien! Maintenant, combien de personnes? Par exemple: '3 de mes amis sur 5' ou '80% des touristes que je connais'";
+      }
+      return "🎯 FIKRA: Continue! Qui EXACTEMENT a vécu ce problème? Donne-moi des noms ou des chiffres.";
     }
     
-    if (!ideaText.includes('CHU') && !ideaText.includes('hôpital') && !ideaText.includes('école')) {
-      return "🎯 FIKRA: Sois plus spécifique! Quel lieu? Quel service?";
+    // Phase 3: Get frequency and specificity
+    if (wordCount < 60) {
+      // Check if they gave specifics
+      const hasNumbers = /\d+/.test(text);
+      const hasFrequency = text.includes('fois') || text.includes('chaque') || text.includes('souvent') || text.includes('toujours');
+      
+      if (!hasNumbers && !hasFrequency) {
+        return "📊 SCORE: À quelle FRÉQUENCE ça arrive? Dis-moi: 'Chaque semaine', '3 fois sur 10', '80% du temps'...";
+      }
+      
+      // Check if they mentioned lived experience
+      const hasLivedExp = text.includes('vu') || text.includes('vécu') || text.includes('hier') || 
+                          text.includes('observé') || text.includes('passé') || text.includes('copains') ||
+                          text.includes('amis') || text.includes('famille');
+      
+      if (!hasLivedExp) {
+        return "🎯 FIKRA: As-tu VU ce problème toi-même? Raconte-moi UNE histoire spécifique. Par exemple: 'Hier, j'ai vu mon ami Pierre...'";
+      }
+      
+      return "💪 SCORE: Bien! Maintenant dis-moi: Que font-ils ACTUELLEMENT pour résoudre ce problème?";
     }
     
-    if (ideaText.split(' ').length < 30) {
-      return "📊 SCORE: Bien! Maintenant, à quelle FRÉQUENCE ce problème arrive?";
+    // Phase 4: Get current solution and impact
+    if (wordCount < 100) {
+      const hasSolution = text.includes('actuellement') || text.includes('maintenant') || 
+                         text.includes('font') || text.includes('utilisent') || text.includes('essaient');
+      
+      if (!hasSolution) {
+        return "📊 SCORE: Que font-ils pour résoudre ce problème MAINTENANT? Par exemple: 'Ils utilisent WhatsApp' ou 'Ils ne font rien'";
+      }
+      
+      return "🎯 FIKRA: Parfait! Quel est le COÛT de ce problème? Temps perdu? Argent perdu? Frustration?";
     }
     
-    if (!ideaText.toLowerCase().includes('hier') && !ideaText.toLowerCase().includes('vu') && !ideaText.toLowerCase().includes('vécu')) {
-      return "🎯 FIKRA: As-tu VU ce problème de tes propres yeux? Raconte!";
+    // Phase 5: Solution ideation
+    if (wordCount >= 100) {
+      const hasSolutionIdea = text.includes('solution') || text.includes('idée') || 
+                             text.includes('proposer') || text.includes('créer');
+      
+      if (!hasSolutionIdea) {
+        return "💡 FIKRA: Excellente analyse! Maintenant, quelle est TON IDÉE de solution? Comment tu vois ça?";
+      }
+      
+      return "🎉 SCORE: Bravo! Tu as une base solide. Clique 'Valider avec les Agents' pour l'analyse complète!";
     }
     
-    return "✅ Excellent! Les agents analysent... Continue!";
+    return "✅ Continue, tu es sur la bonne voie!";
   }, [ideaText]);
 
   useEffect(() => {
@@ -213,8 +260,13 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                 <span className="text-terracotta-600">Raconte</span> ta <span className="text-brand-600">Fikra</span>
               </h1>
               <p className="text-lg text-slate-600">
-                Parle ou écris. Les 7 agents IA t'écoutent et te guident en temps réel.
+                Les agents IA te posent des questions. Réponds en parlant ou écrivant.
               </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
+                <span className="px-3 py-1 bg-terracotta-50 rounded-full">🎤 Parle naturellement</span>
+                <span className="px-3 py-1 bg-brand-50 rounded-full">🤖 Agents te guident</span>
+                <span className="px-3 py-1 bg-green-50 rounded-full">⚡ 5-10 minutes</span>
+              </div>
             </div>
 
             {/* Agent Guidance Banner */}
@@ -347,14 +399,61 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
               </CardContent>
             </Card>
 
-            {/* Tips Card */}
+            {/* Workflow Progress */}
+            <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+              <CardContent className="p-4">
+                <h3 className="font-bold text-purple-900 mb-3">📍 Ton Parcours:</h3>
+                <div className="space-y-2">
+                  <div className={`flex items-center gap-2 ${ideaText.split(' ').length >= 10 ? 'text-green-700' : 'text-slate-400'}`}>
+                    <span>{ideaText.split(' ').length >= 10 ? '✅' : '⭕'}</span>
+                    <span className="text-sm">1. Problème décrit</span>
+                  </div>
+                  <div className={`flex items-center gap-2 ${ideaText.split(' ').length >= 30 ? 'text-green-700' : 'text-slate-400'}`}>
+                    <span>{ideaText.split(' ').length >= 30 ? '✅' : '⭕'}</span>
+                    <span className="text-sm">2. Qui? Combien? Où?</span>
+                  </div>
+                  <div className={`flex items-center gap-2 ${ideaText.split(' ').length >= 60 ? 'text-green-700' : 'text-slate-400'}`}>
+                    <span>{ideaText.split(' ').length >= 60 ? '✅' : '⭕'}</span>
+                    <span className="text-sm">3. Fréquence + Expérience vécue</span>
+                  </div>
+                  <div className={`flex items-center gap-2 ${ideaText.split(' ').length >= 100 ? 'text-green-700' : 'text-slate-400'}`}>
+                    <span>{ideaText.split(' ').length >= 100 ? '✅' : '⭕'}</span>
+                    <span className="text-sm">4. Solution actuelle + Coût</span>
+                  </div>
+                  <div className={`flex items-center gap-2 ${ideaText.split(' ').length >= 120 ? 'text-green-700' : 'text-slate-400'}`}>
+                    <span>{ideaText.split(' ').length >= 120 ? '✅' : '⭕'}</span>
+                    <span className="text-sm">5. Ton idée de solution</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contextual Tips */}
             <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
               <CardContent className="p-4">
-                <h3 className="font-bold text-blue-900 mb-2">💡 Astuce Fikra:</h3>
+                <h3 className="font-bold text-blue-900 mb-2">💡 Exemple:</h3>
                 <p className="text-blue-800 text-sm">
-                  Les meilleures idées sont <strong>spécifiques</strong>. Ne dis pas "les gens ont des problèmes", 
-                  mais "Les infirmières du CHU Ibn Sina passent 4h par jour à chercher le matériel". 
-                  Donne des <strong>noms, lieux, chiffres</strong>!
+                  {ideaText.split(' ').length < 30 ? (
+                    <>
+                      <strong>"3 de mes amis français</strong> sont venus à Marrakech pour 10 jours. 
+                      <strong>Aucun</strong> ne veut revenir. Ils disent: 'On a tout vu'."
+                    </>
+                  ) : ideaText.split(' ').length < 60 ? (
+                    <>
+                      <strong>"J'ai demandé à 8 touristes</strong> au Riad où je travaille. 
+                      <strong>6 sur 8</strong> ne reviendront pas. Ils trouvent que..."
+                    </>
+                  ) : ideaText.split(' ').length < 100 ? (
+                    <>
+                      <strong>"Actuellement, ils suivent juste TripAdvisor.</strong> Mais ça montre que les sites touristiques classiques. 
+                      Ils ratent 80% des expériences authentiques..."
+                    </>
+                  ) : (
+                    <>
+                      <strong>"Mon idée:</strong> Une app qui connecte les touristes avec des locaux pour des expériences authentiques. 
+                      Pas les sites classiques, mais la vraie vie marocaine."
+                    </>
+                  )}
                 </p>
               </CardContent>
             </Card>
@@ -407,22 +506,32 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                 )}
               </div>
 
-              {/* Progress Card */}
+              {/* Progress Card with Stages */}
               <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
                 <CardContent className="p-4">
-                  <h4 className="font-bold text-green-900 mb-3">📈 Progression</h4>
+                  <h4 className="font-bold text-green-900 mb-3">📈 Ta Position</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Clarté</span>
-                      <span>{Math.min(100, Math.floor((ideaText.length / 200) * 100))}%</span>
+                      <span className="font-medium">
+                        {ideaText.split(' ').length < 30 && 'Phase 1: Décrire'}
+                        {ideaText.split(' ').length >= 30 && ideaText.split(' ').length < 60 && 'Phase 2: Préciser'}
+                        {ideaText.split(' ').length >= 60 && ideaText.split(' ').length < 100 && 'Phase 3: Quantifier'}
+                        {ideaText.split(' ').length >= 100 && ideaText.split(' ').length < 120 && 'Phase 4: Analyser'}
+                        {ideaText.split(' ').length >= 120 && 'Phase 5: Solutions'}
+                      </span>
+                      <span className="font-bold text-green-700">
+                        {Math.min(100, Math.floor((ideaText.split(' ').length / 120) * 100))}%
+                      </span>
                     </div>
-                    <Progress value={Math.min(100, (ideaText.length / 200) * 100)} className="h-2" />
+                    <Progress value={Math.min(100, (ideaText.split(' ').length / 120) * 100)} className="h-3" />
                     
-                    <div className="pt-2 text-xs text-green-800">
-                      {ideaText.length < 50 && '✍️ Continue à écrire...'}
-                      {ideaText.length >= 50 && ideaText.length < 100 && '🎯 Ajoute plus de détails spécifiques'}
-                      {ideaText.length >= 100 && ideaText.length < 200 && '💪 Excellent! Parle de la fréquence du problème'}
-                      {ideaText.length >= 200 && '🔥 Parfait! Tu peux valider avec les agents!'}
+                    <div className="pt-2 text-xs text-green-800 font-medium">
+                      {ideaText.split(' ').length < 10 && '✍️ Raconte le problème que tu as observé'}
+                      {ideaText.split(' ').length >= 10 && ideaText.split(' ').length < 30 && '🎯 Qui EXACTEMENT? Donne des noms, lieux'}
+                      {ideaText.split(' ').length >= 30 && ideaText.split(' ').length < 60 && '📊 Combien? À quelle fréquence?'}
+                      {ideaText.split(' ').length >= 60 && ideaText.split(' ').length < 100 && '💪 As-tu VU ça? Raconte une histoire vraie'}
+                      {ideaText.split(' ').length >= 100 && ideaText.split(' ').length < 120 && '💡 Quelle est ta solution?'}
+                      {ideaText.split(' ').length >= 120 && '🔥 Prêt! Clique "Valider avec les Agents"'}
                     </div>
                   </div>
                 </CardContent>
