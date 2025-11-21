@@ -235,6 +235,7 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
 
   // Parse idea from text automatically
   const parsedIdea = {
+    description: ideaText,  // Main text
     problem: {
       description: ideaText,
       who: '', // FIKRA will extract
@@ -244,8 +245,8 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
     solution: {
       description: '' // Will be asked after problem is clear
     },
-    category,
-    location
+    category: category || '',
+    location: location || ''
   };
 
   return (
@@ -385,17 +386,36 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                     onClick={() => onSaveDraft(parsedIdea)}
                     variant="outline"
                     className="flex-1"
+                    disabled={ideaText.length < 20}
                   >
                     💾 Sauvegarder
                   </Button>
                   <Button
                     onClick={() => onSubmit(parsedIdea)}
-                    disabled={ideaText.length < 50}
-                    className="flex-1 bg-terracotta-600 hover:bg-terracotta-700"
+                    disabled={ideaText.length < 50 || !category || !location}
+                    className="flex-1 bg-terracotta-600 hover:bg-terracotta-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={
+                      ideaText.length < 50 
+                        ? 'Écris au moins 50 caractères' 
+                        : !category 
+                        ? 'Sélectionne une catégorie'
+                        : !location
+                        ? 'Sélectionne une ville'
+                        : 'Valider avec les agents'
+                    }
                   >
                     🚀 Valider avec les Agents
                   </Button>
                 </div>
+                
+                {/* Validation Messages */}
+                {(ideaText.length >= 20 || category || location) && (
+                  <div className="text-xs text-slate-600 text-center pt-2">
+                    {!category && '⚠️ Sélectionne une catégorie '}
+                    {!location && '⚠️ Sélectionne une ville '}
+                    {ideaText.length < 50 && `⚠️ Écris encore ${50 - ideaText.length} caractères`}
+                  </div>
+                )}
               </CardContent>
             </Card>
 

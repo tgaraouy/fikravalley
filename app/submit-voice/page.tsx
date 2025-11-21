@@ -19,25 +19,38 @@ export default function VoiceSubmitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (idea: any) => {
+    console.log('Submitting idea:', idea);
     setIsSubmitting(true);
 
     try {
+      // Extract the description from the idea object
+      const description = idea.problem?.description || idea.description || '';
+      
+      if (!description || description.length < 20) {
+        alert('⚠️ Écris au moins 20 caractères avant de soumettre!');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Generate a title from the first sentence or first 100 chars
+      const title = description.split('.')[0].substring(0, 100) || description.substring(0, 100);
+
       const response = await fetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: idea.problem.description.substring(0, 100),
-          problem_statement: idea.problem.description,
+          title: title,
+          problem_statement: description,
           category: idea.category || 'autre',
           location: idea.location || 'autre',
           status: 'submitted',
           submitted_via: 'voice_guided',
-          current_manual_process: '',
-          digitization_opportunity: '',
-          proposed_solution: idea.solution?.description || '',
+          current_manual_process: 'Non spécifié (Soumission Vocale)',
+          digitization_opportunity: 'À analyser',
+          proposed_solution: idea.solution?.description || 'À développer',
           roi_time_saved_hours: 0,
           roi_cost_saved_eur: 0,
-          estimated_cost: '',
+          estimated_cost: 'Non estimé',
           data_sources: [],
           integration_points: [],
           ai_capabilities_needed: [],
@@ -45,8 +58,8 @@ export default function VoiceSubmitPage() {
             morocco_priorities: [],
             other_alignment: ''
           },
-          submitter_name: '',
-          submitter_email: '',
+          submitter_name: 'Utilisateur Vocal',
+          submitter_email: 'vocal@fikravalley.com',
           submitter_phone: null,
           submitter_type: 'entrepreneur',
           submitter_skills: []
@@ -54,14 +67,19 @@ export default function VoiceSubmitPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la soumission');
+        const errorData = await response.json().catch(() => ({}));
+        console.error('API Error:', errorData);
+        throw new Error(errorData.error || 'Erreur lors de la soumission');
       }
 
       const result = await response.json();
+      console.log('Submission successful:', result);
+      
+      // Redirect to the idea page
       router.push(`/ideas/${result.id}?submitted=true&voice=true`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting:', error);
-      alert('Erreur lors de la soumission. Veuillez réessayer.');
+      alert(`❌ Erreur: ${error.message}\n\nVérifie que tu as rempli tous les champs requis (Catégorie, Ville, Texte).`);
     } finally {
       setIsSubmitting(false);
     }
