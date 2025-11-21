@@ -39,12 +39,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Logo href="/" size="sm" showText={true} className="hidden sm:flex" />
               <Logo href="/" size="sm" showText={false} className="sm:hidden" />
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 sm:gap-6">
               <Link href="/ideas" className="text-sm text-slate-600 hover:text-slate-900">
                 Idées
               </Link>
               <Link href="/submit" className="text-sm text-slate-600 hover:text-slate-900">
                 Soumettre
+              </Link>
+              <Link href="/pods" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
+                Pods
+              </Link>
+              <Link href="/university" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
+                Université
+              </Link>
+              <Link href="/customize" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
+                Personnaliser
               </Link>
               <UserMenu />
             </div>

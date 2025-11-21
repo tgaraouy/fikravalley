@@ -23,6 +23,8 @@ import {
   type Pod 
 } from '@/lib/workflow/journey-pods';
 import { getTaskSuccessRate } from '@/lib/workflow/think-time-ux';
+import DoneDefinitionForm from './DoneDefinitionForm';
+import PreMortemForm from './PreMortemForm';
 
 interface JourneyPodsProps {
   userId: string;
@@ -35,6 +37,9 @@ export default function JourneyPods({ userId, userCity, step1CompletionRate }: J
   const [canJoin, setCanJoin] = useState(false);
   const [showCreatePod, setShowCreatePod] = useState(false);
   const [newPodName, setNewPodName] = useState('');
+  const [selectedPod, setSelectedPod] = useState<Pod | null>(null);
+  const [showDoneDefinition, setShowDoneDefinition] = useState(false);
+  const [showPreMortem, setShowPreMortem] = useState(false);
 
   useEffect(() => {
     // Check if user can join pods
@@ -42,21 +47,108 @@ export default function JourneyPods({ userId, userCity, step1CompletionRate }: J
     setCanJoin(eligible);
     
     if (eligible) {
-      // Find nearby pods (same city)
-      // In production, fetch from API
-      const nearby = findNearbyPods(userCity, []); // TODO: Fetch from API
-      setPods(nearby);
+      // Fetch nearby pods from API
+      fetch(`/api/pods?city=${userCity}&userId=${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setPods(data.data || []);
+          }
+        })
+        .catch(err => console.error('Error fetching pods:', err));
     }
   }, [userId, userCity, step1CompletionRate]);
 
-  const handleCreatePod = () => {
+  const handleCreatePod = async () => {
     if (!newPodName.trim()) return;
     
-    const pod = createPod(userId, userCity, newPodName);
-    // In production, save to API
-    setPods([...pods, pod]);
-    setShowCreatePod(false);
-    setNewPodName('');
+    try {
+      const res = await fetch('/api/pods', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newPodName,
+          city: userCity,
+          creatorId: userId,
+          creatorName: 'Creator'
+        })
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setPods([...pods, data.data]);
+        setSelectedPod(data.data);
+        setShowCreatePod(false);
+        setNewPodName('');
+        setShowDoneDefinition(true);
+      }
+    } catch (error) {
+      console.error('Error creating pod:', error);
+      alert('Erreur lors de la création du pod');
+    }
+  };
+
+  const handleJoinPod = async (podId: string) => {
+    try {
+      const res = await fetch(`/api/pods/${podId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          userName: 'Member'
+        })
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        alert('✅ Tu as rejoint le pod!');
+        // Refresh pods list
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error joining pod:', error);
+      alert('Erreur lors de la jointure');
+    }
+  };
+
+  const handleSignDoneDefinition = async (definition: { firstUser: string; successCriteria: string[] }) => {
+    if (!selectedPod) return;
+    
+    try {
+      const res = await fetch(`/api/pods/${selectedPod.id}/done-definition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(definition)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setShowDoneDefinition(false);
+        setShowPreMortem(true);
+      }
+    } catch (error) {
+      console.error('Error signing done definition:', error);
+    }
+  };
+
+  const handleLogPreMortem = async (preMortem: { blockers: string[]; risks: string[]; mitigation: string[] }) => {
+    if (!selectedPod) return;
+    
+    try {
+      const res = await fetch(`/api/pods/${selectedPod.id}/premortem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preMortem)
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        setShowPreMortem(false);
+        alert('✅ Pre-mortem enregistré! Votre pod est prêt à commencer.');
+      }
+    } catch (error) {
+      console.error('Error logging pre-mortem:', error);
+    }
   };
 
   if (!canJoin) {
@@ -148,9 +240,30 @@ export default function JourneyPods({ userId, userCity, step1CompletionRate }: J
                       📋 Pre-mortem: {pod.preMortem.blockers.length} risques identifiés
                     </div>
                   )}
-                  <Button size="sm" variant="outline" className="w-full mt-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full mt-2"
+                    onClick={() => handleJoinPod(pod.id)}
+                  >
                     Rejoindre
                   </Button>
+                  {pod.members.find(m => m.userId === userId) && (
+                    <Button
+                      size="sm"
+                      className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
+                      onClick={() => {
+                        setSelectedPod(pod);
+                        if (!pod.doneDefinition) {
+                          setShowDoneDefinition(true);
+                        } else if (!pod.preMortem) {
+                          setShowPreMortem(true);
+                        }
+                      }}
+                    >
+                      {!pod.doneDefinition ? '📋 Signer "Done"' : !pod.preMortem ? '⚠️ Pre-Mortem' : '✅ Configuré'}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -169,6 +282,42 @@ export default function JourneyPods({ userId, userCity, step1CompletionRate }: J
           </ul>
         </div>
       </CardContent>
+
+      {/* Done Definition Modal */}
+      {showDoneDefinition && selectedPod && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Définition "Done"</h3>
+                <button onClick={() => setShowDoneDefinition(false)}>✕</button>
+              </div>
+              <DoneDefinitionForm
+                podId={selectedPod.id}
+                onSign={handleSignDoneDefinition}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pre-Mortem Modal */}
+      {showPreMortem && selectedPod && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Pre-Mortem</h3>
+                <button onClick={() => setShowPreMortem(false)}>✕</button>
+              </div>
+              <PreMortemForm
+                podId={selectedPod.id}
+                onLog={handleLogPreMortem}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
