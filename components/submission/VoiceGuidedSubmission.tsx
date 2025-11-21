@@ -39,52 +39,76 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
   // Agent guidance
   const [currentAgentMessage, setCurrentAgentMessage] = useState('');
   const [showAgentDashboard, setShowAgentDashboard] = useState(true);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  
+  // Check voice support
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setVoiceSupported('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
+    }
+  }, []);
 
   // Initialize Web Speech API
   useEffect(() => {
     if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = 'fr-MA'; // Moroccan French
-      
-      recognition.onresult = (event: any) => {
-        let interim = '';
-        let final = '';
+      try {
+        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+        const recognition = new SpeechRecognition();
         
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcriptPart = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            final += transcriptPart + ' ';
-          } else {
-            interim += transcriptPart;
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'fr-MA'; // Moroccan French
+        
+        recognition.onresult = (event: any) => {
+          let interim = '';
+          let final = '';
+          
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcriptPart = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              final += transcriptPart + ' ';
+            } else {
+              interim += transcriptPart;
+            }
           }
-        }
+          
+          if (final) {
+            setTranscript(prev => prev + final);
+            setIdeaText(prev => prev + final);
+          }
+          setInterimTranscript(interim);
+        };
         
-        if (final) {
-          setTranscript(prev => prev + final);
-          setIdeaText(prev => prev + final);
-        }
-        setInterimTranscript(interim);
-      };
-      
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
-      
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-      
-      recognitionRef.current = recognition;
+        recognition.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          setIsListening(false);
+          
+          if (event.error === 'not-allowed') {
+            alert('🎤 Permission micro refusée. Va dans les paramètres de ton navigateur pour autoriser le micro.');
+          } else if (event.error === 'no-speech') {
+            // User stopped speaking, just stop
+            setIsListening(false);
+          }
+        };
+        
+        recognition.onend = () => {
+          setIsListening(false);
+          setInterimTranscript('');
+        };
+        
+        recognitionRef.current = recognition;
+      } catch (error) {
+        console.error('Failed to initialize speech recognition:', error);
+      }
     }
     
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignore errors when stopping
+        }
       }
     };
   }, []);
@@ -96,11 +120,40 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
     }
     
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      try {
+        recognitionRef.current.stop();
+        setIsListening(false);
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+        setIsListening(false);
+      }
     } else {
-      recognitionRef.current.start();
-      setIsListening(true);
+      // Request microphone permission explicitly if available
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(() => {
+            try {
+              recognitionRef.current.start();
+              setIsListening(true);
+            } catch (error) {
+              console.error('Error starting recognition:', error);
+              alert('Erreur lors du démarrage du micro. Réessaye.');
+            }
+          })
+          .catch((error) => {
+            console.error('Microphone permission denied:', error);
+            alert('🎤 Permission micro requise! Autorise l\'accès au micro dans les paramètres de ton navigateur.');
+          });
+      } else {
+        // Fallback: try to start recognition directly
+        try {
+          recognitionRef.current.start();
+          setIsListening(true);
+        } catch (error) {
+          console.error('Error starting recognition:', error);
+          alert('🎤 Permission micro requise! Autorise l\'accès au micro dans les paramètres de ton navigateur.');
+        }
+      }
     }
   }, [isListening]);
 
@@ -173,7 +226,7 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                 exit={{ opacity: 0, y: 10 }}
                 className="bg-gradient-to-r from-terracotta-50 to-brand-50 border-l-4 border-terracotta-500 p-4 rounded-lg"
               >
-                <p className="text-slate-800 font-medium">{currentAgentMessage}</p>
+                <p className="text-slate-800 font-medium">{currentAgentMessage || "Commence à écrire..."}</p>
               </motion.div>
             </AnimatePresence>
 
@@ -183,19 +236,25 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                 {/* Voice Button */}
                 <div className="flex justify-between items-center">
                   <Badge variant={isListening ? "default" : "outline"} className="text-sm">
-                    {isListening ? '🎤 En écoute...' : '💭 Mode écrit'}
+                    {isListening ? '🎤 En écoute...' : voiceSupported ? '💭 Mode écrit' : '⌨️ Clavier uniquement'}
                   </Badge>
-                  <Button
-                    onClick={toggleListening}
-                    size="lg"
-                    className={`${
-                      isListening 
-                        ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
-                        : 'bg-terracotta-600 hover:bg-terracotta-700'
-                    } text-white`}
-                  >
-                    {isListening ? '⏹️ Arrêter' : '🎤 Parler'}
-                  </Button>
+                  {voiceSupported ? (
+                    <Button
+                      onClick={toggleListening}
+                      size="lg"
+                      className={`${
+                        isListening 
+                          ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+                          : 'bg-terracotta-600 hover:bg-terracotta-700'
+                      } text-white`}
+                    >
+                      {isListening ? '⏹️ Arrêter' : '🎤 Parler'}
+                    </Button>
+                  ) : (
+                    <Badge variant="outline" className="text-xs bg-slate-100">
+                      🎤 Non supporté sur ce navigateur
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Text Area */}
@@ -310,13 +369,18 @@ export default function VoiceGuidedSubmission({ onSubmit, onSaveDraft }: VoiceGu
                   <span>7 Agents en Direct</span>
                 </h3>
                 
-                {ideaText.length > 20 ? (
+                {ideaText.length > 20 && category && location ? (
                   <AgentDashboard
                     idea={parsedIdea}
                     onAgentUpdate={(agent, data) => {
                       console.log(`${agent} updated:`, data);
                     }}
                   />
+                ) : ideaText.length > 20 && (!category || !location) ? (
+                  <div className="text-center p-8 border-2 border-dashed border-yellow-300 rounded-lg bg-yellow-50">
+                    <p className="text-yellow-800 font-medium mb-2">⚠️ Presque prêt!</p>
+                    <p className="text-yellow-700 text-sm">Sélectionne la <strong>Catégorie</strong> et la <strong>Ville</strong> ci-dessus pour activer les agents.</p>
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     {[
