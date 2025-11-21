@@ -122,27 +122,27 @@ export default async function HomePage() {
 
   const statsItems = [
     {
-      label: 'Idées soumises',
+      label: 'Entrepreneurs marocains',
       value: stats.totalIdeas.toLocaleString('fr-FR'),
-      description: 'Depuis le lancement de Fikra Valley',
-      icon: '💡',
+      description: 'De Tanger à Laâyoune',
+      icon: '🇲🇦',
     },
     {
-      label: 'Analyses IA réalisées',
+      label: 'Dossiers Intilaka prêts',
       value: stats.aiAnalyses.toLocaleString('fr-FR'),
-      description: 'Architectures d’agents générées',
-      icon: '🤖',
+      description: 'Générés par nos 7 agents IA',
+      icon: '📄',
     },
     {
-      label: 'Taux de faisabilité',
+      label: 'Taux de qualification',
       value: stats.feasibilityRate !== null ? `${stats.feasibilityRate.toFixed(0)}%` : '—',
-      description: 'Basé sur les scores IA',
-      icon: '🎯',
+      description: 'Projets validés par FIKRA + SCORE',
+      icon: '✅',
     },
     {
-      label: 'Économies potentielles',
+      label: 'Valeur des projets',
       value: formatCurrency(stats.totalFunding ?? 0),
-      description: 'ROI estimé sur 12 mois',
+      description: 'Impact économique estimé',
       icon: '💰',
     },
   ];
@@ -158,28 +158,31 @@ export default async function HomePage() {
             <Logo size="md" showText={false} className="sm:hidden" />
           </div>
           <Badge variant="outline" className="w-fit border-terracotta-200 bg-terracotta-50 text-terracotta-700 font-medium">
-            Fikra Valley 2025
+            🇲🇦 Plateforme Nationale • Partenaire Intilaka
           </Badge>
           <h1 className="font-heading text-4xl font-bold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
-            Transformez vos Idées en Réalité
+            <span className="text-terracotta-600">Men l'Fikra</span> l <span className="text-brand-600">Machroû3</span>
           </h1>
           <p className="text-lg leading-relaxed text-slate-700 sm:text-xl max-w-2xl">
-            Obtenez une validation technique instantanée et accédez à un réseau d'experts pour concrétiser vos projets au Maroc.
+            Tu as une <strong>fikra</strong> pour le Maroc? 7 agents IA t'aident à la valider, collecter des preuves, 
+            trouver un mentor, et préparer ton dossier <strong>Intilaka/ETIC</strong> en moins de 30 minutes.
           </p>
           <p className="text-base text-slate-600 max-w-2xl">
-            Rejoignez les 25% d'innovateurs qui passent de l'idée au financement grâce à notre écosystème d'accompagnement.
+            <strong>Plus d'attente.</strong> Les porteurs de projets de Casa, Fès, Tanger & Marrakech 
+            passent de "j'ai une idée" à "candidature Intilaka prête" le même jour. 
+            <span className="text-terracotta-600 font-semibold"> Ton tour maintenant.</span>
           </p>
           <div className="flex flex-col gap-4 pt-4 items-center">
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg" className="bg-terracotta-600 hover:bg-terracotta-700 text-white border-none shadow-lg shadow-terracotta-500/20">
-                <Link href="/submit">Tester mon Idée Gratuitement</Link>
+                <Link href="/submit">🚀 Valider ma Fikra Maintenant</Link>
               </Button>
               <Button asChild variant="secondary" size="lg" className="bg-white/80 hover:bg-white text-slate-700 border border-sand-200">
-                <Link href="/ideas">Explorer les Projets</Link>
+                <Link href="/ideas">👀 Voir les Projets Financés</Link>
               </Button>
             </div>
             <p className="text-xs text-slate-500">
-              Accès restreint pour le premier atelier • Demande d'accès requise
+              💯 Gratuit • 🔒 Confidentiel • ⚡ Résultat en 30 minutes
             </p>
           </div>
         </div>
@@ -192,8 +195,8 @@ export default async function HomePage() {
 
       <section>
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-slate-900">Impact en temps réel</h2>
-          <span className="text-sm text-slate-500">Statistiques mises à jour chaque minute</span>
+          <h2 className="text-2xl font-semibold text-slate-900">🔥 L'écosystème qui bouge</h2>
+          <span className="text-sm text-slate-500">⚡ Mis à jour en temps réel</span>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {statsItems.map((item) => (
