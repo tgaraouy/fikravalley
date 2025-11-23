@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import Link from 'next/link';
 import Logo from '@/components/Logo';
+import { APP_TAGLINE } from '@/lib/constants/tagline';
 
 export default function EngagingFooter() {
   const [email, setEmail] = useState('');
@@ -149,11 +150,11 @@ export default function EngagingFooter() {
           
           {/* Logo + Tagline */}
           <div className="text-center md:text-left">
-            <div className="flex items-center gap-3 mb-2 justify-center md:justify-start">
+            <div className="flex flex-col items-center md:items-start gap-2">
               <Logo href="/" size="md" showText={true} />
-            </div>
-            <div className="text-xs sm:text-sm text-gray-400">
-              Transformer les idées marocaines en réalité
+              <p className="text-xs text-gray-400 tracking-wide">
+                {APP_TAGLINE.transformation?.fr || 'Idée → Réalité'}
+              </p>
             </div>
           </div>
           

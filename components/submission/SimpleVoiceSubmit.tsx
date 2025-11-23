@@ -10,11 +10,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Check, X } from 'lucide-react';
+import { Mic, Check, X, AlertCircle } from 'lucide-react';
 import { saveVoiceDraft } from '@/lib/voice/offline-storage';
+import { moderateContent, sanitizeContent } from '@/lib/moderation/content-moderation';
+import { detectLanguage, type Language } from '@/lib/constants/tagline';
+import IdeaRewardScreen from '@/components/reward/IdeaRewardScreen';
 
 interface SimpleVoiceSubmitProps {
-  onSubmit: (transcript: string) => void;
+  onSubmit: (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }) => void;
 }
 
 export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) {
@@ -22,12 +25,22 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
   const [transcript, setTranscript] = useState('');
   const [confidence, setConfidence] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [moderationError, setModerationError] = useState<string | null>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactInfo, setContactInfo] = useState({ email: '', phone: '', name: '' });
+  const [showReward, setShowReward] = useState(false);
+  const [ideaNumber, setIdeaNumber] = useState(128); // This would come from API response
+  const [language, setLanguage] = useState<Language>('fr');
   
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
+    // Detect language
+    const detected = detectLanguage();
+    setLanguage(detected);
+    
     if (typeof window !== 'undefined') {
       // Initialize Web Speech API
       if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
@@ -35,7 +48,8 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = true;
         recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'ar-MA'; // Darija first
+        // Set language based on detection
+        recognitionRef.current.lang = detected === 'darija' ? 'ar-MA' : detected === 'fr' ? 'fr-FR' : 'en-US';
         
         recognitionRef.current.onresult = (event: any) => {
           let final = '';
@@ -50,7 +64,18 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
           }
           
           if (final) {
-            setTranscript(prev => prev + final);
+            // Moderate content in real-time
+            const sanitized = sanitizeContent(final);
+            const moderation = moderateContent(sanitized, { type: 'voice' });
+            
+            if (!moderation.allowed) {
+              setModerationError(moderation.reason || 'Contenu inapproprié détecté');
+              // Don't add blocked content to transcript
+              return;
+            }
+            
+            setModerationError(null);
+            setTranscript(prev => prev + sanitized);
             setConfidence(maxConfidence);
           }
         };
@@ -127,14 +152,69 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!transcript.trim()) return;
+    
+    // Final moderation check
+    const moderation = moderateContent(transcript, { type: 'voice', strict: true });
+    if (!moderation.allowed) {
+      setModerationError(moderation.reason || 'Contenu inapproprié. Veuillez reformuler votre message.');
+      return;
+    }
+    
+    // Show contact form if not filled
+    if (!contactInfo.email && !contactInfo.phone) {
+      setShowContactForm(true);
+      return;
+    }
+    
+    // Show reward screen immediately
+    setShowReward(true);
     setIsProcessing(true);
-    onSubmit(transcript);
+    
+    // Submit in background
+    onSubmit(transcript, contactInfo);
+  };
+
+  const handleRewardNext = () => {
+    setShowReward(false);
+    setIsProcessing(false);
+  };
+  
+  const handleContactSubmit = async () => {
+    if (!contactInfo.email && !contactInfo.phone) {
+      alert('⚠️ Entrez au moins un email ou un numéro de téléphone pour recevoir votre code de suivi');
+      return;
+    }
+    
+    // Final moderation check
+    const moderation = moderateContent(transcript, { type: 'voice', strict: true });
+    if (!moderation.allowed) {
+      setModerationError(moderation.reason || 'Contenu inapproprié. Veuillez reformuler votre message.');
+      return;
+    }
+    
+    // Show reward screen immediately
+    setShowReward(true);
+    setIsProcessing(true);
+    
+    // Submit in background
+    onSubmit(transcript, contactInfo);
   };
 
   return (
-    <div className="flex flex-col h-screen justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+    <>
+      {/* Reward Screen */}
+      {showReward && (
+        <IdeaRewardScreen
+          ideaNumber={ideaNumber}
+          language={language}
+          onNext={handleRewardNext}
+          onSkip={() => setShowReward(false)}
+        />
+      )}
+
+      <div className="flex flex-col h-screen justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       {/* Giant Mic Button - 80% of screen */}
       <button
         onTouchStart={startRecording}
@@ -184,6 +264,26 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
               </div>
             )}
             
+            {/* Moderation error */}
+            {moderationError && (
+              <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">
+                      Contenu bloqué
+                    </p>
+                    <p className="text-xs text-red-700 mt-1">
+                      {moderationError}
+                    </p>
+                    <p className="text-xs text-red-600 mt-2">
+                      Veuillez reformuler votre message en respectant les normes de la communauté.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Edit Button */}
             <button
               onClick={handleEdit}
@@ -195,8 +295,79 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         </div>
       )}
 
+      {/* Contact Form Modal */}
+      {showContactForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-bold mb-4 text-slate-900">
+              📧 Contact (pour recevoir votre code de suivi)
+            </h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Entrez votre email ou téléphone pour recevoir un code unique pour suivre votre idée.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Nom (optionnel)
+                </label>
+                <input
+                  type="text"
+                  value={contactInfo.name}
+                  onChange={(e) => setContactInfo({ ...contactInfo, name: e.target.value })}
+                  placeholder="Votre nom"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Email <span className="text-red-500">*</span> (ou téléphone)
+                </label>
+                <input
+                  type="email"
+                  value={contactInfo.email}
+                  onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                  placeholder="votre@email.com"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Téléphone <span className="text-red-500">*</span> (ou email)
+                </label>
+                <input
+                  type="tel"
+                  value={contactInfo.phone}
+                  onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
+                  placeholder="+212 6XX XXX XXX"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowContactForm(false)}
+                className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleContactSubmit}
+                disabled={isProcessing || (!contactInfo.email && !contactInfo.phone)}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isProcessing ? '⏳ Envoi...' : '✅ Envoyer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Submit: Big, single button */}
-      {transcript && !isRecording && (
+      {transcript && !isRecording && !showContactForm && (
         <button
           onClick={handleSubmit}
           disabled={isProcessing}
@@ -205,7 +376,8 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
           {isProcessing ? '⏳ Envoi...' : '✅ سّبق الفكرة (Submit)'}
         </button>
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

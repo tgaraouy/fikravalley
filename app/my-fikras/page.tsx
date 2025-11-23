@@ -8,6 +8,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import FikraCard, { type FikraCardData } from '@/components/fikra-tags/FikraCard';
 import MicroStepChain, { type MicroStep } from '@/components/fikra-tags/MicroStepChain';
 import VoiceInput from '@/components/fikra-journal/VoiceInput';
@@ -15,21 +17,48 @@ import { generateFikraTag } from '@/lib/fikra-tags/generator';
 import { getEntriesForTag } from '@/lib/fikra-journal/storage';
 import { registerSyncListener } from '@/lib/fikra-journal/sync';
 
+interface Idea {
+  id: string;
+  title: string;
+  tracking_code: string;
+  created_at: string;
+  status: string;
+  submitter_name?: string;
+}
+
 export default function MyFikrasPage() {
+  const searchParams = useSearchParams();
   const [fikras, setFikras] = useState<FikraCardData[]>([]);
+  const [ideas, setIdeas] = useState<Idea[]>([]);
   const [voiceDrafts, setVoiceDrafts] = useState<any[]>([]);
   const [selectedFikra, setSelectedFikra] = useState<string | null>(null);
   const [steps, setSteps] = useState<MicroStep[]>([]);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
+    // Get contact info from URL params
+    const emailParam = searchParams.get('email');
+    const phoneParam = searchParams.get('phone');
+    
+    if (emailParam) setEmail(emailParam);
+    if (phoneParam) setPhone(phoneParam);
+
     // Register sync listener
     registerSyncListener();
 
-    // Load user's fikras (in production, fetch from API)
-    loadFikras();
+    // Load user's ideas
+    if (emailParam || phoneParam) {
+      loadUserIdeas(emailParam || undefined, phoneParam || undefined);
+    } else {
+      // Show claim form if no contact info
+      setIsLoading(false);
+    }
+    
     loadVoiceDrafts();
-  }, []);
+  }, [searchParams]);
 
   const loadVoiceDrafts = async () => {
     // Dynamically import to avoid SSR issues with IndexedDB
@@ -38,29 +67,43 @@ export default function MyFikrasPage() {
     setVoiceDrafts(drafts.sort((a, b) => b.timestamp - a.timestamp));
   };
 
-  const loadFikras = async () => {
-    // Mock data - replace with API call
-    const mockFikras: FikraCardData[] = [
-      {
-        tag: generateFikraTag('education', true),
-        state: 'cooling_off',
-        title: 'دروس الفيزياء بالدارجة',
-        coolingOffHours: 23,
-        currentStep: 'Step 1: Talked to 3 users',
-        nextStep: 'Build landing page'
-      },
-      {
-        tag: generateFikraTag('food', true),
-        state: 'step_active',
-        title: 'مخبزة كهربائية ذكية',
-        currentStep: 'Step 1: Talked to 3 users ✅',
-        nextStep: 'Build landing page',
-        podName: 'Darija Physics Pod',
-        podProgress: 60
-      }
-    ];
+  const loadUserIdeas = async (email?: string, phone?: string) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/ideas/search-by-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, phone }),
+      });
 
-    setFikras(mockFikras);
+      if (response.ok) {
+        const data = await response.json();
+        setIdeas(data.ideas || []);
+        
+        // Convert ideas to FikraCard format
+        const fikrasData: FikraCardData[] = (data.ideas || []).map((idea: Idea) => ({
+          tag: {
+            code: idea.tracking_code || `FKR-${idea.id.substring(0, 8).toUpperCase()}`,
+            category: 'OTH',
+            word: 'IDEA',
+            number: 0,
+            generatedAt: new Date(idea.created_at),
+            synced: true,
+          },
+          state: idea.status === 'analyzed' ? 'step_active' : 'cooling_off',
+          title: idea.title,
+          coolingOffHours: 0,
+          currentStep: `Status: ${idea.status}`,
+          nextStep: 'En attente d\'analyse',
+        }));
+        
+        setFikras(fikrasData);
+      }
+    } catch (error) {
+      console.error('Error loading ideas:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleView = async (tag: string) => {
@@ -101,6 +144,28 @@ export default function MyFikrasPage() {
     alert(`Get help for ${tag}`);
   };
 
+  // Show claim form if no contact info provided
+  if (!email && !phone && !isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8 flex items-center justify-center">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+          <h1 className="text-2xl font-bold text-slate-900 mb-4 text-center">
+            Trouvez vos idées
+          </h1>
+          <p className="text-slate-600 mb-6 text-center">
+            Entrez votre email ou téléphone pour voir toutes vos idées
+          </p>
+          <Link
+            href="/claim-idea"
+            className="block w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium text-center hover:bg-blue-700 transition-colors"
+          >
+            Rechercher mes idées
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
@@ -109,9 +174,28 @@ export default function MyFikrasPage() {
             Mes Fikras
           </h1>
           <p className="text-slate-600">
-            Suivez vos idées avec des codes mémorables
+            {email || phone ? `Idées pour ${email || phone}` : 'Suivez vos idées avec des codes mémorables'}
           </p>
         </div>
+
+        {isLoading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-slate-600">Chargement de vos idées...</p>
+          </div>
+        )}
+
+        {!isLoading && ideas.length === 0 && (
+          <div className="bg-white rounded-lg p-8 text-center shadow">
+            <p className="text-slate-600 mb-4">Aucune idée trouvée.</p>
+            <Link
+              href="/submit-voice"
+              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Soumettre une idée
+            </Link>
+          </div>
+        )}
 
         {/* Voice Drafts Section */}
         {voiceDrafts.length > 0 && (

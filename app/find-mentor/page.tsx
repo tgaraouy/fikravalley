@@ -1,7 +1,8 @@
 /**
- * FIND MENTOR - Simple Mentor-Founder Matching
+ * FIND MENTOR - Voice-Driven AI Mentor Matching
  * 
- * Simple process: Enter your idea → Get matched mentors → Request introduction
+ * User describes background and motivation via voice
+ * AI agent analyzes and recommends mentors from database
  */
 
 'use client';
@@ -11,9 +12,8 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Loader2, MessageSquare, CheckCircle, Star } from 'lucide-react';
+import { Loader2, MessageSquare, CheckCircle, Star, Mic } from 'lucide-react';
+import VoiceMentorSearch from '@/components/mentor/VoiceMentorSearch';
 
 interface MentorMatch {
   mentor: {
@@ -43,38 +43,30 @@ interface MentorMatch {
 
 export default function FindMentorPage() {
   const router = useRouter();
-  const [ideaDescription, setIdeaDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
+  const [background, setBackground] = useState('');
+  const [motivation, setMotivation] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [matches, setMatches] = useState<MentorMatch[]>([]);
   const [requestingIntro, setRequestingIntro] = useState<string | null>(null);
 
-  const handleFindMentors = async () => {
-    if (!ideaDescription.trim() || !category || !location) {
-      alert('Veuillez remplir tous les champs');
-      return;
-    }
-
+  const handleFindMentors = async (userBackground: string, userMotivation: string) => {
+    setBackground(userBackground);
+    setMotivation(userMotivation);
+    
     setIsSearching(true);
     setMatches([]);
 
     try {
+      // Send background and motivation to AI agent
       const response = await fetch('/api/agents/mentor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'find_matches',
+          action: 'find_matches_by_profile',
           data: {
-            idea: {
-              problem: {
-                description: ideaDescription,
-                sector: category,
-                location: location
-              },
-              qualification: 'developing'
-            },
-            creatorProfile: {}
+            background: userBackground,
+            motivation: userMotivation,
+            // AI will extract: sector, skills, location, needs from voice input
           }
         })
       });
@@ -84,7 +76,7 @@ export default function FindMentorPage() {
       if (result.success) {
         setMatches(result.data || []);
         if (result.data.length === 0) {
-          alert('Aucun mentor trouvé. Essayez avec d\'autres critères.');
+          alert('Aucun mentor trouvé. L\'IA cherche des mentors qui correspondent à ton profil...');
         }
       } else {
         alert(`Erreur: ${result.error || 'Impossible de trouver des mentors'}`);
@@ -109,9 +101,18 @@ export default function FindMentorPage() {
           action: 'generate_introduction',
           data: {
             mentor: matches.find(m => m.mentor.id === mentorId)?.mentor,
-            creator: { name: 'Vous', email: '' },
+            creator: { 
+              name: 'Vous', 
+              email: '',
+              background: background,
+              motivation: motivation
+            },
             idea: {
-              problem: { description: ideaDescription, sector: category, location: location }
+              problem: { 
+                description: `${background}. ${motivation}`, 
+                sector: 'auto-detected',
+                location: 'auto-detected'
+              }
             }
           }
         })
@@ -162,68 +163,23 @@ export default function FindMentorPage() {
             🤝 Trouvez votre Mentor
           </h1>
           <p className="text-lg text-slate-600">
-            Connectez-vous avec des experts qui ont vécu votre secteur
+            Parle de ton parcours et ta motivation. L'IA trouve les meilleurs mentors pour toi.
           </p>
         </div>
 
-        {/* Search Form */}
+        {/* Voice-Driven Search */}
         <Card className="mb-8 border-2 border-blue-200 shadow-lg">
           <CardHeader>
-            <CardTitle>Décrivez votre idée</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Mic className="w-5 h-5 text-blue-600" />
+              Décris-toi (par voix ou texte)
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Description de votre idée *
-              </label>
-              <Textarea
-                value={ideaDescription}
-                onChange={(e) => setIdeaDescription(e.target.value)}
-                placeholder="Ex: Plateforme pour connecter les infirmières avec le matériel médical dans les hôpitaux..."
-                className="min-h-[120px]"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Catégorie *
-                </label>
-                <Input
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Ex: Healthcare, Technology, Education..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Ville *
-                </label>
-                <Input
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Ex: Casablanca, Rabat, Fès..."
-                />
-              </div>
-            </div>
-
-            <Button
-              onClick={handleFindMentors}
-              disabled={isSearching || !ideaDescription.trim() || !category || !location}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 text-lg"
-            >
-              {isSearching ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Recherche de mentors...
-                </>
-              ) : (
-                <>
-                  🔍 Trouver des Mentors
-                </>
-              )}
-            </Button>
+          <CardContent>
+            <VoiceMentorSearch 
+              onFindMentors={handleFindMentors}
+              isSearching={isSearching}
+            />
           </CardContent>
         </Card>
 
@@ -363,11 +319,11 @@ export default function FindMentorPage() {
         )}
 
         {/* Empty State */}
-        {!isSearching && matches.length === 0 && ideaDescription && (
+        {!isSearching && matches.length === 0 && (background || motivation) && (
           <Card className="border-2 border-slate-200">
             <CardContent className="p-8 text-center">
               <p className="text-slate-600">
-                Aucun mentor trouvé. Essayez de modifier votre recherche.
+                Aucun mentor trouvé. L'IA cherche des mentors qui correspondent à ton profil...
               </p>
             </CardContent>
           </Card>
@@ -378,11 +334,28 @@ export default function FindMentorPage() {
           <CardContent className="p-6">
             <h3 className="font-bold text-blue-900 mb-2">💡 Comment ça marche?</h3>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>1. Décrivez votre idée (catégorie, ville, description)</li>
-              <li>2. Notre IA trouve les mentors les plus pertinents</li>
-              <li>3. Cliquez "Demander Introduction" → Message généré</li>
-              <li>4. Copiez le message et envoyez-le au mentor (email/WhatsApp)</li>
+              <li>1. 🎤 Parle de ton parcours (expérience, compétences, secteur)</li>
+              <li>2. 🎯 Décris ta motivation (pourquoi tu cherches un mentor)</li>
+              <li>3. 🤖 L'IA analyse et trouve les mentors les plus pertinents</li>
+              <li>4. 💬 Clique "Demander Introduction" → Message généré</li>
+              <li>5. 📧 Copie le message et envoie-le au mentor (email/WhatsApp)</li>
             </ul>
+          </CardContent>
+        </Card>
+
+        {/* Mentor Registration CTA */}
+        <Card className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+          <CardContent className="p-6 text-center">
+            <h3 className="font-bold text-green-900 mb-2">👨‍🏫 Vous êtes mentor?</h3>
+            <p className="text-sm text-green-800 mb-4">
+              Rejoignez notre programme de mentorat et aidez les entrepreneurs marocains
+            </p>
+            <Button
+              onClick={() => router.push('/become-mentor')}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              S'inscrire comme Mentor
+            </Button>
           </CardContent>
         </Card>
       </div>

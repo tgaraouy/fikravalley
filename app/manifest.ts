@@ -1,10 +1,11 @@
 import { MetadataRoute } from 'next';
+import { APP_TAGLINE } from '@/lib/constants/tagline';
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'Fikra Valley - Morocco\'s Valley of Ideas',
+        name: `Fikra Valley - ${APP_TAGLINE.main.fr.headline}`,
         short_name: 'Fikra Valley',
-        description: 'Where Moroccan ideas grow. Transform your ideas into businesses with 7 AI agents.',
+        description: APP_TAGLINE.meta.fr,
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',

@@ -5,40 +5,89 @@
  * Only real facts, no mockup numbers
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
+import { APP_TAGLINE, detectLanguage, type Language } from '@/lib/constants/tagline';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import LogoWithTagline from '@/components/LogoWithTagline';
 
-export const revalidate = 60;
+export default function HomePage() {
+  const [language, setLanguage] = useState<Language>('fr');
 
-export default async function HomePage() {
+  useEffect(() => {
+    // Detect language on mount
+    const detected = detectLanguage();
+    setLanguage(detected);
+    
+    // Check for saved preference
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('preferred-language') as Language;
+      if (saved && ['darija', 'tamazight', 'fr', 'en'].includes(saved)) {
+        setLanguage(saved);
+      }
+    }
+  }, []);
+
+  const tagline = APP_TAGLINE.main[language] || APP_TAGLINE.main.fr; // Fallback to French
+
+  // Safety check - ensure tagline exists
+  if (!tagline || typeof tagline !== 'object') {
+    return <div>Loading...</div>;
+  }
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       <div className="max-w-3xl mx-auto text-center space-y-10 py-12">
         
-        {/* Logo at Top */}
-        <div className="flex justify-center mb-6">
-          <Logo size="lg" showText={true} />
+        {/* Logo at Top with Transformation Tagline */}
+        <div className="mb-6">
+          <LogoWithTagline 
+            size="lg" 
+            showText={true}
+            language={language}
+          />
         </div>
 
-        {/* Badge */}
-        <div className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/60 rounded-full shadow-sm">
-          <span className="text-sm font-semibold text-orange-800">
-            Plateforme Nationale • Partenaire Intilaka
-          </span>
+        {/* Language Switcher - Prominent */}
+        <div className="flex justify-center mb-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 shadow-sm">
+            <LanguageSwitcher 
+              onLanguageChange={setLanguage}
+              size="md"
+              className=""
+            />
+          </div>
         </div>
 
-        {/* Main Headline - Darija + French */}
+        {/* Main Emotional Tagline - Multi-language */}
         <div className="space-y-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-            <span className="text-slate-900 block mb-3" dir="rtl">
-              عندك مشكل؟ عندك حل؟ 7 وكلاء ذكاء اصطناعي غادي يساعدوك تحول الفكرة ديالك لشركة.
-            </span>
-            <span className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-slate-600 block">
-              Tu résous un problème ? 7 agents IA transforment ton idée en entreprise.
-            </span>
+          <h1 
+            className="text-3xl font-bold text-center"
+            dir={language === 'darija' || language === 'tamazight' ? 'rtl' : 'ltr'}
+          >
+            {tagline.headline}
+            {language === 'tamazight' && tagline.headlineLatin && (
+              <span className="block text-base text-gray-600 mt-2 font-normal">
+                {tagline.headlineLatin}
+              </span>
+            )}
           </h1>
+          <p 
+            className="text-sm text-gray-600 mt-2 text-center"
+            dir={language === 'darija' || language === 'tamazight' ? 'rtl' : 'ltr'}
+          >
+            {tagline.subtext}
+            {language === 'tamazight' && tagline.subtextLatin && (
+              <span className="block text-xs text-gray-500 mt-1">
+                {tagline.subtextLatin}
+              </span>
+            )}
+          </p>
         </div>
 
         {/* Benefits - Problem-Solving Focus */}

@@ -20,8 +20,8 @@ export default function VoiceSubmitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useSimple, setUseSimple] = useState(true); // Toggle to simple mode
 
-  const handleSimpleSubmit = async (transcript: string) => {
-    // Simple submit - just the transcript
+  const handleSimpleSubmit = async (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }) => {
+    // Simple submit with contact info
     setIsSubmitting(true);
     
     try {
@@ -33,14 +33,28 @@ export default function VoiceSubmitPage() {
           problem_statement: transcript,
           category: 'autre', // Auto-detect later
           location: 'autre', // Auto-detect later
-          frequency: 'À préciser'
+          frequency: 'À préciser',
+          submitter_name: contactInfo.name || 'Utilisateur Vocal',
+          submitter_email: contactInfo.email || null,
+          submitter_phone: contactInfo.phone || null,
+          submitter_type: 'entrepreneur',
+          submitted_via: 'voice',
+          current_manual_process: 'Soumission vocale',
+          digitization_opportunity: 'À analyser',
+          proposed_solution: 'À développer'
         })
       });
 
       if (response.ok) {
-        router.push('/my-fikras');
+        const result = await response.json();
+        // Get idea number from tracking code or use sequential number
+        const ideaNumber = result.idea_number || 128; // This should come from API
+        
+        // Redirect to success page with tracking code and idea number
+        router.push(`/idea-submitted?tracking_code=${result.tracking_code}&email=${contactInfo.email || ''}&idea_number=${ideaNumber}`);
       } else {
-        alert('Erreur lors de la soumission');
+        const error = await response.json().catch(() => ({}));
+        alert(`Erreur: ${error.error || 'Erreur lors de la soumission'}`);
       }
     } catch (error) {
       console.error('Error submitting:', error);

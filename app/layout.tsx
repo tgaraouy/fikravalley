@@ -14,9 +14,11 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 
+import { APP_TAGLINE } from '@/lib/constants/tagline';
+
 export const metadata: Metadata = {
-  title: 'Fikra Valley - Morocco\'s Valley of Ideas',
-  description: 'Where Moroccan ideas grow. Analyse technique instantanée et gratuite pour vos problèmes. Évaluez la faisabilité, obtenez une architecture de solution, et entrez dans un examen compétitif pour un financement potentiel (€3-10K) au Maroc.',
+  title: 'Fikra Valley - Transforme ton idée en entreprise avec ta voix',
+  description: APP_TAGLINE.meta.fr,
   manifest: '/manifest.json',
   themeColor: '#2563eb',
   viewport: {
@@ -59,7 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Simple Navigation Bar */}
         <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 gap-6">
-            <div className="flex items-center flex-shrink-0">
+            <div className="flex items-center flex-shrink-0 gap-3">
               <Logo href="/" size="lg" showText={true} className="hidden sm:flex" />
               <Logo href="/" size="lg" showText={false} className="sm:hidden" />
             </div>
