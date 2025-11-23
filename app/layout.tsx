@@ -46,10 +46,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/submit" className="text-sm text-slate-600 hover:text-slate-900">
                 Soumettre
               </Link>
-              <Link href="/pods" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
+              <Link href="/pods-simple" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
                 Pods
               </Link>
-              <Link href="/university" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
+              <Link href="/university-simple" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
                 Université
               </Link>
               <Link href="/customize" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
