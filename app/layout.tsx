@@ -46,12 +46,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/submit-voice" className="text-sm text-slate-600 hover:text-slate-900">
                 Soumettre
               </Link>
-              <Link href="/pods-simple" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
-                Pods
-              </Link>
-              <Link href="/university-simple" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
-                Université
-              </Link>
               <UserMenu />
             </div>
           </div>
