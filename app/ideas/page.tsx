@@ -134,10 +134,6 @@ export default function IdeasPage() {
     if (filters.location) params.set('location', filters.location);
     if (filters.scoreMin !== 15) params.set('scoreMin', filters.scoreMin.toString());
     if (filters.scoreMax !== 40) params.set('scoreMax', filters.scoreMax.toString());
-    if (filters.hasReceipts) params.set('hasReceipts', 'true');
-    if (filters.sdgs && filters.sdgs.length > 0) params.set('sdgs', filters.sdgs.join(','));
-    if (filters.fundingStatus) params.set('fundingStatus', filters.fundingStatus);
-    if (filters.qualificationTier) params.set('qualificationTier', filters.qualificationTier);
     if (sort !== 'score_desc') params.set('sort', sort);
     if (page > 1) params.set('page', page.toString());
 
@@ -270,10 +266,6 @@ export default function IdeasPage() {
                           location: '',
                           scoreMin: 15,
                           scoreMax: 40,
-                          hasReceipts: false,
-                          sdgs: [],
-                          fundingStatus: '',
-                          qualificationTier: '',
                         });
                       }}
                       className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

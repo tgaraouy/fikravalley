@@ -21,10 +21,6 @@ export async function GET(request: NextRequest) {
     const location = searchParams.get('location') || '';
     const scoreMin = parseInt(searchParams.get('scoreMin') || '0');
     const scoreMax = parseInt(searchParams.get('scoreMax') || '100'); // Max possible score is 40+20=60, but allow higher for safety
-    const hasReceipts = searchParams.get('hasReceipts') === 'true';
-    const sdgs = searchParams.get('sdgs')?.split(',').filter(Boolean) || [];
-    const fundingStatus = searchParams.get('fundingStatus') || '';
-    const qualificationTier = searchParams.get('qualificationTier') || '';
     const sort = searchParams.get('sort') || 'score_desc';
 
     const supabase = await createClient();
@@ -54,12 +50,6 @@ export async function GET(request: NextRequest) {
     // Location filter
     if (location) {
       query = query.eq('location', location);
-    }
-
-    // Receipts filter
-    if (hasReceipts) {
-      // This would need a join or subquery in production
-      // For now, we'll filter in the application layer
     }
 
     // Sort - we'll sort in application layer after fetching scores
@@ -189,34 +179,12 @@ export async function GET(request: NextRequest) {
       return idea.total_score >= scoreMin && idea.total_score <= scoreMax;
     });
 
-    // Apply qualification tier filter if specified
-    if (qualificationTier) {
-      filteredIdeas = filteredIdeas.filter(
-        (idea) => idea.qualification_tier === qualificationTier
-      );
-    }
-
     // Apply Morocco priorities filter (PRIMARY)
     if (priorities.length > 0) {
       filteredIdeas = filteredIdeas.filter((idea: any) => {
         const ideaPriorities = (idea.alignment as any)?.moroccoPriorities || [];
         return priorities.some((p) => ideaPriorities.includes(p));
       });
-    }
-
-    // Apply SDG filter if specified (SECONDARY, advanced)
-    if (sdgs.length > 0) {
-      filteredIdeas = filteredIdeas.filter((idea: any) => {
-        const ideaSDGs = (idea.alignment as any)?.sdgTags || idea.sdg_alignment || [];
-        return ideaSDGs.some((sdg: number) => sdgs.includes(sdg.toString()));
-      });
-    }
-
-    // Apply funding status filter if specified
-    if (fundingStatus) {
-      filteredIdeas = filteredIdeas.filter(
-        (idea) => idea.funding_status === fundingStatus
-      );
     }
 
     // Apply sorting (now that we have scores)

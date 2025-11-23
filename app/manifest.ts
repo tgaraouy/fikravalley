@@ -15,13 +15,11 @@ export default function manifest(): MetadataRoute.Manifest {
                 src: '/fikra_logo_v3.png',
                 sizes: '192x192',
                 type: 'image/png',
-                purpose: 'any maskable',
             },
             {
                 src: '/fikra_logo_v3.png',
                 sizes: '512x512',
                 type: 'image/png',
-                purpose: 'any maskable',
             },
         ],
         categories: ['business', 'productivity', 'education'],
