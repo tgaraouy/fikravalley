@@ -13,10 +13,42 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import VoiceGuidedSubmission from '@/components/submission/VoiceGuidedSubmission';
+import SimpleVoiceSubmit from '@/components/submission/SimpleVoiceSubmit';
 
 export default function VoiceSubmitPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useSimple, setUseSimple] = useState(true); // Toggle to simple mode
+
+  const handleSimpleSubmit = async (transcript: string) => {
+    // Simple submit - just the transcript
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch('/api/ideas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: transcript.split('.')[0].substring(0, 100),
+          problem_statement: transcript,
+          category: 'autre', // Auto-detect later
+          location: 'autre', // Auto-detect later
+          frequency: 'À préciser'
+        })
+      });
+
+      if (response.ok) {
+        router.push('/my-fikras');
+      } else {
+        alert('Erreur lors de la soumission');
+      }
+    } catch (error) {
+      console.error('Error submitting:', error);
+      alert('Erreur lors de la soumission');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (idea: any) => {
     console.log('Submitting idea:', idea);
@@ -97,6 +129,15 @@ export default function VoiceSubmitPage() {
     }));
     alert('💾 Brouillon sauvegardé!');
   };
+
+  // Use simple mode by default (WhatsApp-native)
+  if (useSimple) {
+    return (
+      <SimpleVoiceSubmit
+        onSubmit={handleSimpleSubmit}
+      />
+    );
+  }
 
   return (
     <VoiceGuidedSubmission
