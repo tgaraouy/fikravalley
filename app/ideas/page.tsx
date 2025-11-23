@@ -47,7 +47,7 @@ interface IdeasResponse {
 export default function IdeasPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  
+
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [filters, setFilters] = useState({
     priorities: searchParams.get('priorities')?.split(',') || [],
@@ -98,7 +98,7 @@ export default function IdeasPage() {
 
         const response = await fetch(`/api/ideas/search?${params}`);
         const data = await response.json();
-        
+
         // Handle error response
         if (data.error) {
           console.error('Error fetching ideas:', data.error);
@@ -161,7 +161,7 @@ export default function IdeasPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Hero Section with Integrated Search */}
-      <IdeasDatabaseHero 
+      <IdeasDatabaseHero
         totalIdeas={ideas?.total || 0}
         searchQuery={search}
         onSearchChange={(query) => {
@@ -171,6 +171,30 @@ export default function IdeasPage() {
         onSearchFocus={() => setShowSuggestions(true)}
         onSearchBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
       />
+
+      {/* Incentives & Featured (New) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 mb-12">
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-terracotta-100">
+            <div className="text-3xl mb-2">🚀</div>
+            <h3 className="font-bold text-slate-900">Get Your AI Score</h3>
+            <p className="text-sm text-slate-600 mt-1">Submit your idea to get an instant feasibility score from 7 AI agents.</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-lg border border-brand-100">
+            <div className="text-3xl mb-2">🤝</div>
+            <h3 className="font-bold text-slate-900">Find Co-Founders</h3>
+            <p className="text-sm text-slate-600 mt-1">Connect with others working on similar problems in your city.</p>
+          </div>
+          <div className="bg-gradient-to-br from-terracotta-500 to-red-600 p-6 rounded-xl shadow-lg text-white">
+            <div className="text-3xl mb-2">💰</div>
+            <h3 className="font-bold">Intilaka Ready</h3>
+            <p className="text-sm text-white/90 mt-1">Generate a bank-ready PDF dossier automatically.</p>
+            <Link href="/submit-voice" className="inline-block mt-3 text-xs bg-white text-red-600 px-3 py-1 rounded-full font-bold">
+              Start Now ➡️
+            </Link>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -244,17 +268,17 @@ export default function IdeasPage() {
                     <button
                       onClick={() => {
                         setSearch('');
-            setFilters({
-              priorities: [],
-              sectors: [],
-              location: '',
-              scoreMin: 15,
-              scoreMax: 40,
-              hasReceipts: false,
-              sdgs: [],
-              fundingStatus: '',
-              qualificationTier: '',
-            });
+                        setFilters({
+                          priorities: [],
+                          sectors: [],
+                          location: '',
+                          scoreMin: 15,
+                          scoreMax: 40,
+                          hasReceipts: false,
+                          sdgs: [],
+                          fundingStatus: '',
+                          qualificationTier: '',
+                        });
                       }}
                       className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                     >

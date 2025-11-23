@@ -17,6 +17,7 @@ import { registerSyncListener } from '@/lib/fikra-journal/sync';
 
 export default function MyFikrasPage() {
   const [fikras, setFikras] = useState<FikraCardData[]>([]);
+  const [voiceDrafts, setVoiceDrafts] = useState<any[]>([]);
   const [selectedFikra, setSelectedFikra] = useState<string | null>(null);
   const [steps, setSteps] = useState<MicroStep[]>([]);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
@@ -24,10 +25,18 @@ export default function MyFikrasPage() {
   useEffect(() => {
     // Register sync listener
     registerSyncListener();
-    
+
     // Load user's fikras (in production, fetch from API)
     loadFikras();
+    loadVoiceDrafts();
   }, []);
+
+  const loadVoiceDrafts = async () => {
+    // Dynamically import to avoid SSR issues with IndexedDB
+    const { getAllVoiceDrafts } = await import('@/lib/voice/offline-storage');
+    const drafts = await getAllVoiceDrafts();
+    setVoiceDrafts(drafts.sort((a, b) => b.timestamp - a.timestamp));
+  };
 
   const loadFikras = async () => {
     // Mock data - replace with API call
@@ -50,16 +59,16 @@ export default function MyFikrasPage() {
         podProgress: 60
       }
     ];
-    
+
     setFikras(mockFikras);
   };
 
   const handleView = async (tag: string) => {
     setSelectedFikra(tag);
-    
+
     // Load steps for this fikra
     const entries = await getEntriesForTag(tag);
-    
+
     // Convert entries to steps
     const stepMap = new Map<string, MicroStep>();
     entries.forEach(entry => {
@@ -77,7 +86,7 @@ export default function MyFikrasPage() {
         }
       }
     });
-    
+
     setSteps(Array.from(stepMap.values()));
     setShowVoiceInput(true);
   };
@@ -104,8 +113,38 @@ export default function MyFikrasPage() {
           </p>
         </div>
 
+        {/* Voice Drafts Section */}
+        {voiceDrafts.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <span>🎤</span> Brouillons Vocaux
+            </h2>
+            <div className="space-y-3">
+              {voiceDrafts.map((draft) => (
+                <div key={draft.id} className="bg-white p-4 rounded-lg shadow border border-slate-200 flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-slate-900 line-clamp-1">
+                      {draft.transcript || 'Enregistrement sans titre'}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {new Date(draft.timestamp).toLocaleDateString()} • {draft.language === 'ar-MA' ? '🇲🇦 Darija' : '🇫🇷 Français'}
+                    </p>
+                  </div>
+                  <a
+                    href={`/submit-voice?draftId=${draft.id}`}
+                    className="px-3 py-1.5 bg-terracotta-100 text-terracotta-700 rounded-full text-sm font-medium hover:bg-terracotta-200 transition-colors"
+                  >
+                    Reprendre ➡️
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Fikra Cards */}
         <div className="space-y-4 mb-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-4">Idées Validées</h2>
           {fikras.map((fikra) => (
             <FikraCard
               key={fikra.tag.code}
@@ -123,7 +162,7 @@ export default function MyFikrasPage() {
             <h2 className="text-xl font-bold mb-4">
               {selectedFikra}
             </h2>
-            
+
             {/* Micro-Step Chain */}
             {steps.length > 0 && (
               <div className="mb-6">
@@ -136,7 +175,7 @@ export default function MyFikrasPage() {
                 />
               </div>
             )}
-            
+
             {/* Voice Input */}
             {showVoiceInput && (
               <VoiceInput

@@ -6,9 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Logo from '@/components/Logo';
 import SuccessStream from '@/components/success/SuccessStream';
 import HowItWorks from '@/components/how-it-works/HowItWorks';
-import SocialProofWall from '@/components/social-proof/SocialProofWall';
-import UrgencySection from '@/components/urgency/UrgencySection';
 import InteractiveCTA from '@/components/cta/InteractiveCTA';
+import LiveAgentFeed from '@/components/agents/LiveAgentFeed';
 import { formatCurrency } from '@/lib/utils';
 
 export const revalidate = 60;
@@ -164,14 +163,15 @@ export default async function HomePage() {
             <span className="text-terracotta-600">Men l'Fikra</span> l <span className="text-brand-600">Machroû3</span>
           </h1>
           <p className="text-lg leading-relaxed text-slate-700 sm:text-xl max-w-2xl">
-            Tu as une <strong>fikra</strong> pour le Maroc? 7 agents IA t'aident à la valider, collecter des preuves, 
+            Tu as une <strong>fikra</strong> pour le Maroc? 7 agents IA t'aident à la valider, collecter des preuves,
             trouver un mentor, et préparer ton dossier <strong>Intilaka/ETIC</strong> en moins de 30 minutes.
           </p>
-          <p className="text-base text-slate-600 max-w-2xl">
-            <strong>Plus d'attente.</strong> Les porteurs de projets de Casa, Fès, Tanger & Marrakech 
-            passent de "j'ai une idée" à "candidature Intilaka prête" le même jour. 
-            <span className="text-terracotta-600 font-semibold"> Ton tour maintenant.</span>
-          </p>
+
+          {/* Live Agent Feed - Visualizing the Hive Mind */}
+          <div className="w-full my-6">
+            <LiveAgentFeed />
+          </div>
+
           <div className="flex flex-col gap-4 pt-4 items-center">
             <div className="flex flex-col gap-4 sm:flex-row">
               <Button asChild size="lg" className="bg-terracotta-600 hover:bg-terracotta-700 text-white border-none shadow-lg shadow-terracotta-500/20">
@@ -220,16 +220,6 @@ export default async function HomePage() {
       {/* Interactive How It Works - with live demos */}
       <div className="-mx-6 md:-mx-10 lg:-mx-12">
         <HowItWorks />
-      </div>
-
-      {/* Social Proof Wall - Pinterest-style success stories */}
-      <div className="-mx-6 md:-mx-10 lg:-mx-12">
-        <SocialProofWall />
-      </div>
-
-      {/* Urgency Section - Act now with positive scarcity */}
-      <div className="-mx-6 md:-mx-10 lg:-mx-12">
-        <UrgencySection />
       </div>
 
       {/* Interactive CTA - Multi-path conversion */}
