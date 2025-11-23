@@ -71,7 +71,7 @@ export default function HomePage() {
             dir={language === 'darija' || language === 'tamazight' ? 'rtl' : 'ltr'}
           >
             {tagline.headline}
-            {language === 'tamazight' && tagline.headlineLatin && (
+            {language === 'tamazight' && 'headlineLatin' in tagline && tagline.headlineLatin && (
               <span className="block text-base text-gray-600 mt-2 font-normal">
                 {tagline.headlineLatin}
               </span>
@@ -82,7 +82,7 @@ export default function HomePage() {
             dir={language === 'darija' || language === 'tamazight' ? 'rtl' : 'ltr'}
           >
             {tagline.subtext}
-            {language === 'tamazight' && tagline.subtextLatin && (
+            {language === 'tamazight' && 'subtextLatin' in tagline && tagline.subtextLatin && (
               <span className="block text-xs text-gray-500 mt-1">
                 {tagline.subtextLatin}
               </span>
