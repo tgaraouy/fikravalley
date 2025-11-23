@@ -27,35 +27,41 @@ export default async function HomePage() {
           </span>
         </div>
 
-        {/* Title */}
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-          <span className="text-orange-600">Men l'Fikra</span>{' '}
-          <span className="text-slate-400">|</span>{' '}
-          <span className="text-indigo-600">Machroû3</span>
+        {/* Direct Challenge - Darija + French Mix */}
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center leading-tight">
+          <span className="text-slate-900" dir="rtl">
+            "عندك فكرة؟ دير صوتك دابا. ب3 دقايق غادي تخرج بخطة عمل."
+          </span>
+          <br />
+          <span className="text-base sm:text-lg text-slate-500 mt-2 block">
+            Tu as une idée ? Enregistre-la. Plan d'action en 3 min.
+          </span>
         </h1>
 
-        {/* Description */}
-        <p className="text-lg sm:text-xl text-slate-700 leading-relaxed max-w-xl mx-auto">
-          Tu as une <strong>fikra</strong> pour le Maroc? 7 agents IA t'aident à la valider, collecter des preuves,
-          trouver un mentor, et préparer ton dossier <strong>Intilaka/ETIC</strong> en moins de 30 minutes.
+        {/* Subtitle - FOMO + Zero Cost + Social Proof */}
+        <p className="text-center mt-6 text-lg sm:text-xl text-slate-700" dir="rtl">
+          <span className="font-semibold text-slate-900">127</span> شاب كيديروها بصوتهم. بلا فلوس. بلا كتابة.
+        </p>
+        <p className="text-center mt-2 text-sm text-slate-600">
+          127 jeunes l'ont fait à la voix. Gratuit. Sans écrire.
         </p>
 
-        {/* ONE Clear CTA Button */}
-        <div className="pt-4">
+        {/* ONE Clear CTA Button - Pattern Interrupt */}
+        <div className="pt-6">
           <Button 
             asChild 
             size="lg" 
-            className="bg-blue-600 hover:bg-blue-700 text-white text-lg px-8 py-6 rounded-full shadow-xl"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-lg sm:text-xl px-10 py-7 rounded-full shadow-xl transform hover:scale-105 transition-all"
           >
             <Link href="/submit-voice">
-              🎤 دير الصوت دابا (Parle maintenant)
+              🎤 دير الصوت دابا (Enregistre ta voix)
             </Link>
           </Button>
         </div>
 
-        {/* Simple Trust Indicators */}
-        <p className="text-sm text-slate-500 pt-2">
-          💯 Gratuit • 🔒 Confidentiel • ⚡ 7 agents IA en direct
+        {/* Trust Indicators - Emphasize Zero Friction */}
+        <p className="text-sm text-slate-500 pt-4">
+          💯 <strong>بلا فلوس</strong> (Gratuit) • 🔒 Confidentiel • ⚡ 7 agents IA
         </p>
 
         {/* Simple Link to Browse */}
@@ -66,8 +72,8 @@ export default async function HomePage() {
           >
             👀 Voir les projets existants
           </Link>
-        </div>
-      </div>
+                  </div>
+          </div>
     </main>
   );
 }
