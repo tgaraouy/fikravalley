@@ -52,9 +52,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/university-simple" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
                 Université
               </Link>
-              <Link href="/customize" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">
-                Personnaliser
-              </Link>
               <UserMenu />
             </div>
           </div>
