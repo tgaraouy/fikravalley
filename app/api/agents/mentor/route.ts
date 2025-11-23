@@ -107,7 +107,13 @@ export async function POST(request: NextRequest) {
       }));
 
       // Create a temporary idea object from user profile
+      // Extract title from background or motivation (first sentence or first 100 chars)
+      const title = background.split('.')[0].substring(0, 100) || 
+                    motivation.split('.')[0].substring(0, 100) || 
+                    'Idée basée sur le profil utilisateur';
+      
       const profileIdea = {
+        title: title,
         problem: {
           description: `${background}. ${motivation}`,
           sector: 'auto-detected', // AI will extract
