@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   HeartIcon, 
   ShareIcon, 
   CheckIcon 
 } from '@heroicons/react/24/outline';
+import { shareIdeaViaWhatsApp } from '@/lib/share/whatsapp-share';
 import {
   HeartIcon as HeartSolidIcon
 } from '@heroicons/react/24/solid';
@@ -36,6 +37,7 @@ interface Idea {
 
 export default function IdeaDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [idea, setIdea] = useState<Idea | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'validation' | 'scoring'>('overview');
@@ -43,6 +45,7 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
   const [likes, setLikes] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const justSubmitted = searchParams?.get('submitted') === 'true';
   
   useEffect(() => {
     // Fetch idea data
@@ -77,20 +80,15 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
   };
   
   const handleShare = async () => {
-    if (navigator.share) {
-      // Native share on mobile
-      try {
-        await navigator.share({
-          title: idea?.title || 'Fikra Valley Idea',
-          text: idea?.problem_statement || '',
-          url: window.location.href
-        });
-      } catch (error) {
-        console.log('Share cancelled');
-      }
-    } else {
-      // Show modal on desktop
-      setShowShareModal(true);
+    if (idea) {
+      // Use optimized WhatsApp share (viral loop)
+      shareIdeaViaWhatsApp(idea.title, window.location.href);
+    }
+  };
+  
+  const handleWhatsAppShare = () => {
+    if (idea) {
+      shareIdeaViaWhatsApp(idea.title, window.location.href);
     }
   };
   
@@ -175,6 +173,34 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
             <span className="text-gray-900 truncate">{displayTitle}</span>
           </div>
           
+          {/* Success Banner with Prominent Share Button */}
+          {justSubmitted && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-lg"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h3 className="text-2xl font-bold text-green-900 mb-2">
+                    🎉 فكرتك تم قبولها! (Your idea was submitted!)
+                  </h3>
+                  <p className="text-green-700">
+                    شارك فكرتك فالواتساب و خلي أصدقائك يشوفوها (Share your idea on WhatsApp)
+                  </p>
+                </div>
+                <button
+                  onClick={handleWhatsAppShare}
+                  className="flex items-center gap-3 px-6 py-4 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold text-lg shadow-lg transform hover:scale-105 transition-all"
+                >
+                  <span className="text-2xl">💬</span>
+                  <span>شارك فالواتساب</span>
+                  <span className="text-sm opacity-90">(Share on WhatsApp)</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+          
           {/* Score Badge */}
           <div className="mb-4">
             <div className={`
@@ -204,11 +230,11 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
             </button>
             
             <button
-              onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold transition-colors"
+              onClick={handleWhatsAppShare}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors shadow-md"
             >
-              <ShareIcon className="w-5 h-5" />
-              <span>Share</span>
+              <span className="text-lg">💬</span>
+              <span>Share on WhatsApp</span>
             </button>
           </div>
           
@@ -649,11 +675,18 @@ function ShareModal({ url, title, onClose, copySuccess, onCopy }: {
   copySuccess: boolean;
   onCopy: () => void;
 }) {
+  // Optimized WhatsApp share message (viral loop)
+  const whatsappMessage = `فكرتي: "${title}"
+
+كيفاش غادي تولي مشروع ب3 دقايق؟ شوفو هنا: ${url}
+
+#FikraValley #مغرب_مقاول`;
+  
   const shareOptions = [
     { name: 'LinkedIn', icon: '💼', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
     { name: 'Twitter', icon: '🐦', url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}` },
     { name: 'Facebook', icon: '📘', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
-    { name: 'WhatsApp', icon: '💬', url: `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}` }
+    { name: 'WhatsApp', icon: '💬', url: `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`, primary: true }
   ];
   
   return (
@@ -690,20 +723,38 @@ function ShareModal({ url, title, onClose, copySuccess, onCopy }: {
           </motion.div>
         )}
         
-        {/* Share Options */}
-        <div className="grid grid-cols-2 gap-3">
-          {shareOptions.map(option => (
-            <a
-              key={option.name}
-              href={option.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all"
-            >
-              <span className="text-2xl">{option.icon}</span>
-              <span className="font-semibold">{option.name}</span>
-            </a>
-          ))}
+        {/* Share Options - WhatsApp Prominent */}
+        <div className="space-y-3">
+          {/* WhatsApp - Primary, Prominent */}
+          <a
+            href={shareOptions.find(o => o.name === 'WhatsApp')?.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 p-5 border-2 border-green-500 bg-green-50 rounded-lg hover:bg-green-100 transition-all shadow-md"
+          >
+            <span className="text-3xl">💬</span>
+            <div className="flex-1 text-left">
+              <span className="font-bold text-green-700 block">WhatsApp</span>
+              <span className="text-xs text-green-600">شارك فالواتساب (99% فتح)</span>
+            </div>
+            <span className="text-green-600">→</span>
+          </a>
+          
+          {/* Other Options */}
+          <div className="grid grid-cols-3 gap-2">
+            {shareOptions.filter(o => o.name !== 'WhatsApp').map(option => (
+              <a
+                key={option.name}
+                href={option.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center gap-1 p-3 border-2 border-gray-200 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all"
+              >
+                <span className="text-2xl">{option.icon}</span>
+                <span className="text-xs font-semibold">{option.name}</span>
+              </a>
+            ))}
+          </div>
         </div>
         
         <button

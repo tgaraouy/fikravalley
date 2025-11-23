@@ -2,18 +2,13 @@
  * WhatsApp-Native Sharing
  * 
  * ONE TAP generates WhatsApp message with FikraTag
+ * Uses optimized viral loop format
  */
 
-export function shareFikraTag(tag: string): void {
-  const message = `رقم فكرتي: ${tag}
+import { shareFikraTagViaWhatsApp } from '@/lib/share/whatsapp-share';
 
-راه في طور التحقق، بغيتي رأيك؟
-
-(FikraValley.com/track/${tag})`;
-
-  // Opens WhatsApp with pre-filled message
-  const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
-  window.open(url, '_blank');
+export function shareFikraTag(tag: string, ideaTitle?: string): void {
+  shareFikraTagViaWhatsApp(tag, ideaTitle);
 }
 
 /**
