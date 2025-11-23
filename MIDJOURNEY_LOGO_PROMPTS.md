@@ -11,46 +11,46 @@
 
 ---
 
-## 🎯 **PROMPT 1: PRIMARY LOGO (Recommended)**
+## 🎯 **PROMPT 1: PRIMARY LOGO (Recommended - Morocco Colors)**
 
 ### **Full Prompt:**
 ```
-Modern minimalist logo design, "Fikra Valley" text with abstract icon, Moroccan mint tea pot silhouette pouring flowing ideas and light particles, geometric valley/mountain silhouette in background, gradient colors blue indigo to orange, clean typography, professional tech startup branding, flat design, vector style, --style raw --ar 16:9 --v 6
+Modern minimalist logo design, "Fikra Valley" text with abstract icon, Moroccan mint tea pot silhouette pouring flowing ideas and light particles, geometric valley/mountain silhouette in background, Morocco flag colors red #C1272D to green #006233 gradient, clean typography, professional tech startup branding, flat design, vector style, --style raw --ar 16:9 --v 6
 ```
 
 ### **Variations:**
 ```
 Variation A (Icon-focused):
-Minimalist logo icon, Moroccan tea pot pouring glowing ideas into valley shape, blue to orange gradient, geometric lines, modern flat design, tech startup, --style raw --ar 1:1 --v 6
+Minimalist logo icon, Moroccan tea pot pouring glowing ideas into valley shape, Morocco flag colors red to green gradient, geometric lines, modern flat design, tech startup, --style raw --ar 1:1 --v 6
 
 Variation B (Text-focused):
-"Fikra Valley" wordmark logo, Moroccan-inspired geometric patterns integrated into letters, blue indigo gradient, modern sans-serif typography, professional branding, --style raw --ar 3:1 --v 6
+"Fikra Valley" wordmark logo, Moroccan-inspired geometric patterns integrated into letters, Morocco flag colors red #C1272D and green #006233, modern sans-serif typography, professional branding, --style raw --ar 3:1 --v 6
 
 Variation C (Symbol-focused):
-Abstract logo symbol, flowing ideas forming valley/mountain silhouette, Moroccan tea pot integrated subtly, blue orange gradient, minimalist, scalable icon, --style raw --ar 1:1 --v 6
+Abstract logo symbol, flowing ideas forming valley/mountain silhouette, Moroccan tea pot integrated subtly, Morocco flag colors red green gradient, minimalist, scalable icon, --style raw --ar 1:1 --v 6
 ```
 
 ---
 
-## 🎯 **PROMPT 2: ICON VERSION (Favicon/Mobile)**
+## 🎯 **PROMPT 2: ICON VERSION (Favicon/Mobile - Morocco Colors)**
 
 ### **Full Prompt:**
 ```
-Minimalist icon logo, abstract Moroccan tea pot pouring ideas, valley silhouette, blue indigo to orange gradient, geometric shapes, clean lines, scalable vector design, works at 16x16 pixels, modern tech startup icon, --style raw --ar 1:1 --v 6
+Minimalist icon logo, abstract Moroccan tea pot pouring ideas, valley silhouette, Morocco flag colors red #C1272D to green #006233 gradient, geometric shapes, clean lines, scalable vector design, works at 16x16 pixels, modern tech startup icon, --style raw --ar 1:1 --v 6
 ```
 
 ### **Simplified Version:**
 ```
-Simple icon, letter "F" and "V" combined with valley shape, blue gradient, minimalist, modern, tech startup, --style raw --ar 1:1 --v 6
+Simple icon, letter "F" and "V" combined with valley shape, Morocco flag colors red and green gradient, minimalist, modern, tech startup, --style raw --ar 1:1 --v 6
 ```
 
 ---
 
-## 🎯 **PROMPT 3: MODERN MINIMALIST (Clean & Professional)**
+## 🎯 **PROMPT 3: MODERN MINIMALIST (Clean & Professional - Morocco Colors)**
 
 ### **Full Prompt:**
 ```
-Modern minimalist logo, abstract valley shape with flowing ideas, subtle Moroccan geometric pattern, blue indigo gradient with orange accent, clean typography "Fikra Valley", professional tech branding, flat design, --style raw --ar 16:9 --v 6
+Modern minimalist logo, abstract valley shape with flowing ideas, subtle Moroccan geometric pattern, Morocco flag colors red #C1272D to green #006233 gradient, clean typography "Fikra Valley", professional tech branding, flat design, --style raw --ar 16:9 --v 6
 ```
 
 ### **Key Elements:**
@@ -62,11 +62,11 @@ Modern minimalist logo, abstract valley shape with flowing ideas, subtle Morocca
 
 ---
 
-## 🎯 **PROMPT 4: CULTURAL FUSION (Traditional + Modern)**
+## 🎯 **PROMPT 4: CULTURAL FUSION (Traditional + Modern - Morocco Colors)**
 
 ### **Full Prompt:**
 ```
-Modern logo design, Moroccan mint tea pot integrated with valley silhouette, ideas flowing as light particles, traditional Moroccan geometric patterns subtly integrated, blue indigo to orange gradient, professional tech startup branding, cultural authenticity, --style raw --ar 16:9 --v 6
+Modern logo design, Moroccan mint tea pot integrated with valley silhouette, ideas flowing as light particles, traditional Moroccan geometric patterns subtly integrated, Morocco flag colors red #C1272D to green #006233 gradient, professional tech startup branding, cultural authenticity, --style raw --ar 16:9 --v 6
 ```
 
 ### **Cultural Elements:**
@@ -77,11 +77,11 @@ Modern logo design, Moroccan mint tea pot integrated with valley silhouette, ide
 
 ---
 
-## 🎯 **PROMPT 5: AI/TECH FOCUSED**
+## 🎯 **PROMPT 5: AI/TECH FOCUSED (Morocco Colors)**
 
 ### **Full Prompt:**
 ```
-Tech startup logo, abstract valley with flowing data streams and light particles, subtle circuit board patterns, blue indigo gradient with orange accent, modern minimalist design, "Fikra Valley" typography, AI innovation branding, --style raw --ar 16:9 --v 6
+Tech startup logo, abstract valley with flowing data streams and light particles, subtle circuit board patterns, Morocco flag colors red #C1272D to green #006233 gradient, modern minimalist design, "Fikra Valley" typography, AI innovation branding, --style raw --ar 16:9 --v 6
 ```
 
 ### **Tech Elements:**
@@ -156,8 +156,8 @@ Use **Prompt 1 (Variation B)** - Text-focused
 - ✅ Works at small sizes (16x16px favicon)
 - ✅ Scalable (vector-friendly design)
 - ✅ Readable text (if including wordmark)
-- ✅ Blue/Indigo primary color
-- ✅ Orange accent color
+- ✅ Morocco flag colors: Red (#C1272D) and Green (#006233)
+- ✅ Gold/Yellow accent (optional, for star element)
 - ✅ Modern, professional aesthetic
 - ✅ Culturally authentic (Moroccan elements)
 
@@ -205,7 +205,7 @@ Add subtle circuit board patterns or data stream elements, maintain minimalist d
 
 ### **If Colors Need Adjustment:**
 ```
-Adjust colors to blue indigo gradient with orange accent, professional tech branding, --style raw --v 6
+Adjust colors to Morocco flag colors red #C1272D to green #006233 gradient, professional tech branding, --style raw --v 6
 ```
 
 ---
@@ -219,27 +219,28 @@ Before finalizing logo:
 - [ ] Works at 1000x1000px (high-res)
 - [ ] Readable with text (if wordmark included)
 - [ ] Readable without text (icon standalone)
-- [ ] Blue/Indigo primary color
-- [ ] Orange accent color
+- [ ] Morocco flag colors: Red (#C1272D) and Green (#006233)
+- [ ] Gold/Yellow accent (optional, for star)
 - [ ] Modern, professional aesthetic
 - [ ] Culturally authentic (Moroccan elements)
 - [ ] Scalable (vector-friendly)
 
 ---
 
-## 🎯 **BEST PROMPT FOR START**
+## 🎯 **BEST PROMPT FOR START (Morocco Colors)**
 
 **Start with this prompt (most likely to succeed):**
 
 ```
-Modern minimalist logo, abstract valley silhouette with flowing ideas as light particles, subtle Moroccan geometric pattern, blue indigo to orange gradient, "Fikra Valley" wordmark, clean sans-serif typography, professional tech startup branding, flat design, vector style, --style raw --ar 16:9 --v 6
+Modern minimalist logo, abstract valley silhouette with flowing ideas as light particles, subtle Moroccan geometric pattern, Morocco flag colors red #C1272D to green #006233 gradient, "Fikra Valley" wordmark, clean sans-serif typography, professional tech startup branding, flat design, vector style, --style raw --ar 16:9 --v 6
 ```
 
 **Then refine based on results:**
 - If too complex → Add "simplify, minimalist"
 - If needs more culture → Add "Moroccan tea pot element"
 - If needs more tech → Add "subtle circuit patterns"
-- If colors off → Specify "blue #4f46e5 to orange #f04f26 gradient"
+- If colors off → Specify "Morocco flag colors red #C1272D to green #006233 gradient"
+- If needs star element → Add "gold star #FFD700 accent"
 
 ---
 
