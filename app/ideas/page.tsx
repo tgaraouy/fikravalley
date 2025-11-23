@@ -55,10 +55,6 @@ export default function IdeasPage() {
     location: searchParams.get('location') || '',
     scoreMin: parseInt(searchParams.get('scoreMin') || '0'),
     scoreMax: parseInt(searchParams.get('scoreMax') || '100'),
-    hasReceipts: searchParams.get('hasReceipts') === 'true',
-    sdgs: searchParams.get('sdgs')?.split(',') || [],
-    fundingStatus: searchParams.get('fundingStatus') || '',
-    qualificationTier: searchParams.get('qualificationTier') || '',
   });
   const [sort, setSort] = useState(searchParams.get('sort') || 'score_desc');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));

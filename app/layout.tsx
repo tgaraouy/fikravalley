@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
 import UserMenu from '@/components/UserMenu';
 import EngagingFooter from '@/components/footer/EngagingFooter';
+import PWARegister from '@/components/PWARegister';
 
 import './globals.css';
 
@@ -16,14 +17,30 @@ const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit' });
 export const metadata: Metadata = {
   title: 'Fikra Valley - Morocco\'s Valley of Ideas',
   description: 'Where Moroccan ideas grow. Analyse technique instantanée et gratuite pour vos problèmes. Évaluez la faisabilité, obtenez une architecture de solution, et entrez dans un examen compétitif pour un financement potentiel (€3-10K) au Maroc.',
+  manifest: '/manifest.json',
+  themeColor: '#2563eb',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+    viewportFit: 'cover',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Fikra Valley',
+  },
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon.ico', sizes: 'any' },
+      { url: '/fikra_logo_v3.png', sizes: '192x192', type: 'image/png' },
+      { url: '/fikra_logo_v3.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/fikra_logo_v3.png', sizes: '180x180', type: 'image/png' },
     ],
   },
 };
@@ -31,7 +48,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
+      </head>
       <body className={cn('min-h-screen bg-sand-50 text-slate-900 antialiased font-sans', inter.variable, outfit.variable)} suppressHydrationWarning>
+        <PWARegister />
         {/* Simple Navigation Bar */}
         <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 gap-6">

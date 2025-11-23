@@ -73,7 +73,7 @@ export default function EngagingFooter() {
             )}
             
             <div className="mt-4 text-xs sm:text-sm text-gray-400">
-              Rejoignez 2,347 innovateurs. Désabonnement en 1 clic.
+              Désabonnement en 1 clic.
             </div>
           </div>
           
@@ -86,37 +86,18 @@ export default function EngagingFooter() {
               <QuickActionCard
                 icon="🚀"
                 label="Soumettre une idée"
-                href="/submit"
+                href="/submit-voice"
               />
               <QuickActionCard
                 icon="📖"
-                label="Success stories"
+                label="Voir les idées"
                 href="/ideas"
-              />
-              <QuickActionCard
-                icon="🎓"
-                label="Trouver un mentor"
-                href="/submit"
-              />
-              <QuickActionCard
-                icon="💰"
-                label="Voir financements"
-                href="/submit"
               />
             </div>
           </div>
           
         </div>
         
-        {/* Live Stats Bar */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 sm:p-6 mb-8 sm:mb-12">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center">
-            <LiveStat icon="💡" value="1,247" label="Idées soumises" />
-            <LiveStat icon="✅" value="347" label="Qualifiées" />
-            <LiveStat icon="💰" value="28" label="Financées" />
-            <LiveStat icon="👥" value="2.3K" label="Entrepreneurs" />
-          </div>
-        </div>
         
         {/* Links Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-12">
@@ -226,29 +207,6 @@ function QuickActionCard({ icon, label, href }: QuickActionCardProps) {
   );
 }
 
-// Live Stat
-interface LiveStatProps {
-  icon: string;
-  value: string;
-  label: string;
-}
-
-function LiveStat({ icon, value, label }: LiveStatProps) {
-  return (
-    <div>
-      <div className="text-2xl sm:text-3xl mb-2">{icon}</div>
-      <motion.div
-        key={value}
-        initial={{ scale: 1.2, color: '#f97316' }}
-        animate={{ scale: 1, color: '#ffffff' }}
-        className="text-2xl sm:text-3xl font-bold mb-1"
-      >
-        {value}
-      </motion.div>
-      <div className="text-xs sm:text-sm text-gray-400">{label}</div>
-    </div>
-  );
-}
 
 // Social Icon
 interface SocialIconProps {

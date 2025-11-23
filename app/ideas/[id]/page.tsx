@@ -35,7 +35,7 @@ interface Idea {
   moroccan_priorities?: string[];
 }
 
-export default function IdeaDetailPage({ params }: { params: { id: string } }) {
+export default function IdeaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [idea, setIdea] = useState<Idea | null>(null);
@@ -45,13 +45,23 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
   const [likes, setLikes] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [ideaId, setIdeaId] = useState<string | null>(null);
   const justSubmitted = searchParams?.get('submitted') === 'true';
   
+  // Unwrap params Promise
   useEffect(() => {
+    params.then((resolvedParams) => {
+      setIdeaId(resolvedParams.id);
+    });
+  }, [params]);
+  
+  useEffect(() => {
+    if (!ideaId) return;
+    
     // Fetch idea data
     const fetchIdea = async () => {
       try {
-        const response = await fetch(`/api/ideas/${params.id}`);
+        const response = await fetch(`/api/ideas/${ideaId}`);
         const data = await response.json();
         setIdea(data);
         setLikes(data.upvote_count || 0);
@@ -63,7 +73,7 @@ export default function IdeaDetailPage({ params }: { params: { id: string } }) {
     };
     
     fetchIdea();
-  }, [params.id]);
+  }, [ideaId]);
   
   const handleLike = async () => {
     setIsLiked(!isLiked);
