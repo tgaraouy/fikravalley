@@ -57,7 +57,7 @@ Modern minimalist logo, abstract valley shape with flowing ideas, subtle Morocca
 - Valley/mountain silhouette (represents "Valley")
 - Flowing ideas (light particles, lines, or abstract shapes)
 - Subtle Moroccan pattern (geometric, not overwhelming)
-- Blue to orange gradient
+- **Morocco flag colors: Red (#C1272D) to Green (#006233) gradient**
 - Clean, modern typography
 
 ---
@@ -92,23 +92,23 @@ Tech startup logo, abstract valley with flowing data streams and light particles
 
 ---
 
-## 🎨 **COLOR PALETTE**
+## 🎨 **COLOR PALETTE - MOROCCO FLAG COLORS**
 
-### **Primary Colors:**
-- **Blue/Indigo:** `#4f46e5` (brand-600) - Trust, technology
-- **Orange/Terracotta:** `#f04f26` (terracotta-600) - Energy, Morocco
-- **Green:** `#10b981` - Success, growth
+### **Morocco National Colors:**
+- **Red:** `#C1272D` (Moroccan flag red) - Strength, heritage
+- **Green:** `#006233` (Moroccan flag green) - Growth, prosperity
+- **Gold/Yellow:** `#FFD700` (Star of Morocco) - Excellence, achievement
 
 ### **Gradient Options:**
 ```
-Option 1: Blue to Orange (Recommended)
-Linear gradient from blue (#4f46e5) to orange (#f04f26)
+Option 1: Red to Green (Recommended - Morocco Flag)
+Linear gradient from red (#C1272D) to green (#006233)
 
-Option 2: Indigo to Blue
-Linear gradient from indigo (#6366f1) to blue (#3b82f6)
+Option 2: Red with Green Accent
+Primary red (#C1272D) with green (#006233) accent elements
 
-Option 3: Blue to Green
-Linear gradient from blue (#4f46e5) to green (#10b981)
+Option 3: Red, Green, Gold
+Red (#C1272D) and green (#006233) with gold (#FFD700) star/icon
 ```
 
 ---
@@ -181,7 +181,7 @@ Use **Prompt 1 (Variation B)** - Text-focused
 - ❌ Too traditional (needs modern tech feel)
 - ❌ Persian/Iranian elements (Moroccan only)
 - ❌ Generic "startup" look (needs cultural identity)
-- ❌ Too many colors (stick to blue + orange)
+- ❌ Too many colors (stick to Morocco flag colors: red + green)
 - ❌ Hard-to-read fonts (needs clarity)
 
 ---
