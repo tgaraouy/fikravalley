@@ -12,6 +12,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import Link from 'next/link';
+import Logo from '@/components/Logo';
 
 export default function EngagingFooter() {
   const [email, setEmail] = useState('');
@@ -168,8 +169,7 @@ export default function EngagingFooter() {
           {/* Logo + Tagline */}
           <div className="text-center md:text-left">
             <div className="flex items-center gap-3 mb-2 justify-center md:justify-start">
-              <div className="text-2xl sm:text-3xl">🌱</div>
-              <span className="text-xl sm:text-2xl font-bold">Fikra Valley</span>
+              <Logo href="/" size="md" showText={true} />
             </div>
             <div className="text-xs sm:text-sm text-gray-400">
               Transformer les idées marocaines en réalité

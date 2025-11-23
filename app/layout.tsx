@@ -34,12 +34,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn('min-h-screen bg-sand-50 text-slate-900 antialiased font-sans', inter.variable, outfit.variable)} suppressHydrationWarning>
         {/* Simple Navigation Bar */}
         <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <div className="flex items-center">
-              <Logo href="/" size="sm" showText={true} className="hidden sm:flex" />
-              <Logo href="/" size="sm" showText={false} className="sm:hidden" />
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 gap-6">
+            <div className="flex items-center flex-shrink-0">
+              <Logo href="/" size="lg" showText={true} className="hidden sm:flex" />
+              <Logo href="/" size="lg" showText={false} className="sm:hidden" />
             </div>
-            <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-4 sm:gap-6 flex-1 justify-end">
               <Link href="/ideas" className="text-sm text-slate-600 hover:text-slate-900">
                 Idées
               </Link>

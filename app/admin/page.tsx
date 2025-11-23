@@ -8,6 +8,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Logo from '@/components/Logo';
 import { OverviewStats } from '@/components/admin/OverviewStats';
 import { IdeaManagement } from '@/components/admin/IdeaManagement';
 import { ReceiptVerification } from '@/components/admin/ReceiptVerification';
@@ -97,6 +98,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="flex justify-between items-center h-12 sm:h-14">
             <div className="flex items-center gap-2 sm:gap-3">
+              <Logo href="/" size="sm" showText={false} />
               <h1 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900">Admin</h1>
               <span className="text-xs text-slate-500 hidden sm:inline">Fikra Valley</span>
             </div>

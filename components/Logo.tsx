@@ -10,15 +10,9 @@ interface LogoProps {
 }
 
 const sizeMap = {
-  sm: { width: 32, height: 32 },
-  md: { width: 48, height: 48 },
-  lg: { width: 80, height: 80 },
-};
-
-const textSizeMap = {
-  sm: 'text-lg',
-  md: 'text-xl',
-  lg: 'text-2xl',
+  sm: { width: 40, height: 40 },
+  md: { width: 120, height: 40 },
+  lg: { width: 240, height: 80 },
 };
 
 export default function Logo({
@@ -29,41 +23,39 @@ export default function Logo({
   href = '/',
 }: LogoProps) {
   const dimensions = sizeMap[size];
-  const textSize = textSizeMap[size];
 
   // Determine which logo file to use
-  // Try SVG first, fallback to GIF
+  // If showText is true, use the combined logo with wordmark
+  // If showText is false, use just the icon
   const logoSrc = (() => {
+    if (!showText) {
+      // Icon only
+      return '/fikra_logo_v3.png';
+    }
+    
+    // Full logo with wordmark
     switch (variant) {
       case 'white':
-        return '/logo-white.svg';
+        return '/logo-white.svg'; // Fallback if needed
       case 'icon':
-        return '/logo-icon.svg';
+        return '/fikra_logo_v3.png';
       default:
-        return '/logo.svg';
+        return '/fikravalley_words_logo.png'; // Combined icon + wordmark
     }
   })();
 
-  // Use GIF as primary (SVG files can be added later)
-  const logoSrcFinal = '/fikralabs-logo.gif';
-
   const logoContent = (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="relative flex-shrink-0" style={{ width: dimensions.width, height: dimensions.height }}>
+    <div className={`flex items-center ${className}`}>
+      <div className="relative flex-shrink-0" style={{ width: dimensions.width, height: dimensions.height, minWidth: dimensions.width }}>
         <Image
-          src={logoSrcFinal}
+          src={logoSrc}
           alt="Fikra Valley Logo"
           fill
           className="object-contain"
           priority
-          unoptimized={logoSrcFinal.endsWith('.gif')}
+          style={{ objectFit: 'contain' }}
         />
       </div>
-      {showText && (
-        <span className={`font-bold text-indigo-600 ${textSize} whitespace-nowrap`}>
-          Fikra Valley
-        </span>
-      )}
     </div>
   );
 
