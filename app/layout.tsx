@@ -43,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/ideas" className="text-sm text-slate-600 hover:text-slate-900">
                 Idées
               </Link>
-              <Link href="/submit" className="text-sm text-slate-600 hover:text-slate-900">
+              <Link href="/submit-voice" className="text-sm text-slate-600 hover:text-slate-900">
                 Soumettre
               </Link>
               <Link href="/pods-simple" className="text-sm text-slate-600 hover:text-slate-900 hidden sm:inline">

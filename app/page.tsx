@@ -178,7 +178,7 @@ export default async function HomePage() {
                 <Link href="/submit-voice">🎤 Parler à l'IA Maintenant</Link>
               </Button>
               <Button asChild size="lg" className="bg-brand-600 hover:bg-brand-700 text-white border-none shadow-lg shadow-brand-500/20">
-                <Link href="/submit">✍️ Écrire mon Projet</Link>
+                <Link href="/submit-voice">🎤 Soumettre une Idée</Link>
               </Button>
               <Button asChild variant="secondary" size="lg" className="bg-white/80 hover:bg-white text-slate-700 border border-sand-200">
                 <Link href="/ideas">👀 Voir les Projets</Link>
