@@ -61,25 +61,35 @@ export async function POST(request: NextRequest) {
     };
 
     // Validate required fields
-    if (!sanitizedBody.title || !sanitizedBody.problem_statement || !sanitizedBody.current_manual_process) {
+    if (!sanitizedBody.title || !sanitizedBody.problem_statement) {
       return NextResponse.json(
-        { error: 'Les champs titre, description du problème et processus manuel sont requis' },
+        { error: 'Les champs titre et description du problème sont requis' },
         { status: 400 }
       );
     }
 
-    if (!body.category || !body.location || !body.frequency) {
-      return NextResponse.json(
-        { error: 'Les champs catégorie, localisation et fréquence sont requis' },
-        { status: 400 }
-      );
-    }
+    // For voice submissions, allow missing fields (they will be analyzed by AI agents later)
+    const isVoiceSubmission = body.submitted_via === 'voice' || body.submitted_via === 'voice_guided';
+    
+    if (!isVoiceSubmission) {
+      // For non-voice submissions, require more fields
+      if (!sanitizedBody.current_manual_process) {
+        return NextResponse.json(
+          { error: 'Le champ processus manuel est requis' },
+          { status: 400 }
+        );
+      }
 
-    if (!body.digitization_opportunity || !body.proposed_solution) {
-      return NextResponse.json(
-        { error: 'Les champs opportunité de numérisation et solution proposée sont requis' },
-        { status: 400 }
-      );
+      if (!body.category || !body.location) {
+        return NextResponse.json(
+          { error: 'Les champs catégorie et localisation sont requis' },
+          { status: 400 }
+        );
+      }
+    } else {
+      // For voice submissions, set defaults if missing
+      if (!body.category) body.category = 'other';
+      if (!body.location) body.location = 'other';
     }
 
     if (!body.submitter_name || !body.submitter_email || !body.submitter_type) {

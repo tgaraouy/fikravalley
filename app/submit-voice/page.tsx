@@ -20,28 +20,50 @@ export default function VoiceSubmitPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useSimple, setUseSimple] = useState(true); // Toggle to simple mode
 
-  const handleSimpleSubmit = async (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }) => {
-    // Simple submit with contact info
+  const handleSimpleSubmit = async (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }, extractedData?: any) => {
+    // Simple submit with contact info and extracted data
     setIsSubmitting(true);
     
     try {
+      // Use provided extracted data or fallback
+      const dataToSubmit = extractedData || {
+        title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
+        problem_statement: transcript,
+        category: 'other',
+        location: 'other',
+      };
+
+      // Ensure required fields
+      if (!dataToSubmit.title) {
+        dataToSubmit.title = transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100);
+      }
+      if (!dataToSubmit.problem_statement) {
+        dataToSubmit.problem_statement = transcript;
+      }
+      if (!dataToSubmit.category) {
+        dataToSubmit.category = 'other';
+      }
+      if (!dataToSubmit.location) {
+        dataToSubmit.location = 'other';
+      }
+
+      // Now submit with extracted data (only essential fields from Supabase schema)
       const response = await fetch('/api/ideas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: transcript.split('.')[0].substring(0, 100),
-          problem_statement: transcript,
-          category: 'autre', // Auto-detect later
-          location: 'autre', // Auto-detect later
-          frequency: 'À préciser',
+          title: dataToSubmit.title,
+          problem_statement: dataToSubmit.problem_statement,
+          proposed_solution: dataToSubmit.proposed_solution || null,
+          current_manual_process: dataToSubmit.current_manual_process || null,
+          digitization_opportunity: dataToSubmit.digitization_opportunity || null,
+          category: dataToSubmit.category,
+          location: dataToSubmit.location,
           submitter_name: contactInfo.name || 'Utilisateur Vocal',
           submitter_email: contactInfo.email || null,
           submitter_phone: contactInfo.phone || null,
           submitter_type: 'entrepreneur',
           submitted_via: 'voice',
-          current_manual_process: 'Soumission vocale',
-          digitization_opportunity: 'À analyser',
-          proposed_solution: 'À développer'
         })
       });
 

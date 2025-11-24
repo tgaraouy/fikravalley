@@ -15,9 +15,10 @@ import { saveVoiceDraft } from '@/lib/voice/offline-storage';
 import { moderateContent, sanitizeContent } from '@/lib/moderation/content-moderation';
 import { detectLanguage, type Language } from '@/lib/constants/tagline';
 import IdeaRewardScreen from '@/components/reward/IdeaRewardScreen';
+import VoiceFieldsConfirmation from '@/components/submission/VoiceFieldsConfirmation';
 
 interface SimpleVoiceSubmitProps {
-  onSubmit: (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }) => void;
+  onSubmit: (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }, extractedData?: any) => void;
 }
 
 export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) {
@@ -29,12 +30,18 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
   const [showContactForm, setShowContactForm] = useState(false);
   const [contactInfo, setContactInfo] = useState({ email: '', phone: '', name: '' });
   const [showReward, setShowReward] = useState(false);
+  const [showFieldsConfirmation, setShowFieldsConfirmation] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [isExtracting, setIsExtracting] = useState(false);
   const [ideaNumber, setIdeaNumber] = useState(128); // This would come from API response
   const [language, setLanguage] = useState<Language>('fr');
+  const [currentPrompt, setCurrentPrompt] = useState<string>('');
   
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const isStoppingRef = useRef<boolean>(false);
+  const recognitionReadyRef = useRef<boolean>(false);
 
   useEffect(() => {
     // Detect language
@@ -50,6 +57,9 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         recognitionRef.current.interimResults = true;
         // Set language based on detection
         recognitionRef.current.lang = detected === 'darija' ? 'ar-MA' : detected === 'fr' ? 'fr-FR' : 'en-US';
+        
+        // Initialize ready state - recognition starts in idle state
+        recognitionReadyRef.current = true;
         
         recognitionRef.current.onresult = (event: any) => {
           let final = '';
@@ -75,33 +85,181 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
             }
             
             setModerationError(null);
-            setTranscript(prev => prev + sanitized);
+            const newTranscript = transcript + sanitized;
+            setTranscript(newTranscript);
             setConfidence(maxConfidence);
+            
+            // Update prompt based on what user said
+            updatePrompt(newTranscript);
           }
         };
         
         recognitionRef.current.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          setIsRecording(false);
+          const errorType = event.error;
+          
+          // Handle different error types
+          switch (errorType) {
+            case 'no-speech':
+              // This is normal - user hasn't spoken yet or paused
+              // Don't log or stop, just continue listening
+              return;
+              
+            case 'audio-capture':
+              // Microphone not available or permission denied
+              console.warn('Microphone not available:', errorType);
+              setIsRecording(false);
+              alert('⚠️ Microphone non disponible. Vérifie les permissions dans les paramètres du navigateur.');
+              return;
+              
+            case 'not-allowed':
+              // Permission denied
+              console.warn('Microphone permission denied:', errorType);
+              setIsRecording(false);
+              alert('⚠️ Permission microphone refusée. Active-la dans les paramètres du navigateur.');
+              return;
+              
+            case 'aborted':
+              // Recognition was stopped manually
+              // This is expected when user stops recording
+              setIsRecording(false);
+              return;
+              
+            case 'network':
+              // Network error
+              console.error('Network error during speech recognition:', errorType);
+              setIsRecording(false);
+              alert('⚠️ Erreur réseau. Vérifie ta connexion internet.');
+              return;
+              
+            case 'service-not-allowed':
+              // Speech recognition service not available
+              console.error('Speech recognition service not available:', errorType);
+              setIsRecording(false);
+              alert('⚠️ Service de reconnaissance vocale non disponible. Essaie de rafraîchir la page.');
+              return;
+              
+            default:
+              // Unknown error - log it but don't stop unless it's critical
+              console.warn('Speech recognition warning:', errorType);
+              // Only stop on critical errors
+              if (errorType === 'bad-grammar' || errorType === 'language-not-supported') {
+                setIsRecording(false);
+              }
+              return;
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          // Recognition ended naturally
+          recognitionReadyRef.current = true;
+          isStoppingRef.current = false;
+          setIsRecording(prev => {
+            // Only reset if we were actually recording
+            return false;
+          });
         };
       }
     }
   }, []);
 
   const startRecording = async () => {
+    // Prevent multiple simultaneous starts
+    if (isRecording || isStoppingRef.current) {
+      return;
+    }
+
     try {
       // Request microphone permission
-      await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Start speech recognition
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-        setIsRecording(true);
-        setTranscript(''); // Clear previous
+          // Reset prompt when starting
+          setCurrentPrompt('💡 Commence par décrire le problème que tu veux résoudre...');
+          
+          // Start speech recognition (check if already running)
+          if (recognitionRef.current) {
+        // Wait for recognition to be ready if it's stopping
+        if (!recognitionReadyRef.current && recognitionRef.current.state !== 'idle') {
+          console.log('Waiting for recognition to be ready...');
+          // Wait up to 1 second for recognition to be ready
+          let waitCount = 0;
+          while (!recognitionReadyRef.current && waitCount < 10) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitCount++;
+          }
+        }
+
+        try {
+          // Check recognition state
+          const state = recognitionRef.current.state;
+          
+          if (state === 'listening' || state === 'starting') {
+            console.log('Recognition already active, stopping first');
+            isStoppingRef.current = true;
+            recognitionReadyRef.current = false;
+            recognitionRef.current.stop();
+            // Wait for onend event
+            await new Promise<void>((resolve) => {
+              const checkReady = () => {
+                if (recognitionReadyRef.current) {
+                  resolve();
+                } else {
+                  setTimeout(checkReady, 50);
+                }
+              };
+              // Timeout after 1 second
+              setTimeout(() => resolve(), 1000);
+              checkReady();
+            });
+            isStoppingRef.current = false;
+          }
+
+          // Now start recognition
+          recognitionRef.current.start();
+          recognitionReadyRef.current = false;
+          setIsRecording(true);
+          setTranscript(''); // Clear previous
+        } catch (recognitionError: any) {
+          // If already started, stop and wait for ready state
+          if (recognitionError.name === 'InvalidStateError' || recognitionError.message?.includes('already started')) {
+            console.log('Recognition already started, stopping and waiting...');
+            try {
+              isStoppingRef.current = true;
+              recognitionReadyRef.current = false;
+              recognitionRef.current.stop();
+              
+              // Wait for onend event to fire
+              await new Promise<void>((resolve) => {
+                const checkReady = () => {
+                  if (recognitionReadyRef.current) {
+                    resolve();
+                  } else {
+                    setTimeout(checkReady, 50);
+                  }
+                };
+                // Timeout after 1 second
+                setTimeout(() => resolve(), 1000);
+                checkReady();
+              });
+              
+              isStoppingRef.current = false;
+              
+              // Now try starting again
+              recognitionRef.current.start();
+              recognitionReadyRef.current = false;
+              setIsRecording(true);
+              setTranscript('');
+            } catch (retryError) {
+              console.error('Error restarting recognition:', retryError);
+              isStoppingRef.current = false;
+              setIsRecording(false);
+            }
+          } else {
+            throw recognitionError;
+          }
+        }
       }
       
       // Also record audio for offline storage
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'audio/webm;codecs=opus' // Compress to ~100KB/min
       });
@@ -129,18 +287,70 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       mediaRecorderRef.current = mediaRecorder;
     } catch (error) {
       console.error('Error starting recording:', error);
+      setIsRecording(false);
       alert('Permission microphone refusée. Activez-la dans les paramètres.');
     }
   };
 
   const stopRecording = () => {
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        // Only stop if actually running
+        const state = recognitionRef.current.state;
+        if (state === 'listening' || state === 'starting') {
+          isStoppingRef.current = true;
+          recognitionReadyRef.current = false;
+          recognitionRef.current.stop();
+        }
+      } catch (error) {
+        console.error('Error stopping recognition:', error);
+        isStoppingRef.current = false;
+      }
       setIsRecording(false);
     }
     
-    if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        if (mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        }
+      } catch (error) {
+        console.error('Error stopping media recorder:', error);
+      }
+    }
+  };
+
+  const updatePrompt = (text: string) => {
+    const lowerText = text.toLowerCase();
+    const wordCount = text.split(' ').filter(w => w).length;
+    
+    // Dynamic prompts based on content
+    if (wordCount < 10) {
+      setCurrentPrompt('💡 Commence par décrire le problème. Ex: "Les infirmières passent trop de temps..."');
+    } else if (wordCount < 30) {
+      if (!lowerText.includes('qui') && !lowerText.includes('qui') && !lowerText.match(/(infirmières|étudiants|touristes|gens|personnes)/)) {
+        setCurrentPrompt('💡 Qui a ce problème ? Ex: "Les infirmières", "Les étudiants", "Les touristes"...');
+      } else if (!lowerText.match(/(casablanca|rabat|marrakech|kenitra|agadir|fes|meknes|oujda|à|au|dans)/)) {
+        setCurrentPrompt('💡 Où se passe ce problème ? Ex: "À Casablanca", "Au CHU Ibn Sina"...');
+      } else {
+        setCurrentPrompt('💡 Continue ! Explique mieux le problème...');
+      }
+    } else if (wordCount < 60) {
+      if (!lowerText.match(/(fois|chaque|jour|semaine|mois|quotidien|régulier)/)) {
+        setCurrentPrompt('💡 À quelle fréquence ? Ex: "Chaque jour", "3 fois par semaine"...');
+      } else if (!lowerText.match(/(actuellement|maintenant|faire|font|utilisent)/)) {
+        setCurrentPrompt('💡 Que font-ils actuellement ? Ex: "Ils utilisent WhatsApp", "Ils font la queue"...');
+      } else {
+        setCurrentPrompt('💡 Bien ! Quelle est ta solution ?');
+      }
+    } else if (wordCount < 100) {
+      if (!lowerText.match(/(solution|idée|app|système|plateforme|application)/)) {
+        setCurrentPrompt('💡 Quelle est ta solution ? Ex: "Une app pour...", "Un système qui..."');
+      } else {
+        setCurrentPrompt('💡 Excellent ! Tu peux ajouter plus de détails si tu veux.');
+      }
+    } else {
+      setCurrentPrompt('💡 Parfait ! Tu as dit l\'essentiel. Tu peux continuer ou arrêter.');
     }
   };
 
@@ -149,6 +359,7 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
     const edited = prompt('Tsa7e7 (Correct):', transcript);
     if (edited !== null) {
       setTranscript(edited);
+      updatePrompt(edited);
     }
   };
 
@@ -162,18 +373,74 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       return;
     }
     
+    // Extract structured data from transcript
+    setIsExtracting(true);
+    try {
+      const extractResponse = await fetch('/api/ideas/extract-from-voice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transcript,
+          language: language === 'darija' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US'
+        })
+      });
+
+      if (extractResponse.ok) {
+        const result = await extractResponse.json();
+        const data = result.data || {
+          title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
+          problem_statement: transcript,
+          category: 'other',
+          location: 'other',
+        };
+        setExtractedData(data);
+        setShowFieldsConfirmation(true);
+      } else {
+        // Fallback: use basic extraction
+        setExtractedData({
+          title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
+          problem_statement: transcript,
+          category: 'other',
+          location: 'other',
+        });
+        setShowFieldsConfirmation(true);
+      }
+    } catch (error) {
+      console.error('Error extracting data:', error);
+      // Fallback: use basic extraction
+      setExtractedData({
+        title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
+        problem_statement: transcript,
+        category: 'other',
+        location: 'other',
+      });
+      setShowFieldsConfirmation(true);
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const handleFieldsConfirmed = (confirmedData: any) => {
+    setExtractedData(confirmedData);
+    setShowFieldsConfirmation(false);
+    
     // Show contact form if not filled
     if (!contactInfo.email && !contactInfo.phone) {
       setShowContactForm(true);
       return;
     }
     
+    // Submit with confirmed data
+    handleFinalSubmit(confirmedData);
+  };
+
+  const handleFinalSubmit = async (dataToSubmit: any) => {
     // Show reward screen immediately
     setShowReward(true);
     setIsProcessing(true);
     
-    // Submit in background
-    onSubmit(transcript, contactInfo);
+    // Submit in background with extracted data
+    onSubmit(transcript, contactInfo, dataToSubmit);
   };
 
   const handleRewardNext = () => {
@@ -194,16 +461,30 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       return;
     }
     
-    // Show reward screen immediately
-    setShowReward(true);
-    setIsProcessing(true);
-    
-    // Submit in background
-    onSubmit(transcript, contactInfo);
+    // Submit with extracted data
+    setShowContactForm(false);
+    handleFinalSubmit(extractedData || {
+      title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
+      problem_statement: transcript,
+      category: 'other',
+      location: 'other',
+    });
   };
 
   return (
     <>
+      {/* Fields Confirmation Modal */}
+      {showFieldsConfirmation && extractedData && (
+        <VoiceFieldsConfirmation
+          extractedData={extractedData}
+          onSubmit={handleFieldsConfirmed}
+          onCancel={() => {
+            setShowFieldsConfirmation(false);
+            setExtractedData(null);
+          }}
+        />
+      )}
+
       {/* Reward Screen */}
       {showReward && (
         <IdeaRewardScreen
@@ -246,6 +527,71 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       <p className="mt-6 text-lg font-medium text-slate-700">
         {isRecording ? '🎤 Dwi daba (Parle maintenant)...' : 'دير الصوت دابا (Appuie pour parler)'}
       </p>
+
+      {/* Guidance Questions - Show when NOT recording */}
+      {!isRecording && !transcript && (
+        <div className="mt-8 w-full max-w-md">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 text-center">
+              💡 Que dire ? (What to say?)
+            </h3>
+            <div className="space-y-3 text-sm text-slate-700">
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">1.</span>
+                <p>
+                  <strong>Le problème :</strong> "Les infirmières au CHU passent 4h par jour à chercher le matériel..."
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">2.</span>
+                <p>
+                  <strong>Qui a le problème :</strong> "Les infirmières", "Les étudiants", "Les touristes"...
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">3.</span>
+                <p>
+                  <strong>Où :</strong> "À Casablanca", "Au CHU Ibn Sina", "Dans les écoles de Rabat"...
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-blue-600 font-bold">4.</span>
+                <p>
+                  <strong>La solution :</strong> "Une app pour localiser le matériel", "Un système de réservation"...
+                </p>
+              </div>
+            </div>
+            <div className="pt-3 border-t border-blue-200">
+              <p className="text-xs text-slate-600 text-center">
+                💬 Parle naturellement en Darija ou en Français. Dis tout ce qui te passe par la tête !
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recording Guidance - Show DURING recording */}
+      {isRecording && (
+        <div className="mt-6 w-full max-w-md">
+          <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
+            <p className="text-sm font-semibold text-green-800 text-center mb-3 flex items-center justify-center gap-2">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              🎤 Enregistrement en cours...
+            </p>
+            {currentPrompt && (
+              <div className="bg-white rounded-lg p-3 mb-3 border border-green-200">
+                <p className="text-sm text-slate-700 text-center">
+                  {currentPrompt}
+                </p>
+              </div>
+            )}
+            <div className="space-y-1 text-xs text-green-700">
+              <p>💬 Parle naturellement, on t'écoute !</p>
+              <p>💬 Dis tout ce qui te passe par la tête</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Transcript: Appears IN PLACE, not below */}
       {transcript && (
@@ -367,13 +713,13 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       )}
 
       {/* Submit: Big, single button */}
-      {transcript && !isRecording && !showContactForm && (
+      {transcript && !isRecording && !showContactForm && !showFieldsConfirmation && (
         <button
           onClick={handleSubmit}
-          disabled={isProcessing}
+          disabled={isProcessing || isExtracting}
           className="mt-8 w-full max-w-md bg-green-600 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50"
         >
-          {isProcessing ? '⏳ Envoi...' : '✅ سّبق الفكرة (Submit)'}
+          {isExtracting ? '⏳ Analyse en cours...' : isProcessing ? '⏳ Envoi...' : '✅ سّبق الفكرة (Submit)'}
         </button>
       )}
       </div>
