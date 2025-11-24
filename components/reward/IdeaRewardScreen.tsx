@@ -85,7 +85,7 @@ export default function IdeaRewardScreen({
           </div>
           <p className="text-green-600 font-bold text-lg">
             {messages.success}
-            {language === 'tamazight' && messages.successLatin && (
+            {language === 'tamazight' && 'successLatin' in messages && messages.successLatin && (
               <span className="block text-xs text-gray-500 mt-1">
                 {messages.successLatin}
               </span>
@@ -97,7 +97,7 @@ export default function IdeaRewardScreen({
         <div className="mb-6">
           <p className="text-3xl font-bold text-slate-900">
             {messages.ideaNumber} #{ideaNumber}
-            {language === 'tamazight' && messages.ideaNumberLatin && (
+            {language === 'tamazight' && 'ideaNumberLatin' in messages && messages.ideaNumberLatin && (
               <span className="block text-sm text-gray-500 mt-1">
                 {messages.ideaNumberLatin} #{ideaNumber}
               </span>
@@ -115,7 +115,7 @@ export default function IdeaRewardScreen({
           </div>
           <p className="text-xs text-gray-500 mt-2">
             {messages.step} 1/3: {messages.stepLabel}
-            {language === 'tamazight' && messages.stepLatin && (
+            {language === 'tamazight' && 'stepLatin' in messages && messages.stepLatin && 'stepLabelLatin' in messages && messages.stepLabelLatin && (
               <span className="block text-xs text-gray-400 mt-1">
                 {messages.stepLatin} 1/3: {messages.stepLabelLatin}
               </span>
@@ -131,7 +131,7 @@ export default function IdeaRewardScreen({
           >
             <Sparkles className="w-5 h-5" />
             {messages.nextButton}
-            {language === 'tamazight' && messages.nextButtonLatin && (
+            {language === 'tamazight' && 'nextButtonLatin' in messages && messages.nextButtonLatin && (
               <span className="block text-xs opacity-75 mt-1">
                 {messages.nextButtonLatin}
               </span>
@@ -149,7 +149,7 @@ export default function IdeaRewardScreen({
         </div>
 
         {/* Tamazight Latin transliteration helper */}
-        {language === 'tamazight' && (
+        {language === 'tamazight' && 'successLatin' in messages && 'ideaNumberLatin' in messages && 'stepLatin' in messages && 'stepLabelLatin' in messages && (
           <div className="mt-4 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-400">
               {messages.successLatin} • {messages.ideaNumberLatin} #{ideaNumber} • {messages.stepLatin} 1/3: {messages.stepLabelLatin}
