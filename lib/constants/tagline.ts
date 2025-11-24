@@ -8,25 +8,25 @@
 export type Language = 'darija' | 'tamazight' | 'fr' | 'en';
 
 export const APP_TAGLINE = {
-  // Main emotional tagline (mirrors fear + command)
+  // Main emotional tagline (conviction + validation)
   main: {
     darija: {
-      headline: "فكرة فبالك وكتخاف تضيع؟ دير صوتك دابا.",
-      subtext: "127 شاب كيديروها. ب3 دقايق تولي خطة عمل."
+      headline: "فكرة فبالك وكتأكد بلي شركة؟ بغيتي تتحقق منها.",
+      subtext: "دير صوتك دابا. 7 وكلاء ذكاء اصطناعي غادي يتحققو منها."
     },
     tamazight: {
-      headline: "ⴰⴷⴳⴳⴰⵔ ⴷ ⵓⵔⴰⵏⴷⴰⵢ? ⵎⴰⵀⴼⵓⵛ? ⵙⵙⴰⵡⴰⵍ ⴰⵎⴰⵢⵏⵓ.",
-      headlineLatin: "Adggar d uranday? Mahfuch? Ssawal amaynu.",
-      subtext: "127 ⵉⵙⴳⴰⵏ ⴷ ⵙⴰⵔⵓ. ⴷ 3 ⵜⵓⵙⴳⴰⴳⵉⵏ, ⴰⴷ ⵜⵔⴱⴳⴳⵓⵍ ⴰⵔⴰⵎⴰⵡⵓ.",
-      subtextLatin: "127 isgan d saru. D 3 tusgagin, ad trbggul aramawu."
+      headline: "ⴰⴷⴳⴳⴰⵔ ⴷⴰⵎⵙⵓⵏ ⴷ ⴰⴼⴰⵔⵉⵖ? ⴱⵖⵉⵏⴰⴷ ⵜⵙⵏⵙⵏⵙ.",
+      headlineLatin: "Adggar dameshun d aferyigh? Bghinad tsnsns.",
+      subtext: "ⵙⵙⴰⵡⴰⵍ ⴰⵎⴰⵢⵏⵓ. 7 ⵉⵎⵙⵙⴰⵡⵏ ⵏ ⵢⵉⵎⵙⵙⵉⵏ ⴰⴷ ⵙⵏⵙⵏⵙⵏ.",
+      subtextLatin: "Ssawal amaynu. 7 imssawn n yimssin ad snsnsn."
     },
     fr: {
-      headline: "Tu as une idée qui te trotte dans la tête ? Enregistre-la maintenant.",
-      subtext: "127 jeunes le font. En 3 minutes, ça devient un business plan."
+      headline: "Tu es convaincu que ton idée est un business ? Valide-la.",
+      subtext: "Enregistre ta voix. 7 agents IA vont la valider pour toi."
     },
     en: {
-      headline: "Got an idea you're scared to lose? Record it now.",
-      subtext: "127 youth are doing it. In 3 minutes, it becomes a business plan."
+      headline: "Convinced your idea is a business? Validate it.",
+      subtext: "Record your voice. 7 AI agents will validate it for you."
     }
   },
   
@@ -34,7 +34,7 @@ export const APP_TAGLINE = {
   short: {
     darija: "من الفكرة للشركة، بصوتك",
     tamazight: "ⵙⵉⵏⵉⵎⴰⵙ ⵙⵉⵏⵉⵎⴰⵙⵏ, ⵙⵙⴰⵡⴰⵍ",
-    fr: "Idée → Entreprise, juste avec ta voix",
+    fr: "Idée → Business, juste avec ta voix",
     en: "Idea → Business, just with your voice"
   },
   
@@ -57,10 +57,10 @@ export const APP_TAGLINE = {
   
   // Meta description
   meta: {
-    darija: "فكرة فبالك؟ دير صوتك دابا. 7 وكلاء ذكاء اصطناعي غادي يوليها شركة. بلا فلوس. بلا كتابة.",
-    tamazight: "Adggar d uranday? Ssawal amaynu. 7 imssawn n yimssin nnnimn ssawaln, ad trbggul aferyigh.",
-    fr: "Transforme ton idée en entreprise avec 7 agents IA. Parle ton idée, reçois un plan d'action personnalisé. Gratuit, sans écrire.",
-    en: "Transform your idea into a business with 7 AI agents. Speak your idea, get a personalized action plan. Free, no writing required."
+    darija: "فكرة فبالك وكتأكد بلي شركة؟ بغيتي تتحقق منها. 7 وكلاء ذكاء اصطناعي غادي يتحققو منها. بلا فلوس. بلا كتابة.",
+    tamazight: "Adggar dameshun d aferyigh? Bghinad tsnsns. 7 imssawn n yimssin ad snsnsn. Ssawal amaynu.",
+    fr: "Tu es convaincu que ton idée est un business ? Valide-la avec 7 agents IA. Enregistre ta voix, reçois une validation complète. Gratuit, sans écrire.",
+    en: "Convinced your idea is a business? Validate it with 7 AI agents. Record your voice, get complete validation. Free, no writing required."
   },
   
   // Benefits (short)

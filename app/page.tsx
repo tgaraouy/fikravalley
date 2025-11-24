@@ -7,38 +7,14 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
-import { APP_TAGLINE, detectLanguage, type Language } from '@/lib/constants/tagline';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { APP_TAGLINE } from '@/lib/constants/tagline';
 import LogoWithTagline from '@/components/LogoWithTagline';
 
 export default function HomePage() {
-  const [language, setLanguage] = useState<Language>('fr');
-
-  useEffect(() => {
-    // Detect language on mount
-    const detected = detectLanguage();
-    setLanguage(detected);
-    
-    // Check for saved preference
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('preferred-language') as Language;
-      if (saved && ['darija', 'tamazight', 'fr', 'en'].includes(saved)) {
-        setLanguage(saved);
-      }
-    }
-  }, []);
-
-  const tagline = APP_TAGLINE.main[language] || APP_TAGLINE.main.fr; // Fallback to French
-
-  // Safety check - ensure tagline exists
-  if (!tagline || typeof tagline !== 'object') {
-    return <div>Loading...</div>;
-  }
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 bg-gradient-to-br from-slate-50 via-white to-indigo-50">
@@ -49,45 +25,85 @@ export default function HomePage() {
           <LogoWithTagline 
             size="lg" 
             showText={true}
-            language={language}
+            language="fr"
           />
         </div>
 
-        {/* Language Switcher - Prominent */}
-        <div className="flex justify-center mb-4">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-slate-200 shadow-sm">
-            <LanguageSwitcher 
-              onLanguageChange={setLanguage}
-              size="md"
-              className=""
-            />
+        {/* Main Emotional Tagline - All 4 Languages Stacked */}
+        <div className="space-y-6">
+          {/* Darija */}
+          <div className="space-y-2">
+            <h1 
+              className="text-2xl sm:text-3xl font-bold text-center"
+              dir="rtl"
+            >
+              {APP_TAGLINE.main.darija.headline}
+            </h1>
+            <p 
+              className="text-sm text-gray-600 text-center"
+              dir="rtl"
+            >
+              {APP_TAGLINE.main.darija.subtext}
+            </p>
           </div>
-        </div>
 
-        {/* Main Emotional Tagline - Multi-language */}
-        <div className="space-y-4">
-          <h1 
-            className="text-3xl font-bold text-center"
-            dir={language === 'darija' || language === 'tamazight' ? 'rtl' : 'ltr'}
-          >
-            {tagline.headline}
-            {language === 'tamazight' && 'headlineLatin' in tagline && tagline.headlineLatin && (
-              <span className="block text-base text-gray-600 mt-2 font-normal">
-                {tagline.headlineLatin}
-              </span>
+          {/* Tamazight */}
+          <div className="space-y-2">
+            <h1 
+              className="text-2xl sm:text-3xl font-bold text-center"
+              dir="rtl"
+            >
+              {APP_TAGLINE.main.tamazight.headline}
+            </h1>
+            {APP_TAGLINE.main.tamazight.headlineLatin && (
+              <p className="text-base text-gray-600 text-center font-normal">
+                {APP_TAGLINE.main.tamazight.headlineLatin}
+              </p>
             )}
-          </h1>
-          <p 
-            className="text-sm text-gray-600 mt-2 text-center"
-            dir={language === 'darija' || language === 'tamazight' ? 'rtl' : 'ltr'}
-          >
-            {tagline.subtext}
-            {language === 'tamazight' && 'subtextLatin' in tagline && tagline.subtextLatin && (
-              <span className="block text-xs text-gray-500 mt-1">
-                {tagline.subtextLatin}
-              </span>
+            <p 
+              className="text-sm text-gray-600 text-center"
+              dir="rtl"
+            >
+              {APP_TAGLINE.main.tamazight.subtext}
+            </p>
+            {APP_TAGLINE.main.tamazight.subtextLatin && (
+              <p className="text-xs text-gray-500 text-center">
+                {APP_TAGLINE.main.tamazight.subtextLatin}
+              </p>
             )}
-          </p>
+          </div>
+
+          {/* French */}
+          <div className="space-y-2">
+            <h1 
+              className="text-2xl sm:text-3xl font-bold text-center"
+              dir="ltr"
+            >
+              {APP_TAGLINE.main.fr.headline}
+            </h1>
+            <p 
+              className="text-sm text-gray-600 text-center"
+              dir="ltr"
+            >
+              {APP_TAGLINE.main.fr.subtext}
+            </p>
+          </div>
+
+          {/* English */}
+          <div className="space-y-2">
+            <h1 
+              className="text-2xl sm:text-3xl font-bold text-center"
+              dir="ltr"
+            >
+              {APP_TAGLINE.main.en.headline}
+            </h1>
+            <p 
+              className="text-sm text-gray-600 text-center"
+              dir="ltr"
+            >
+              {APP_TAGLINE.main.en.subtext}
+            </p>
+          </div>
         </div>
 
         {/* Benefits - Problem-Solving Focus */}
@@ -129,6 +145,7 @@ export default function HomePage() {
                 src="/fikra_logo_v3.png"
                 alt="Fikra Valley"
                 fill
+                sizes="(max-width: 640px) 80px, 96px"
                 className="object-contain"
                 priority
               />

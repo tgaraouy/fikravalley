@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import React from 'react';
 import Link from 'next/link';
@@ -20,14 +20,6 @@ export const metadata: Metadata = {
   title: 'Fikra Valley - Transforme ton idée en entreprise avec ta voix',
   description: APP_TAGLINE.meta.fr,
   manifest: '/manifest.json',
-  themeColor: '#2563eb',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-    viewportFit: 'cover',
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -45,6 +37,15 @@ export const metadata: Metadata = {
       { url: '/fikra_logo_v3.png', sizes: '180x180', type: 'image/png' },
     ],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#2563eb',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

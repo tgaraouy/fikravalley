@@ -51,6 +51,7 @@ export default function Logo({
           src={logoSrc}
           alt="Fikra Valley Logo"
           fill
+          sizes={`${dimensions.width}px`}
           className="object-contain"
           priority
           style={{ objectFit: 'contain' }}
