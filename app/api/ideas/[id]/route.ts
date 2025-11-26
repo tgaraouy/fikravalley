@@ -9,16 +9,21 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase';
 
 function getSupabase() {
-  const serviceRoleKey = 
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
-  
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl || !serviceRoleKey) {
+  const supabaseUrl =
+    process.env.SUPABASE_URL ||
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const apiKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !apiKey) {
+    console.error('Supabase config missing', { hasUrl: !!supabaseUrl, hasKey: !!apiKey });
     throw new Error('Missing Supabase configuration');
   }
-  
-  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+
+  return createClient<Database>(supabaseUrl, apiKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
