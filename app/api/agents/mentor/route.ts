@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         id: m.id,
         name: m.name,
         avatar: '',
-        title: m.current_role || '',
+        title: m.currentrole?.[0] || m.currentrole || '',
         company: m.company || '',
         expertise: m.expertise || [],
         sectors: [], // Can be derived from expertise

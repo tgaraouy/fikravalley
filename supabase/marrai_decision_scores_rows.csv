@@ -1,0 +1,4 @@
+id,created_at,idea_id,strategic_fit,feasibility,differentiation,evidence_of_demand,total,break_even_months,intilaka_eligible,qualified,qualification_tier,darija_keywords,darija_score
+6bc304e2-adce-4289-8fbe-28c258b0f9b0,2025-11-06 03:22:00.441963+00,22222222-2222-2222-2222-222222222222,4.8,4.3,4.5,4.0,17.6,9,true,false,qualified,[],
+8d55d5f6-3ac8-49e9-8291-0c21f63350fc,2025-11-08 03:23:09.112161+00,33333333-3333-3333-3333-333333333333,4.5,3.8,4.5,3.0,15.8,11,true,false,qualified,[],
+d88fcbeb-5e2d-461a-9365-8c7ad44569d8,2025-11-03 03:20:41.41882+00,11111111-1111-1111-1111-111111111111,5.0,4.7,4.5,5.0,19.2,3,true,false,exceptional,[],

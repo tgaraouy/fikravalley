@@ -1,0 +1,57 @@
+{
+  "generated_at": "2025-11-26T00:31:06.180Z",
+  "salt_rounds": 12,
+  "use_cases": "11-20",
+  "mappings": [
+    {
+      "phone": "+212661234577",
+      "hash": "$2b$12$DqGRRifXxysnfeHpgz7uV.6VCIT8YUG8GXteU2RhupE8y8UZ39uAK",
+      "useCase": 11
+    },
+    {
+      "phone": "+212661234578",
+      "hash": "$2b$12$eMiM0i8huMy7xlPtfe7NSuKo3BSIRTf4.9Y1uVzgjRuaXtS9ovW3e",
+      "useCase": 12
+    },
+    {
+      "phone": "+212661234579",
+      "hash": "$2b$12$N5oVIySC58HeogO5fIM8RewsEzyigkliHtAaPHn.BSAEju2xJ7Iqq",
+      "useCase": 13
+    },
+    {
+      "phone": "+212661234580",
+      "hash": "$2b$12$sGqGMtt4wsZKBqFZOA8q9.xrJM.gp1dzYzzRpAkwQcoabj6AGC7uq",
+      "useCase": 14
+    },
+    {
+      "phone": "+212661234581",
+      "hash": "$2b$12$5Wt4zOs3giy6VUOx9IOXeuUZKn787vrLYhgPHUQEGGf8sQCsKE612",
+      "useCase": 15
+    },
+    {
+      "phone": "+212661234582",
+      "hash": "$2b$12$G.MUEO8gadJFEasT4aDbU.LwvF1b6pNJB.UXyXRhLh8cbxJ/rzDFm",
+      "useCase": 16
+    },
+    {
+      "phone": "+212661234583",
+      "hash": "$2b$12$IODuMsbQKnTbD.cPH5lUhO6EM3cYdgkbUHI0cr6gZvJIZWaZ1kiXS",
+      "useCase": 17
+    },
+    {
+      "phone": "+212661234584",
+      "hash": "$2b$12$sc1N5C3ka0LXjOqrzMsSc.Wkjg56zQdnccjqHOAwpBVbk3XLwDej.",
+      "useCase": 18
+    },
+    {
+      "phone": "+212661234585",
+      "hash": "$2b$12$.F32t6IO3xcYv2ekqrRDUOhw.EIhuci7WoKvd9dvIuXCAbMm.mZlO",
+      "useCase": 19
+    },
+    {
+      "phone": "+212661234586",
+      "hash": "$2b$12$eLin3UvahGP8Cf2NhqBRNelkrt8JmiVNmS1c/G1mqlHpGk5oCvD5O",
+      "useCase": 20
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+id,created_at,idea_id,problem_statement,as_is_analysis,benefit_statement,operational_needs,total,average,qualified,qualification_reason
+38c51e79-7286-4046-9472-524123d5da62,2025-11-06 03:21:45.842705+00,22222222-2222-2222-2222-222222222222,8.5,7.5,8.5,8.5,33.0,8.3,true,Good clarity with minor improvements needed
+9115d86d-573d-4510-a889-be2a6569bed9,2025-11-03 03:20:27.850101+00,11111111-1111-1111-1111-111111111111,10.0,9.5,10.0,10.0,39.5,9.9,true,Excellent clarity across all criteria
+e0168947-b117-4c71-839b-9dc8e80f34d6,2025-11-08 03:22:56.093192+00,33333333-3333-3333-3333-333333333333,8.0,7.5,8.0,7.5,31.0,7.8,true,"Good clarity, well-structured idea"

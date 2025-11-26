@@ -43,7 +43,9 @@ export default function IdeasDatabaseHero({
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     // Trigger search logic
-    console.log('Searching for:', query);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Searching for:', query);
+    }
     // TODO: Implement actual search functionality
     // This could navigate to a search results page or filter ideas
   };
@@ -211,15 +213,35 @@ export default function IdeasDatabaseHero({
 
 // Background Pattern Component
 function BackgroundPattern() {
-  const shapes = Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    size: Math.random() * 100 + 50,
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    duration: Math.random() * 10 + 10,
-    delay: Math.random() * 5,
-    type: i % 2 === 0 ? 'circle' : 'triangle'
-  }));
+  // Use useState to generate random values only on client side
+  // This prevents hydration mismatch between server and client
+  const [shapes, setShapes] = useState<Array<{
+    id: number;
+    size: number;
+    left: number;
+    top: number;
+    duration: number;
+    delay: number;
+    type: 'circle' | 'triangle';
+  }>>([]);
+
+  useEffect(() => {
+    // Generate random shapes only on client side
+    setShapes(Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      size: Math.random() * 100 + 50,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      duration: Math.random() * 10 + 10,
+      delay: Math.random() * 5,
+      type: i % 2 === 0 ? 'circle' : 'triangle' as 'circle' | 'triangle'
+    })));
+  }, []);
+  
+  // Don't render anything until shapes are generated (client-side only)
+  if (shapes.length === 0) {
+    return null;
+  }
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">

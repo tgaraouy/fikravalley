@@ -14,8 +14,7 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         '/',
         '/manifest.json',
-        '/fikra_logo_v3.png',
-        '/fikravalley_words_logo.png',
+        '/png/FikraValley_flag_logo.png',
       ]);
     })
   );
@@ -104,8 +103,8 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     const options = {
       body: data.body,
-      icon: '/fikra_logo_v3.png',
-      badge: '/fikra_logo_v3.png',
+      icon: '/png/FikraValley_flag_logo.png',
+      badge: '/png/FikraValley_flag_logo.png',
       vibrate: [200, 100, 200],
       tag: data.tag || 'fikra-notification',
     };

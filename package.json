@@ -8,9 +8,12 @@
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
     "test:supabase": "tsx scripts/test-supabase.ts",
-    "test:ai": "tsx scripts/test-ai-validation.ts"
+    "test:ai": "tsx scripts/test-ai-validation.ts",
+    "test:agent1": "tsx scripts/test-agent-1.ts",
+    "seed:ai-ideas": "tsx scripts/seed-ai-startup-ideas.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.71",
     "@anthropic-ai/sdk": "^0.68.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.2",
@@ -20,6 +23,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.81.1",
     "@types/qrcode": "^1.5.6",
+    "ai": "^5.0.101",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "canvas-confetti": "^1.9.4",

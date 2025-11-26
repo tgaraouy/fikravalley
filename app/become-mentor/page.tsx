@@ -13,9 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, CheckCircle, Star, Users, Heart } from 'lucide-react';
+import { useToast, ToastContainer } from '@/components/ui/Toast';
+import { getUserFriendlyError, logError } from '@/lib/utils/error-handler';
 
 export default function BecomeMentorPage() {
   const router = useRouter();
+  const { toasts, success, error: showError, removeToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +26,7 @@ export default function BecomeMentorPage() {
     phone: '',
     location: '',
     moroccan_city: '',
-    current_role: '',
+    currentrole: '',
     company: '',
     years_experience: '',
     expertise: '',
@@ -36,10 +39,47 @@ export default function BecomeMentorPage() {
     website_url: '',
     chapter: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Le nom est requis';
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'L\'email est requis';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Email invalide';
+    }
+
+    if (!formData.currentrole.trim()) {
+      newErrors.currentrole = 'Le poste actuel est requis';
+    }
+
+    if (!formData.years_experience || parseInt(formData.years_experience) < 0) {
+      newErrors.years_experience = 'Les années d\'expérience sont requises';
+    }
+
+    if (!formData.expertise.trim()) {
+      newErrors.expertise = 'Au moins un domaine d\'expertise est requis';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      showError('Veuillez corriger les erreurs dans le formulaire');
+      return;
+    }
+
     setIsSubmitting(true);
+    setErrors({});
 
     try {
       const response = await fetch('/api/mentors/register', {
@@ -48,7 +88,8 @@ export default function BecomeMentorPage() {
         body: JSON.stringify({
           ...formData,
           expertise: formData.expertise.split(',').map(e => e.trim()).filter(Boolean),
-          skills: formData.skills.split(',').map(s => s.trim()).filter(Boolean),
+          skills: formData.skills ? formData.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
+          currentrole: formData.currentrole ? [formData.currentrole.trim()] : [],
           years_experience: parseInt(formData.years_experience) || 0,
           available_hours_per_month: parseInt(formData.available_hours_per_month) || 0,
           max_cofund_amount: formData.max_cofund_amount ? parseFloat(formData.max_cofund_amount) : null,
@@ -58,22 +99,28 @@ export default function BecomeMentorPage() {
 
       if (response.ok) {
         const result = await response.json();
-        alert('✅ Inscription réussie! Nous vous contacterons bientôt.');
-        router.push('/find-mentor');
+        success('✅ Inscription réussie! Nous vous contacterons bientôt.');
+        setTimeout(() => {
+          router.push('/find-mentor');
+        }, 1500);
       } else {
-        const error = await response.json().catch(() => ({}));
-        alert(`Erreur: ${error.error || 'Impossible de s\'inscrire'}`);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || 'Impossible de s\'inscrire';
+        logError(new Error(errorMessage), 'MentorRegistration');
+        showError(getUserFriendlyError(new Error(errorMessage)));
       }
     } catch (error) {
-      console.error('Error registering mentor:', error);
-      alert('Erreur lors de l\'inscription');
+      logError(error, 'MentorRegistration');
+      showError(getUserFriendlyError(error));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4">
+    <>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -135,9 +182,14 @@ export default function BecomeMentorPage() {
                     <Input
                       required
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        if (errors.name) setErrors({ ...errors, name: '' });
+                      }}
                       placeholder="Votre nom"
+                      className={errors.name ? 'border-red-500' : ''}
                     />
+                    {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
                   </div>
 
                   <div>
@@ -148,9 +200,14 @@ export default function BecomeMentorPage() {
                       required
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value });
+                        if (errors.email) setErrors({ ...errors, email: '' });
+                      }}
                       placeholder="votre@email.com"
+                      className={errors.email ? 'border-red-500' : ''}
                     />
+                    {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
                   </div>
 
                   <div>
@@ -200,10 +257,15 @@ export default function BecomeMentorPage() {
                     </label>
                     <Input
                       required
-                      value={formData.current_role}
-                      onChange={(e) => setFormData({ ...formData, current_role: e.target.value })}
+                      value={formData.currentrole}
+                      onChange={(e) => {
+                        setFormData({ ...formData, currentrole: e.target.value });
+                        if (errors.currentrole) setErrors({ ...errors, currentrole: '' });
+                      }}
                       placeholder="Ex: CEO, CTO, Directeur..."
+                      className={errors.currentrole ? 'border-red-500' : ''}
                     />
+                    {errors.currentrole && <p className="text-sm text-red-600 mt-1">{errors.currentrole}</p>}
                   </div>
 
                   <div>
@@ -224,10 +286,16 @@ export default function BecomeMentorPage() {
                     <Input
                       required
                       type="number"
+                      min="0"
                       value={formData.years_experience}
-                      onChange={(e) => setFormData({ ...formData, years_experience: e.target.value })}
+                      onChange={(e) => {
+                        setFormData({ ...formData, years_experience: e.target.value });
+                        if (errors.years_experience) setErrors({ ...errors, years_experience: '' });
+                      }}
                       placeholder="5"
+                      className={errors.years_experience ? 'border-red-500' : ''}
                     />
+                    {errors.years_experience && <p className="text-sm text-red-600 mt-1">{errors.years_experience}</p>}
                   </div>
 
                   <div>
@@ -255,9 +323,15 @@ export default function BecomeMentorPage() {
                   <Input
                     required
                     value={formData.expertise}
-                    onChange={(e) => setFormData({ ...formData, expertise: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, expertise: e.target.value });
+                      if (errors.expertise) setErrors({ ...errors, expertise: '' });
+                    }}
                     placeholder="Ex: healthcare, technology, finance, education..."
+                    className={errors.expertise ? 'border-red-500' : ''}
                   />
+                  {errors.expertise && <p className="text-sm text-red-600 mt-1">{errors.expertise}</p>}
+                  <p className="text-xs text-slate-500 mt-1">Séparez les domaines par des virgules</p>
                 </div>
 
                 <div>
@@ -362,7 +436,7 @@ export default function BecomeMentorPage() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -379,8 +453,16 @@ export default function BecomeMentorPage() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Success Message */}
+        <div className="mt-6 text-center text-sm text-slate-600">
+          <p>
+            En vous inscrivant, vous acceptez de recevoir des demandes de mentorat de la part d'entrepreneurs marocains.
+          </p>
+        </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

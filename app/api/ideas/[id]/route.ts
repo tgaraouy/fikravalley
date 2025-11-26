@@ -1,24 +1,64 @@
 /**
- * API: Get Idea by ID
+ * API: Get Idea by ID (Public)
+ * 
+ * Returns idea data if visible=true
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase';
 
+function getSupabase() {
+  const serviceRoleKey = 
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 
+    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase configuration');
+  }
+  
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}
+
+/**
+ * GET: Fetch idea by ID (public view)
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const ideaId = id;
-    const supabase = await createClient();
+    const supabase = getSupabase();
 
-    // Fetch idea
-    const { data: idea, error: ideaError } = await (supabase as any)
+    // Fetch idea with related data
+    const { data: idea, error: ideaError } = await supabase
       .from('marrai_ideas')
-      .select('*')
-      .eq('id', ideaId)
+      .select(`
+        id,
+        title,
+        problem_statement,
+        proposed_solution,
+        category,
+        location,
+        status,
+        visible,
+        featured,
+        ai_feasibility_score,
+        ai_impact_score,
+        roi_time_saved_hours,
+        roi_cost_saved_eur,
+        alignment,
+        created_at,
+        updated_at
+      `)
+      .eq('id', id)
       .single();
 
     if (ideaError || !idea) {
@@ -28,82 +68,37 @@ export async function GET(
       );
     }
 
-    const ideaData = idea as any;
+    // Check if idea is visible (public)
+    if (!(idea as any).visible) {
+      return NextResponse.json(
+        { error: 'Idea is not publicly visible' },
+        { status: 403 }
+      );
+    }
 
-    // Fetch scores
-    const { data: scores } = await (supabase as any)
-      .from('marrai_idea_scores')
-      .select('*')
-      .eq('idea_id', ideaId)
-      .single();
-
-    // Fetch receipts count
-    const { count: receiptCount } = await supabase
-      .from('marrai_idea_receipts')
-      .select('*', { count: 'exact', head: true })
-      .eq('idea_id', ideaId)
-      .eq('verified', true);
-
-    // Fetch upvotes count
-    const { count: upvoteCount } = await supabase
-      .from('marrai_idea_upvotes')
-      .select('*', { count: 'exact', head: true })
-      .eq('idea_id', ideaId);
-
-    // Fetch problem validations count
+    // Count problem validations
     const { count: validationCount } = await supabase
       .from('marrai_problem_validations')
       .select('*', { count: 'exact', head: true })
-      .eq('idea_id', ideaId);
+      .eq('idea_id', id);
 
-    // Determine qualification tier
-    const scoresData = scores as any;
-    const totalScore = scoresData?.stage2_total || scoresData?.stage1_total || 0;
-    let qualificationTier: 'exceptional' | 'qualified' | 'developing' | undefined;
-    if (totalScore >= 30) qualificationTier = 'exceptional';
-    else if (totalScore >= 25) qualificationTier = 'qualified';
-    else if (totalScore >= 15) qualificationTier = 'developing';
+    // Count mentor matches (accepted)
+    const { count: mentorCount } = await supabase
+      .from('marrai_mentor_matches')
+      .select('*', { count: 'exact', head: true })
+      .eq('idea_id', id)
+      .eq('status', 'accepted');
 
     return NextResponse.json({
-      id: ideaData.id,
-      title: ideaData.title,
-      title_darija: ideaData.title_darija,
-      problem_statement: ideaData.problem_statement,
-      proposed_solution: ideaData.proposed_solution,
-      current_manual_process: ideaData.current_manual_process,
-      location: ideaData.location,
-      category: ideaData.category,
-      total_score: totalScore,
-      stage1_total: scoresData?.stage1_total,
-      stage2_total: scoresData?.stage2_total,
-      stage1_breakdown: scoresData ? {
-        problemStatement: scoresData.stage1_problem || 0,
-        asIsAnalysis: scoresData.stage1_as_is || 0,
-        benefitStatement: scoresData.stage1_benefits || 0,
-        operationalNeeds: scoresData.stage1_operations || 0,
-      } : undefined,
-      stage2_breakdown: scoresData ? {
-        strategicFit: scoresData.stage2_strategic || 0,
-        feasibility: scoresData.stage2_feasibility || 0,
-        differentiation: scoresData.stage2_differentiation || 0,
-        evidenceOfDemand: scoresData.stage2_evidence || 0,
-      } : undefined,
-      receipt_count: receiptCount || 0,
-      upvote_count: upvoteCount || 0,
-      problem_validation_count: validationCount || 0,
-      sdg_alignment: ideaData.sdg_alignment || [],
-      funding_status: ideaData.funding_status,
-      qualification_tier: qualificationTier,
-      created_at: ideaData.created_at,
-      submitter_name: ideaData.submitter_name,
-      break_even_months: scoresData?.break_even_months,
+      ...(idea as any),
+      validation_count: validationCount || 0,
+      mentor_count: mentorCount || 0,
     });
-  } catch (error) {
-    console.error('Error fetching idea:', error);
+  } catch (error: any) {
+    console.error('Error in GET /api/ideas/[id]:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error.message },
       { status: 500 }
     );
   }
 }
-

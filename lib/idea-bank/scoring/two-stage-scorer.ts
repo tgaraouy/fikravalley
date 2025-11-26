@@ -1,4 +1,51 @@
 /**
+ * AGENT 2C: SDG & Priority Alignment Mapper
+ * 
+ * ROLE: You are a UN development expert specializing in Morocco's 2024-2030 strategy.
+ * Tag ideas with SDGs and national priorities for funding eligibility.
+ * 
+ * INPUT: marrai_ideas fields
+ * - problem_statement
+ * - category
+ * - location
+ * 
+ * OUTPUT: Update marrai_ideas.alignment (jsonb) with:
+ * {
+ *   "sdgTags": ["sdg_1", "sdg_8", "sdg_9"],
+ *   "sdgAutoTagged": true,
+ *   "sdgConfidence": {
+ *     "sdg_1": 0.89,
+ *     "sdg_8": 0.92
+ *   },
+ *   "moroccoPriorities": [
+ *     "digital_transformation",
+ *     "agriculture_modernization",
+ *     "industrial_acceleration",
+ *     "infrastructure",
+ *     "human_capital",
+ *     "green_economy"
+ *   ]
+ * }
+ * 
+ * MAPPING RULES:
+ * - agriculture + logistics → sdg_2 (Zero Hunger), sdg_9 (Industry)
+ * - education + tech → sdg_4 (Quality Education), sdg_9
+ * - health + inclusion → sdg_3 (Good Health), sdg_10 (Reduced Inequalities)
+ * - finance + customer_service → sdg_8 (Decent Work), sdg_9
+ * - infrastructure → sdg_9, sdg_11 (Sustainable Cities)
+ * 
+ * MOROCCO PRIORITIES (2024-2030):
+ * - digital_transformation: tech, finance, customer_service
+ * - agriculture_modernization: agriculture, logistics
+ * - industrial_acceleration: manufacturing, energy
+ * - infrastructure: roads, ports, internet
+ * - human_capital: education, health
+ * - green_economy: renewable energy, sustainable tourism
+ * 
+ * SCORING: If matches 2+ priorities, boost ai_impact_score by +1
+ */
+
+/**
  * Two-Stage Idea Scoring System
  * 
  * Based on ITONICS methodology, adapted for Morocco

@@ -16,15 +16,13 @@ import { moderateContent, sanitizeContent } from '@/lib/moderation/content-moder
 import { detectLanguage, type Language } from '@/lib/constants/tagline';
 import IdeaRewardScreen from '@/components/reward/IdeaRewardScreen';
 import VoiceFieldsConfirmation from '@/components/submission/VoiceFieldsConfirmation';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 
 interface SimpleVoiceSubmitProps {
   onSubmit: (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }, extractedData?: any) => void;
 }
 
 export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) {
-  const [isRecording, setIsRecording] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [confidence, setConfidence] = useState(1.0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
@@ -37,287 +35,65 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
   const [language, setLanguage] = useState<Language>('fr');
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   
-  const recognitionRef = useRef<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const isStoppingRef = useRef<boolean>(false);
-  const recognitionReadyRef = useRef<boolean>(false);
+  // Real-time agent processing features (production mode)
+  const [autoProcess, setAutoProcess] = useState(true); // Auto-process enabled by default
+  const [agentResult, setAgentResult] = useState<any>(null);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [extractedFields, setExtractedFields] = useState<any>(null); // Visible extracted fields
+  const [currentInstruction, setCurrentInstruction] = useState<string>(''); // Real-time guidance
+  const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastProcessedText = useRef<string>('');
+
+  // Use stable Vercel AI SDK voice recorder
+  const {
+    isRecording,
+    isTranscribing,
+    transcript,
+    error: recorderError,
+    startRecording: startVoiceRecording,
+    stopRecording: stopVoiceRecording,
+    clearTranscript,
+    setTranscript: setTranscriptManually,
+  } = useVoiceRecorder({
+    language: language === 'darija' ? 'darija' : language === 'fr' ? 'fr' : 'en',
+    onTranscription: (text) => {
+      // Auto-process when new transcription arrives
+      if (autoProcess && text.length > 20) {
+        if (processingTimeoutRef.current) {
+          clearTimeout(processingTimeoutRef.current);
+        }
+        
+        processingTimeoutRef.current = setTimeout(() => {
+          if (text !== lastProcessedText.current) {
+            lastProcessedText.current = text;
+            processWithAgent1(text);
+          }
+        }, 2000);
+      }
+    },
+    onError: (error) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Voice recorder error:', error);
+      }
+    },
+  });
 
   useEffect(() => {
     // Detect language
     const detected = detectLanguage();
     setLanguage(detected);
     
-    if (typeof window !== 'undefined') {
-      // Initialize Web Speech API
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = true;
-        recognitionRef.current.interimResults = true;
-        // Set language based on detection
-        recognitionRef.current.lang = detected === 'darija' ? 'ar-MA' : detected === 'fr' ? 'fr-FR' : 'en-US';
-        
-        // Initialize ready state - recognition starts in idle state
-        recognitionReadyRef.current = true;
-        
-        recognitionRef.current.onresult = (event: any) => {
-          let final = '';
-          let maxConfidence = 0;
-          
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const result = event.results[i];
-            if (result.isFinal) {
-              final += result[0].transcript + ' ';
-              maxConfidence = Math.max(maxConfidence, result[0].confidence || 0.8);
-            }
-          }
-          
-          if (final) {
-            // Moderate content in real-time
-            const sanitized = sanitizeContent(final);
-            const moderation = moderateContent(sanitized, { type: 'voice' });
-            
-            if (!moderation.allowed) {
-              setModerationError(moderation.reason || 'Contenu inapproprié détecté');
-              // Don't add blocked content to transcript
-              return;
-            }
-            
-            setModerationError(null);
-            const newTranscript = transcript + sanitized;
-            setTranscript(newTranscript);
-            setConfidence(maxConfidence);
-            
-            // Update prompt based on what user said
-            updatePrompt(newTranscript);
-          }
-        };
-        
-        recognitionRef.current.onerror = (event: any) => {
-          const errorType = event.error;
-          
-          // Handle different error types
-          switch (errorType) {
-            case 'no-speech':
-              // This is normal - user hasn't spoken yet or paused
-              // Don't log or stop, just continue listening
-              return;
-              
-            case 'audio-capture':
-              // Microphone not available or permission denied
-              console.warn('Microphone not available:', errorType);
-              setIsRecording(false);
-              alert('⚠️ Microphone non disponible. Vérifie les permissions dans les paramètres du navigateur.');
-              return;
-              
-            case 'not-allowed':
-              // Permission denied
-              console.warn('Microphone permission denied:', errorType);
-              setIsRecording(false);
-              alert('⚠️ Permission microphone refusée. Active-la dans les paramètres du navigateur.');
-              return;
-              
-            case 'aborted':
-              // Recognition was stopped manually
-              // This is expected when user stops recording
-              setIsRecording(false);
-              return;
-              
-            case 'network':
-              // Network error
-              console.error('Network error during speech recognition:', errorType);
-              setIsRecording(false);
-              alert('⚠️ Erreur réseau. Vérifie ta connexion internet.');
-              return;
-              
-            case 'service-not-allowed':
-              // Speech recognition service not available
-              console.error('Speech recognition service not available:', errorType);
-              setIsRecording(false);
-              alert('⚠️ Service de reconnaissance vocale non disponible. Essaie de rafraîchir la page.');
-              return;
-              
-            default:
-              // Unknown error - log it but don't stop unless it's critical
-              console.warn('Speech recognition warning:', errorType);
-              // Only stop on critical errors
-              if (errorType === 'bad-grammar' || errorType === 'language-not-supported') {
-                setIsRecording(false);
-              }
-              return;
-          }
-        };
-
-        recognitionRef.current.onend = () => {
-          // Recognition ended naturally
-          recognitionReadyRef.current = true;
-          isStoppingRef.current = false;
-          setIsRecording(prev => {
-            // Only reset if we were actually recording
-            return false;
-          });
-        };
-      }
-    }
+    // Set initial instruction
+    setCurrentInstruction('💡 Cliquez sur le micro et parlez de votre idée...');
   }, []);
 
-  const startRecording = async () => {
-    // Prevent multiple simultaneous starts
-    if (isRecording || isStoppingRef.current) {
-      return;
-    }
-
-    try {
-      // Request microphone permission
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-          // Reset prompt when starting
-          setCurrentPrompt('💡 Commence par décrire le problème que tu veux résoudre...');
-          
-          // Start speech recognition (check if already running)
-          if (recognitionRef.current) {
-        // Wait for recognition to be ready if it's stopping
-        if (!recognitionReadyRef.current && recognitionRef.current.state !== 'idle') {
-          console.log('Waiting for recognition to be ready...');
-          // Wait up to 1 second for recognition to be ready
-          let waitCount = 0;
-          while (!recognitionReadyRef.current && waitCount < 10) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            waitCount++;
-          }
-        }
-
-        try {
-          // Check recognition state
-          const state = recognitionRef.current.state;
-          
-          if (state === 'listening' || state === 'starting') {
-            console.log('Recognition already active, stopping first');
-            isStoppingRef.current = true;
-            recognitionReadyRef.current = false;
-            recognitionRef.current.stop();
-            // Wait for onend event
-            await new Promise<void>((resolve) => {
-              const checkReady = () => {
-                if (recognitionReadyRef.current) {
-                  resolve();
-                } else {
-                  setTimeout(checkReady, 50);
-                }
-              };
-              // Timeout after 1 second
-              setTimeout(() => resolve(), 1000);
-              checkReady();
-            });
-            isStoppingRef.current = false;
-          }
-
-          // Now start recognition
-          recognitionRef.current.start();
-          recognitionReadyRef.current = false;
-          setIsRecording(true);
-          setTranscript(''); // Clear previous
-        } catch (recognitionError: any) {
-          // If already started, stop and wait for ready state
-          if (recognitionError.name === 'InvalidStateError' || recognitionError.message?.includes('already started')) {
-            console.log('Recognition already started, stopping and waiting...');
-            try {
-              isStoppingRef.current = true;
-              recognitionReadyRef.current = false;
-              recognitionRef.current.stop();
-              
-              // Wait for onend event to fire
-              await new Promise<void>((resolve) => {
-                const checkReady = () => {
-                  if (recognitionReadyRef.current) {
-                    resolve();
-                  } else {
-                    setTimeout(checkReady, 50);
-                  }
-                };
-                // Timeout after 1 second
-                setTimeout(() => resolve(), 1000);
-                checkReady();
-              });
-              
-              isStoppingRef.current = false;
-              
-              // Now try starting again
-              recognitionRef.current.start();
-              recognitionReadyRef.current = false;
-              setIsRecording(true);
-              setTranscript('');
-            } catch (retryError) {
-              console.error('Error restarting recognition:', retryError);
-              isStoppingRef.current = false;
-              setIsRecording(false);
-            }
-          } else {
-            throw recognitionError;
-          }
-        }
-      }
-      
-      // Also record audio for offline storage
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus' // Compress to ~100KB/min
-      });
-      
-      chunksRef.current = [];
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        // Save offline
-        await saveVoiceDraft({
-          id: `draft_${Date.now()}`,
-          transcript,
-          audioBlob: blob,
-          language: 'ar-MA',
-          timestamp: Date.now()
-        });
-      };
-      
-      mediaRecorder.start();
-      mediaRecorderRef.current = mediaRecorder;
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      setIsRecording(false);
-      alert('Permission microphone refusée. Activez-la dans les paramètres.');
-    }
+  // Wrapper functions for UI buttons (use hook's functions)
+  const handleStartDictation = () => {
+    startVoiceRecording(); // From useVoiceRecorder hook
   };
 
-  const stopRecording = () => {
-    if (recognitionRef.current) {
-      try {
-        // Only stop if actually running
-        const state = recognitionRef.current.state;
-        if (state === 'listening' || state === 'starting') {
-          isStoppingRef.current = true;
-          recognitionReadyRef.current = false;
-          recognitionRef.current.stop();
-        }
-      } catch (error) {
-        console.error('Error stopping recognition:', error);
-        isStoppingRef.current = false;
-      }
-      setIsRecording(false);
-    }
-    
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try {
-        if (mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop();
-        }
-      } catch (error) {
-        console.error('Error stopping media recorder:', error);
-      }
-    }
+  const handleStopDictation = () => {
+    stopVoiceRecording(); // From useVoiceRecorder hook
   };
 
   const updatePrompt = (text: string) => {
@@ -357,67 +133,144 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
   const handleEdit = () => {
     // Show edit dialog (simple textarea overlay)
     const edited = prompt('Tsa7e7 (Correct):', transcript);
-    if (edited !== null) {
-      setTranscript(edited);
+    if (edited !== null && edited !== transcript) {
+      setTranscriptManually(edited);
       updatePrompt(edited);
     }
   };
 
+  // Process with Agent 1 (real-time or manual) - Production mode
+  const processWithAgent1 = async (text: string) => {
+    if (!text || text.length < 20) return;
+    
+    setAgentLoading(true);
+    setAgentResult(null);
+    setCurrentInstruction('🤖 Analyse de votre idée en cours...');
+    
+    try {
+      const response = await fetch('/api/agents/conversation-extractor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          speaker_quote: text,
+          speaker_email: contactInfo.email || null,
+          speaker_phone: contactInfo.phone || null,
+        })
+      });
+
+      const data = await response.json();
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Agent 1 Response:', data);
+      }
+      setAgentResult(data);
+      
+      // If extraction successful, update extracted data and show fields
+      if (data.success && data.data) {
+        const extracted = data.data;
+        const extractedDataObj = {
+          title: extracted.problem_title || text.split('.')[0].substring(0, 100) || text.substring(0, 100),
+          problem_statement: extracted.problem_statement || text,
+          proposed_solution: extracted.proposed_solution || null,
+          current_manual_process: extracted.current_manual_process || null,
+          digitization_opportunity: extracted.digitization_opportunity || null,
+          category: extracted.category || 'other',
+          location: extracted.location || 'other',
+          confidence_score: extracted.confidence_score,
+          needs_clarification: extracted.needs_clarification,
+          validation_question: extracted.validation_question,
+        };
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Setting extracted fields:', extractedDataObj);
+        }
+        
+        setExtractedData(extractedDataObj);
+        setExtractedFields(extractedDataObj); // Show extracted fields to user
+        
+        // Provide guidance based on extraction
+        if (extracted.needs_clarification && extracted.validation_question) {
+          setCurrentInstruction(`❓ ${extracted.validation_question}`);
+        } else if (extracted.confidence_score && extracted.confidence_score >= 0.85) {
+          setCurrentInstruction('✅ Idée bien comprise ! Vous pouvez continuer à parler ou soumettre.');
+        } else {
+          setCurrentInstruction('💡 Continuez à parler pour enrichir votre idée...');
+        }
+      } else {
+        // If extraction failed, still populate with basic data from transcript
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Extraction failed, using fallback data');
+        }
+        const fallbackData = {
+          title: text.split('.')[0].substring(0, 100) || text.substring(0, 100),
+          problem_statement: text,
+          proposed_solution: null,
+          category: 'other',
+          location: 'other',
+        };
+        setExtractedFields(fallbackData);
+        setCurrentInstruction('💡 Parlez plus en détail sur votre problème et solution...');
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error processing with Agent 1:', error);
+      }
+      // On error, still populate with basic data
+      const fallbackData = {
+        title: text.split('.')[0].substring(0, 100) || text.substring(0, 100),
+        problem_statement: text,
+        proposed_solution: null,
+        category: 'other',
+        location: 'other',
+      };
+      setExtractedFields(fallbackData);
+      setCurrentInstruction('⚠️ Erreur lors de l\'analyse. Les champs ont été remplis avec votre texte. Vous pouvez les modifier.');
+    } finally {
+      setAgentLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!transcript.trim()) return;
+    if (!transcript.trim() && !extractedFields?.problem_statement) return;
+    
+    // Use edited fields if available, otherwise use transcript
+    const contentToCheck = extractedFields?.problem_statement || transcript;
     
     // Final moderation check
-    const moderation = moderateContent(transcript, { type: 'voice', strict: true });
+    const moderation = moderateContent(contentToCheck, { type: 'voice', strict: true });
     if (!moderation.allowed) {
       setModerationError(moderation.reason || 'Contenu inapproprié. Veuillez reformuler votre message.');
       return;
     }
     
-    // Extract structured data from transcript
+    // If we already have extracted fields (from real-time processing), use them directly
+    if (extractedFields && extractedFields.title && extractedFields.problem_statement) {
+      // Use the edited fields directly
+      setExtractedData(extractedFields);
+      setShowFieldsConfirmation(true);
+      return;
+    }
+    
+    // Otherwise, use Agent 1 for extraction
     setIsExtracting(true);
-    try {
-      const extractResponse = await fetch('/api/ideas/extract-from-voice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          transcript,
-          language: language === 'darija' ? 'ar-MA' : language === 'fr' ? 'fr-FR' : 'en-US'
-        })
-      });
-
-      if (extractResponse.ok) {
-        const result = await extractResponse.json();
-        const data = result.data || {
-          title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
-          problem_statement: transcript,
-          category: 'other',
-          location: 'other',
-        };
-        setExtractedData(data);
-        setShowFieldsConfirmation(true);
-      } else {
-        // Fallback: use basic extraction
-        setExtractedData({
-          title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
-          problem_statement: transcript,
-          category: 'other',
-          location: 'other',
-        });
-        setShowFieldsConfirmation(true);
-      }
-    } catch (error) {
-      console.error('Error extracting data:', error);
+    await processWithAgent1(transcript);
+    
+    // If we have extracted data from Agent 1, use it
+    if (extractedData) {
+      setShowFieldsConfirmation(true);
+    } else {
       // Fallback: use basic extraction
-      setExtractedData({
+      const fallbackData = {
         title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
         problem_statement: transcript,
         category: 'other',
         location: 'other',
-      });
+      };
+      setExtractedData(fallbackData);
+      setExtractedFields(fallbackData);
       setShowFieldsConfirmation(true);
-    } finally {
-      setIsExtracting(false);
     }
+    
+    setIsExtracting(false);
   };
 
   const handleFieldsConfirmed = (confirmedData: any) => {
@@ -439,8 +292,13 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
     setShowReward(true);
     setIsProcessing(true);
     
-    // Submit in background with extracted data
-    onSubmit(transcript, contactInfo, dataToSubmit);
+    // Use edited fields if available, otherwise use provided data
+    const finalData = extractedFields && extractedFields.title && extractedFields.problem_statement
+      ? extractedFields
+      : dataToSubmit;
+    
+    // Submit in background with final data
+    onSubmit(transcript, contactInfo, finalData);
   };
 
   const handleRewardNext = () => {
@@ -461,14 +319,17 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       return;
     }
     
-    // Submit with extracted data
+    // Submit with extracted data (use edited fields if available)
     setShowContactForm(false);
-    handleFinalSubmit(extractedData || {
-      title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
-      problem_statement: transcript,
-      category: 'other',
-      location: 'other',
-    });
+    const dataToSubmit = extractedFields && extractedFields.title && extractedFields.problem_statement
+      ? extractedFields
+      : extractedData || {
+          title: transcript.split('.')[0].substring(0, 100) || transcript.substring(0, 100),
+          problem_statement: transcript,
+          category: 'other',
+          location: 'other',
+        };
+    handleFinalSubmit(dataToSubmit);
   };
 
   return (
@@ -495,40 +356,241 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         />
       )}
 
-      <div className="flex flex-col h-screen justify-center items-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      {/* Giant Mic Button - 80% of screen */}
-      <button
-        onTouchStart={startRecording}
-        onTouchEnd={stopRecording}
-        onMouseDown={startRecording}
-        onMouseUp={stopRecording}
-        onMouseLeave={stopRecording}
-        className={`
-          w-64 h-64 rounded-full flex items-center justify-center
-          transition-all duration-200 shadow-2xl
-          ${isRecording 
-            ? 'bg-red-500 scale-110 animate-pulse' 
-            : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
-          }
-        `}
-        disabled={isProcessing}
-      >
-        {isRecording ? (
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75" />
-            <X className="w-24 h-24 text-white relative z-10" />
+      <div className="min-h-screen bg-slate-50 p-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-6 text-slate-900">💡 Soumettre votre idée</h1>
+
+          {/* Input Form - Replicate Test Page Flow */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Votre idée</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium">
+                    Décrivez votre idée (Required) *
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2 text-sm text-gray-600">
+                      <input
+                        type="checkbox"
+                        checked={autoProcess}
+                        onChange={(e) => setAutoProcess(e.target.checked)}
+                        className="rounded"
+                      />
+                      Auto-process (real-time)
+                    </label>
+                    {!isRecording ? (
+                      <button
+                        type="button"
+                        onClick={handleStartDictation}
+                        className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-1"
+                      >
+                        🎤 Start Dictation
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleStopDictation}
+                        className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 flex items-center gap-1"
+                      >
+                        ⏹️ Stop Dictation
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {/* Status Banner - Prominent feedback */}
+                {isRecording && (
+                  <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg flex items-center gap-3">
+                    <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
+                    <div>
+                      <p className="font-semibold text-red-800">🎤 Enregistrement en cours...</p>
+                      <p className="text-xs text-red-600">Parlez maintenant. La transcription commencera quand vous arrêterez.</p>
+                    </div>
+                  </div>
+                )}
+                {isTranscribing && (
+                  <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div>
+                      <p className="font-semibold text-blue-800">🔄 Transcription en cours...</p>
+                      <p className="text-xs text-blue-600">Whisper est en train de transcrire votre voix (3-5 secondes)...</p>
+                    </div>
+                  </div>
+                )}
+                {agentLoading && (
+                  <div className="mb-4 p-4 bg-purple-50 border-2 border-purple-300 rounded-lg flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                    <div>
+                      <p className="font-semibold text-purple-800">🤖 Analyse de votre idée...</p>
+                      <p className="text-xs text-purple-600">Extraction du titre, catégorie, lieu, problème et solution...</p>
+                    </div>
+                  </div>
+                )}
+                {extractedFields && !agentLoading && !isTranscribing && (
+                  <div className="mb-4 p-4 bg-green-50 border-2 border-green-300 rounded-lg flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm">✓</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-green-800">✅ Informations extraites avec succès !</p>
+                      <p className="text-xs text-green-600">Vérifiez les champs ci-dessous et modifiez si nécessaire.</p>
+                    </div>
+                  </div>
+                )}
+                {recorderError && (
+                  <div className="mb-4 p-4 bg-red-50 border-2 border-red-300 rounded-lg">
+                    <p className="font-semibold text-red-800">⚠️ Erreur</p>
+                    <p className="text-sm text-red-700 mt-1">{recorderError}</p>
+                  </div>
+                )}
+                <textarea
+                  value={transcript}
+                  onChange={(e) => setTranscriptManually(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg"
+                  rows={6}
+                  placeholder="Parlez de votre idée en Darija, Tamazight, ou Français. Ou cliquez 'Start Dictation' pour parler."
+                />
+              </div>
+
+              {/* Real-time Instruction */}
+              {currentInstruction && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">{currentInstruction}</p>
+                </div>
+              )}
+
+            </div>
           </div>
-        ) : (
-          <Mic className="w-24 h-24 text-white" />
-        )}
-      </button>
 
-      {/* Status Text */}
-      <p className="mt-6 text-lg font-medium text-slate-700">
-        {isRecording ? '🎤 Dwi daba (Parle maintenant)...' : 'دير الصوت دابا (Appuie pour parler)'}
-      </p>
+          {/* Extracted Fields - Always Visible and Editable */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Informations extraites</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Titre</label>
+                <input
+                  type="text"
+                  value={extractedFields?.title || ''}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, title: e.target.value }))}
+                  placeholder="Sera extrait automatiquement..."
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
 
-      {/* Guidance Questions - Show when NOT recording */}
+              <div>
+                <label className="block text-sm font-medium mb-1">Catégorie</label>
+                <select
+                  value={extractedFields?.category || 'other'}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, category: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
+                >
+                  <option value="other">Sera détectée automatiquement...</option>
+                  <option value="health">Santé</option>
+                  <option value="education">Éducation</option>
+                  <option value="agriculture">Agriculture</option>
+                  <option value="tech">Technologie</option>
+                  <option value="infrastructure">Infrastructure</option>
+                  <option value="administration">Administration</option>
+                  <option value="logistics">Logistique</option>
+                  <option value="finance">Finance</option>
+                  <option value="customer_service">Service Client</option>
+                  <option value="inclusion">Inclusion</option>
+                  <option value="tourism">Tourisme</option>
+                  <option value="environment">Environnement</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Lieu</label>
+                <select
+                  value={extractedFields?.location || 'other'}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, location: e.target.value }))}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent capitalize"
+                >
+                  <option value="other">Mentionnez la ville ou région...</option>
+                  <option value="casablanca">Casablanca</option>
+                  <option value="rabat">Rabat</option>
+                  <option value="marrakech">Marrakech</option>
+                  <option value="kenitra">Kenitra</option>
+                  <option value="tangier">Tanger</option>
+                  <option value="agadir">Agadir</option>
+                  <option value="fes">Fès</option>
+                  <option value="oujda">Oujda</option>
+                  <option value="tanger">Tanger</option>
+                  <option value="meknes">Meknès</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Description du problème</label>
+                <textarea
+                  value={extractedFields?.problem_statement || ''}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, problem_statement: e.target.value }))}
+                  placeholder="Décrivez le problème..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Solution proposée</label>
+                <textarea
+                  value={extractedFields?.proposed_solution || ''}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, proposed_solution: e.target.value }))}
+                  placeholder="Expliquez votre solution..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Processus manuel actuel <span className="text-slate-400 font-normal text-xs">(optionnel)</span>
+                </label>
+                <textarea
+                  value={extractedFields?.current_manual_process || ''}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, current_manual_process: e.target.value }))}
+                  placeholder="Comment le problème est résolu actuellement ? Ex: 'Les gens jettent les déchets dans la rue. La municipalité envoie des camions une fois par semaine.'"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Opportunité de numérisation <span className="text-slate-400 font-normal text-xs">(optionnel)</span>
+                </label>
+                <textarea
+                  value={extractedFields?.digitization_opportunity || ''}
+                  onChange={(e) => setExtractedFields((prev: any) => ({ ...prev, digitization_opportunity: e.target.value }))}
+                  placeholder="Comment la technologie peut améliorer ce processus ? Ex: 'Une app mobile pour signaler les déchets, avec système de points/récompenses pour motiver la participation.'"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+                />
+              </div>
+            </div>
+
+          </div>
+
+          {/* Guidance Section - Help users structure their ideas */}
+          {extractedFields && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <span>💡</span>
+                Comment structurer votre idée ?
+              </h3>
+              <div className="text-xs text-blue-800 space-y-2">
+                <p><strong>1. Le problème :</strong> Décrivez clairement le problème. Qui est affecté ? Où ? À quelle fréquence ?</p>
+                <p><strong>2. Le processus actuel :</strong> Comment est-ce résolu maintenant ? (manuellement, avec quelles difficultés ?)</p>
+                <p><strong>3. La solution digitale :</strong> Comment la technologie peut améliorer cela ? (app, plateforme, système ?)</p>
+                <p><strong>4. L'opportunité :</strong> Pourquoi maintenant ? Quel est le gain (temps, coût, qualité) ?</p>
+              </div>
+            </div>
+          )}
+
+          {/* Guidance Questions - Show when NOT recording */}
       {!isRecording && !transcript && (
         <div className="mt-8 w-full max-w-md">
           <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6 space-y-4">
@@ -601,11 +663,11 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
               {transcript}
             </p>
             
-            {/* Confidence indicator */}
-            {confidence < 0.85 && (
+            {/* Confidence indicator - from Agent 1 result */}
+            {agentResult?.confidence_score && agentResult.confidence_score < 0.85 && (
               <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
                 <p className="text-xs text-yellow-800">
-                  ⚠️ Précision: {Math.round(confidence * 100)}% - Vérifie la transcription
+                  ⚠️ Précision: {Math.round(agentResult.confidence_score * 100)}% - Vérifie la transcription
                 </p>
               </div>
             )}
@@ -637,6 +699,26 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
             >
               ✏️ Tsa7e7 (Correct)
             </button>
+            
+            {/* Manual Analysis Button (if auto-process disabled) */}
+            {!autoProcess && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => processWithAgent1(transcript)}
+                  disabled={!transcript || agentLoading}
+                  className="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {agentLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Analyse en cours...
+                    </span>
+                  ) : (
+                    '🔍 Analyser mon idée'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -712,16 +794,17 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         </div>
       )}
 
-      {/* Submit: Big, single button */}
-      {transcript && !isRecording && !showContactForm && !showFieldsConfirmation && (
-        <button
-          onClick={handleSubmit}
-          disabled={isProcessing || isExtracting}
-          className="mt-8 w-full max-w-md bg-green-600 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50"
-        >
-          {isExtracting ? '⏳ Analyse en cours...' : isProcessing ? '⏳ Envoi...' : '✅ سّبق الفكرة (Submit)'}
-        </button>
-      )}
+          {/* Submit Button */}
+          {transcript && !isRecording && !showContactForm && !showFieldsConfirmation && (
+            <button
+              onClick={handleSubmit}
+              disabled={isProcessing || isExtracting}
+              className="mt-8 w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50"
+            >
+              {isExtracting ? '⏳ Analyse en cours...' : isProcessing ? '⏳ Envoi...' : '✅ سّبق الفكرة (Submit)'}
+            </button>
+          )}
+        </div>
       </div>
     </>
   );

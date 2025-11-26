@@ -15,6 +15,8 @@ const sizeMap = {
   lg: { width: 240, height: 80 },
 };
 
+const FLAG_LOGO = '/png/FikraValley_flag_logo.png';
+
 export default function Logo({
   variant = 'full',
   size = 'md',
@@ -29,18 +31,15 @@ export default function Logo({
   // If showText is false, use just the icon
   const logoSrc = (() => {
     if (!showText) {
-      // Icon only
-      return '/fikra_logo_v3.png';
+      return FLAG_LOGO;
     }
-    
-    // Full logo with wordmark
+
     switch (variant) {
       case 'white':
-        return '/logo-white.svg'; // Fallback if needed
       case 'icon':
-        return '/fikra_logo_v3.png';
+      case 'full':
       default:
-        return '/fikravalley_words_logo.png'; // Combined icon + wordmark
+        return FLAG_LOGO;
     }
   })();
 

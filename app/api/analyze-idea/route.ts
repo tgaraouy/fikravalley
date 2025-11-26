@@ -46,6 +46,92 @@ interface ClaudeAnalysisResponse {
 }
 
 /**
+ * AGENT 2A: Feasibility Scorer
+ * 
+ * ROLE: You are a pragmatic Moroccan tech lead. Score ideas based on 
+ * open-source AI availability, data privacy (PDPL), and 2G connectivity reality.
+ * 
+ * INPUT: marrai_ideas fields
+ * - problem_statement
+ * - proposed_solution
+ * - data_sources (array)
+ * - ai_capabilities_needed (array)
+ * - current_manual_process
+ * 
+ * OUTPUT: Update marrai_ideas with:
+ * - ai_feasibility_score (numeric 1-10)
+ * - ai_analysis (jsonb: {
+ *     "technical_risks": ["string"],
+ *     "data_availability": "high|medium|low",
+ *     "model_requirements": ["nlp", "cv", "tabular", "audio"],
+ *     "open_source_options": ["HuggingFace model names"],
+ *     "complexity": "low|medium|high",
+ *     "pdpl_compliance_notes": "string",
+ *     "connectivity_requirements": "offline|2G|3G+"
+ *   })
+ * - agent_type (workflow_agent|data_agent|decision_agent|interface_agent|hybrid_agent)
+ * - human_in_loop (boolean)
+ * - automation_potential ('high', 'medium', 'low')
+ * 
+ * SCORING CRITERIA:
+ * 10 = Can build with HuggingFace + runs offline on phone
+ * 7-9 = Requires hosted model but data is public
+ * 4-6 = Requires data collection, PDPL review needed
+ * 1-3 = Requires custom model training, high cost
+ * 
+ * HUMAN-IN-THE-LOOP RULES:
+ * - If ai_feasibility_score < 5, set human_in_loop=true
+ * - If data_availability='low', flag for admin review
+ * - If pdpl_compliance_notes includes "sensitive personal data", set human_in_loop=true
+ * 
+ * MOROCCAN CONTEXT:
+ * - Assume 2G connectivity unless user states "offline capable"
+ * - PDPL: No personal data leaves Morocco without consent
+ * - Cost sensitivity: Prefer models <1GB size
+ */
+
+/**
+ * AGENT 2B: Impact & ROI Calculator
+ * 
+ * ROLE: You are a Moroccan business analyst. Calculate tangible ROI for SMEs 
+ * in dirhams (convert to EUR for schema).
+ * 
+ * INPUT: marrai_ideas fields
+ * - frequency (multiple_daily, daily, weekly, monthly, occasional)
+ * - current_manual_process
+ * - automation_potential
+ * - estimated_cost (if provided)
+ * 
+ * OUTPUT: Update marrai_ideas with:
+ * - roi_time_saved_hours (numeric: hours/week)
+ * - roi_cost_saved_eur (numeric: EUR/month, 1 EUR ≈ 11 MAD)
+ * - estimated_cost ('<1K'|'1K-3K'|'3K-5K'|'5K-10K'|'10K+'|'unknown')
+ * - qualification_tier ('exceptional'|'qualified'|'needs_work')
+ * - ai_impact_score (numeric 1-10)
+ * 
+ * CALCULATION LOGIC:
+ * frequency=multiple_daily + automation=high → roi_time_saved_hours=10, roi_cost_saved_eur=500
+ * frequency=daily + automation=medium → roi_time_saved_hours=5, roi_cost_saved_eur=250
+ * frequency=weekly + automation=low → roi_time_saved_hours=2, roi_cost_saved_eur=100
+ * 
+ * QUALIFICATION TIER:
+ * exceptional = roi_time_saved_hours >= 8 AND automation_potential='high'
+ * qualified = roi_time_saved_hours >= 3 AND automation_potential IN ('high', 'medium')
+ * needs_work = roi_time_saved_hours < 3 OR automation_potential='low'
+ * 
+ * COST ESTIMATION:
+ * - Offline mobile app: <1K EUR
+ * - Simple web + API: 1K-3K EUR
+ * - Multi-agent system: 3K-5K EUR
+ * - Enterprise integration: 5K-10K EUR
+ * - Custom AI model: 10K+ EUR
+ * 
+ * HUMAN-IN-THE-LOOP:
+ * - If qualification_tier='needs_work', set status='needs_refinement' and add admin_notes
+ * - If roi_cost_saved_eur > 1000, flag for featured consideration
+ */
+
+/**
  * Clean JSON response by removing markdown code blocks
  */
 function cleanJsonResponse(text: string): string {

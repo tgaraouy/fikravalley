@@ -82,7 +82,9 @@ export default function VoiceMentorSearch({ onFindMentors, isSearching = false }
         };
         
         recognitionRef.current.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
+          if (process.env.NODE_ENV === 'development') {
+            console.error('Speech recognition error:', event.error);
+          }
           setIsRecording(false);
         };
       }

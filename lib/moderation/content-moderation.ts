@@ -99,7 +99,6 @@ function normalizeText(text: string): string {
  */
 function containsBlockedWords(text: string): { found: boolean; words: string[] } {
   const normalized = normalizeText(text);
-  const words = normalized.split(/\s+/);
   const foundWords: string[] = [];
   
   // Check all categories
@@ -112,11 +111,16 @@ function containsBlockedWords(text: string): { found: boolean; words: string[] }
     ...BLOCKED_WORDS.scams
   ];
   
-  for (const word of words) {
-    for (const blocked of allBlocked) {
-      if (word.includes(blocked.toLowerCase()) || blocked.toLowerCase().includes(word)) {
-        foundWords.push(blocked);
-      }
+  // Use word boundaries to match complete words only (avoid false positives)
+  // This prevents matching "problème" when looking for "bl" or similar
+  for (const blocked of allBlocked) {
+    const blockedLower = blocked.toLowerCase();
+    // Escape special regex characters in blocked word
+    const escapedBlocked = blockedLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Match whole word only (word boundaries)
+    const wordBoundaryRegex = new RegExp(`\\b${escapedBlocked}\\b`, 'i');
+    if (wordBoundaryRegex.test(normalized)) {
+      foundWords.push(blocked);
     }
   }
   

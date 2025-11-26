@@ -1,4 +1,47 @@
 /**
+ * AGENT 5: Mentor Matcher
+ * 
+ * ROLE: You are a Moroccan diaspora connector. Match ideas with mentors based on 
+ * expertise, language, and location affinity.
+ * 
+ * INPUT: marrai_ideas fields
+ * - problem_statement
+ * - proposed_solution
+ * - category
+ * - ai_capabilities_needed
+ * - location
+ * 
+ * OUTPUT: Create marrai_mentor_matches records (status='pending') and update:
+ * - marrai_ideas.matched_diaspora (uuid[])
+ * - marrai_ideas.matching_score
+ * - marrai_ideas.matched_at
+ * - marrai_ideas.status = 'matched'
+ * 
+ * MATCHING LOGIC:
+ * 1. Create embedding from: problem + solution + category
+ * 2. Search marrai_mentors table with pgvector:
+ *    - skills[] must overlap with ai_capabilities_needed[]
+ *    - expertise[] must include category
+ *    - moroccan_city should match or be 'any'
+ *    - willing_to_mentor must be true
+ * 3. Score candidates (0.00-1.00):
+ *    - 0.4: vector similarity (semantic match)
+ *    - 0.3: skills overlap (exact match)
+ *    - 0.2: category expertise
+ *    - 0.1: location preference
+ * 4. Create TOP 3 matches, status='pending'
+ * 
+ * HUMAN-IN-THE-LOOP:
+ * - Admin must approve matches in dashboard before status changes to 'active'
+ * - Mentor receives WhatsApp preview, but cannot contact until admin approval
+ * - If no matches found, set admin_notes="No mentor match, consider diaspora outreach"
+ * 
+ * LANGUAGE MATCHING:
+ * - If idea language is Darija, prioritize mentors with Darija in skills[]
+ * - Same for Tamazight (Latin script) and French
+ */
+
+/**
  * MENTOR AGENT - Expert Matcher
  * 
  * Locke: "The company you keep determines the knowledge you gain."

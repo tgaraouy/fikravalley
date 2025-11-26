@@ -10,6 +10,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 // Icons - using simple SVG or text for now
 import { IdeaCard } from '@/components/ideas/IdeaCard';
 import { FilterSidebar } from '@/components/ideas/FilterSidebar';
@@ -308,6 +309,80 @@ export default function IdeasPage() {
           </div>
         </div>
       </div>
+
+      {/* SolarGuard Story */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="bg-white border border-green-100 rounded-2xl shadow-sm p-6 md:p-8">
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            <div className="space-y-4 text-slate-700">
+              <p className="text-xs uppercase tracking-[0.2em] text-green-600 font-semibold">
+                Mission SolarGuard • Khouribga
+              </p>
+              <h3 className="text-3xl font-bold text-slate-900">
+                Du champ solaire poussiéreux à une startup climat
+              </h3>
+              <p className="text-sm leading-relaxed">
+                Une bande d&apos;amis de Khouribga a vu les panneaux solaires couverts de poussière. 
+                Leur idée? Construire <strong>SolarGuard</strong>, un système de maintenance prédictive avec 
+                capteurs IoT, IA et drones. Grâce à leur mentore Khadija El Ouafi, ils sont passés de l&apos;observation à un prototype validé sur le terrain.
+              </p>
+              <ol className="space-y-3 text-sm list-decimal list-inside">
+                <li>
+                  <strong>Observation terrain :</strong> visite du site, photos des panneaux poussiéreux, idée de nettoyage prédictif.
+                </li>
+                <li>
+                  <strong>Pitch mentor :</strong> appel vidéo avec Khadija pour montrer les maquettes, ROI et nom officiel &quot;SolarGuard&quot;.
+                </li>
+                <li>
+                  <strong>Prototype & test :</strong> drone + IA détectent un besoin de nettoyage deux semaines à l&apos;avance → validation live.
+                </li>
+                <li>
+                  <strong>Lancement :</strong> identité pro, storytelling climat et dossier prêt pour Intilaka.
+                </li>
+              </ol>
+              <p className="text-xs text-slate-500">
+                هذه القصة كتأكد بلي Gen Z المغربي قادر يحول ملاحظة بسيطة إلى شركة خضراء.
+              </p>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                { src: '/png/SolarGard-story1.png', label: 'Inspection terrain', detail: 'Khouribga · panneaux poussiéreux' },
+                { src: '/png/SolarGard-story2.png', label: 'Prototype & drone', detail: 'Données live sur laptop' },
+                { src: '/png/SolarGard-story3.png', label: 'Pitch mentor', detail: 'Visio avec Khadija El Ouafi' },
+              ].map((shot) => (
+                <figure key={shot.src} className="bg-slate-50 rounded-xl border border-amber-100 p-3 flex flex-col">
+                  <div className="relative w-full h-36 rounded-lg overflow-hidden mb-3">
+                    <Image
+                      src={shot.src}
+                      alt={shot.label}
+                      fill
+                      sizes="(max-width: 1024px) 50vw, 25vw"
+                      className="object-cover"
+                    />
+                  </div>
+                  <figcaption>
+                    <p className="text-sm font-semibold text-slate-900">{shot.label}</p>
+                    <p className="text-xs text-slate-600">{shot.detail}</p>
+                  </figcaption>
+                </figure>
+              ))}
+              <figure className="bg-green-50 rounded-xl border border-green-100 p-4 flex flex-col items-center justify-center text-center">
+                <div className="relative w-28 h-20 mb-3">
+                  <Image
+                    src="/png/SolarGard-story-logo.png"
+                    alt="SolarGuard Brand"
+                    fill
+                    sizes="120px"
+                    className="object-contain"
+                  />
+                </div>
+                <p className="text-sm font-semibold text-green-800">Marque SolarGuard</p>
+                <p className="text-xs text-green-600">Protection des investissements solaires</p>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-12 mt-16">

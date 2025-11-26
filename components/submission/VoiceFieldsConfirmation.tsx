@@ -9,8 +9,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Check, Edit2, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Check, Edit2, X, Lightbulb } from 'lucide-react';
 
 interface ExtractedData {
   title: string;
@@ -83,16 +83,36 @@ export default function VoiceFieldsConfirmation({
     field, 
     value, 
     required = false,
-    multiline = false 
+    multiline = false,
+    guidance = null
   }: { 
     label: string; 
     field: keyof ExtractedData; 
     value: string | null | undefined;
     required?: boolean;
     multiline?: boolean;
+    guidance?: string | null;
   }) => {
     const isEditing = editingField === field;
     const displayValue = value || (required ? '' : '(Non spécifié)');
+    const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+
+    // Auto-focus when entering edit mode
+    useEffect(() => {
+      if (isEditing && inputRef.current) {
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+          inputRef.current?.focus();
+          // For textarea, move cursor to end
+          if (inputRef.current instanceof HTMLTextAreaElement) {
+            inputRef.current.setSelectionRange(
+              inputRef.current.value.length,
+              inputRef.current.value.length
+            );
+          }
+        }, 10);
+      }
+    }, [isEditing]);
 
     return (
       <div className="space-y-2">
@@ -102,7 +122,11 @@ export default function VoiceFieldsConfirmation({
           </label>
           {!isEditing && (
             <button
-              onClick={() => setEditingField(field)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setEditingField(field);
+              }}
               className="text-blue-600 hover:text-blue-700 text-sm flex items-center gap-1"
             >
               <Edit2 className="w-3 h-3" />
@@ -111,35 +135,73 @@ export default function VoiceFieldsConfirmation({
           )}
         </div>
         
+        {guidance && !isEditing && (
+          <div className="text-xs text-slate-500 bg-blue-50 p-2 rounded flex items-start gap-2">
+            <Lightbulb className="w-3 h-3 mt-0.5 flex-shrink-0" />
+            <span>{guidance}</span>
+          </div>
+        )}
+        
         {isEditing ? (
           <div className="space-y-2">
             {multiline ? (
               <textarea
+                ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                 value={value || ''}
                 onChange={(e) => setData(prev => ({ ...prev, [field]: e.target.value }))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onBlur={(e) => {
+                  // Don't blur if clicking on validate/cancel buttons
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (relatedTarget?.closest('.field-actions')) {
+                    e.preventDefault();
+                    inputRef.current?.focus();
+                  }
+                }}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
                 rows={4}
                 placeholder={`Entrez ${label.toLowerCase()}`}
               />
             ) : (
               <input
+                ref={inputRef as React.RefObject<HTMLInputElement>}
                 type="text"
                 value={value || ''}
                 onChange={(e) => setData(prev => ({ ...prev, [field]: e.target.value }))}
+                onBlur={(e) => {
+                  // Don't blur if clicking on validate/cancel buttons
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (relatedTarget?.closest('.field-actions')) {
+                    e.preventDefault();
+                    inputRef.current?.focus();
+                  }
+                }}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder={`Entrez ${label.toLowerCase()}`}
               />
             )}
-            <div className="flex gap-2">
+            {guidance && (
+              <div className="text-xs text-slate-500 bg-blue-50 p-2 rounded">
+                💡 {guidance}
+              </div>
+            )}
+            <div className="flex gap-2 field-actions">
               <button
-                onClick={() => updateField(field, data[field] as string)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  updateField(field, data[field] as string);
+                }}
                 className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
               >
                 <Check className="w-3 h-3" />
                 Valider
               </button>
               <button
-                onClick={() => setEditingField(null)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditingField(null);
+                }}
                 className="px-3 py-1 border border-slate-300 rounded text-sm hover:bg-slate-50"
               >
                 Annuler
@@ -256,6 +318,7 @@ export default function VoiceFieldsConfirmation({
               field="current_manual_process"
               value={data.current_manual_process}
               multiline
+              guidance="Décrivez comment le problème est résolu actuellement (manuellement). Ex: 'Les gens jettent les déchets dans la rue. La municipalité envoie des camions une fois par semaine.'"
             />
 
             <FieldDisplay
@@ -263,6 +326,7 @@ export default function VoiceFieldsConfirmation({
               field="digitization_opportunity"
               value={data.digitization_opportunity}
               multiline
+              guidance="Expliquez comment la technologie peut améliorer ce processus. Ex: 'Une app mobile pour signaler les déchets, avec système de points/récompenses pour motiver la participation citoyenne.'"
             />
           </div>
         </div>

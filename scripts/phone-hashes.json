@@ -1,0 +1,46 @@
+{
+  "generated_at": "2025-11-26T00:30:17.125Z",
+  "salt_rounds": 12,
+  "mappings": [
+    {
+      "phone": "+212661234567",
+      "hash": "$2b$12$hoZfZw1GhSFNA6is.M/EquwJvBCYMQv54FtRjR3Pl3HYk4YIk6DIi"
+    },
+    {
+      "phone": "+212661234568",
+      "hash": "$2b$12$aTdpZeFf4wDdJWsa4hpXDuKLjQQA7mpAwy1linTVDEN4OAXPxUbiy"
+    },
+    {
+      "phone": "+212661234569",
+      "hash": "$2b$12$vZhDzeu8ZG9DLPOq88Pjf.BJVvKJkErwNOYgrtmNc7H8nP8Er5lN2"
+    },
+    {
+      "phone": "+212661234570",
+      "hash": "$2b$12$w0nrb3u5mS0HKBtL3zrDGOwS9sBhla/zGS5bSERiigS6Xv1Y1Jm2G"
+    },
+    {
+      "phone": "+212661234571",
+      "hash": "$2b$12$Rxfos4orcPr5KHcM7kbue.9IXMtKHC36zPTQr/N50QaPwB2Fecc9e"
+    },
+    {
+      "phone": "+212661234572",
+      "hash": "$2b$12$47osCZ4vHh0HgCuHkN.DBOGRQR08y.IHhsa1NOgsHE/nBWVgc/gpy"
+    },
+    {
+      "phone": "+212661234573",
+      "hash": "$2b$12$xtAd0x47Gdl1EJ9C5PXM0O8xeiRL2E51fApKNknsnweg8IjAT9ubm"
+    },
+    {
+      "phone": "+212661234574",
+      "hash": "$2b$12$2cjOZaKSdOc9jK0bQxZgPuOtpwOzLfyYoBtypEOCWYXAN.5AVaPYK"
+    },
+    {
+      "phone": "+212661234575",
+      "hash": "$2b$12$dfC36ZKOo7qhRdUHwnbZ1.YKu/yXJW3ISnuvyL/.UNReyfWItfN6a"
+    },
+    {
+      "phone": "+212661234576",
+      "hash": "$2b$12$N7rsa7qmh9BewojN/Vv5WuPRV0MqcNCCElNJYEJMQ0/jMC0Hukreu"
+    }
+  ]
+}

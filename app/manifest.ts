@@ -13,12 +13,12 @@ export default function manifest(): MetadataRoute.Manifest {
         orientation: 'portrait-primary',
         icons: [
             {
-                src: '/fikra_logo_v3.png',
+                src: '/png/FikraValley_flag_logo.png',
                 sizes: '192x192',
                 type: 'image/png',
             },
             {
-                src: '/fikra_logo_v3.png',
+                src: '/png/FikraValley_flag_logo.png',
                 sizes: '512x512',
                 type: 'image/png',
             },
@@ -30,14 +30,14 @@ export default function manifest(): MetadataRoute.Manifest {
                 short_name: 'Soumettre',
                 description: 'Enregistre ton idée avec ta voix',
                 url: '/submit-voice',
-                icons: [{ src: '/fikra_logo_v3.png', sizes: '96x96' }],
+                icons: [{ src: '/png/FikraValley_flag_logo.png', sizes: '96x96' }],
             },
             {
                 name: 'Voir les idées',
                 short_name: 'Idées',
                 description: 'Parcourir les projets existants',
                 url: '/ideas',
-                icons: [{ src: '/fikra_logo_v3.png', sizes: '96x96' }],
+                icons: [{ src: '/png/FikraValley_flag_logo.png', sizes: '96x96' }],
             },
         ],
         share_target: {

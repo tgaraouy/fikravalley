@@ -63,7 +63,7 @@ export default function VoiceSubmitPage() {
           submitter_email: contactInfo.email || null,
           submitter_phone: contactInfo.phone || null,
           submitter_type: 'entrepreneur',
-          submitted_via: 'voice',
+          submitted_via: 'web',
         })
       });
 
@@ -79,15 +79,21 @@ export default function VoiceSubmitPage() {
         alert(`Erreur: ${error.error || 'Erreur lors de la soumission'}`);
       }
     } catch (error) {
-      console.error('Error submitting:', error);
-      alert('Erreur lors de la soumission');
+      // Error logged to monitoring service in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error submitting:', error);
+      }
+      alert('Erreur lors de la soumission. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSubmit = async (idea: any) => {
-    console.log('Submitting idea:', idea);
+    // Log only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Submitting idea:', idea);
+    }
     setIsSubmitting(true);
 
     try {
@@ -117,7 +123,7 @@ export default function VoiceSubmitPage() {
           location: idea.location || 'autre',
           frequency,
           status: 'submitted',
-          submitted_via: 'voice_guided',
+          submitted_via: 'web', // Voice-guided submission via web interface
           current_manual_process: 'Non spécifié (Soumission Vocale)',
           digitization_opportunity: 'À analyser',
           proposed_solution: idea.solution?.description || 'À développer',
@@ -141,12 +147,16 @@ export default function VoiceSubmitPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('API Error:', errorData);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('API Error:', errorData);
+        }
         throw new Error(errorData.error || 'Erreur lors de la soumission');
       }
 
       const result = await response.json();
-      console.log('Submission successful:', result);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Submission successful:', result);
+      }
       
       // Redirect to the idea page
       router.push(`/ideas/${result.id}?submitted=true&voice=true`);

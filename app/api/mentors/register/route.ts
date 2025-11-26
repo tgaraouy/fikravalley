@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         phone: body.phone || null,
         location: body.location || null,
         moroccan_city: body.moroccan_city || null,
-        current_role: body.current_role || null,
+        currentrole: body.currentrole ? (Array.isArray(body.currentrole) ? body.currentrole : [body.currentrole]) : [],
         company: body.company || null,
         years_experience: body.years_experience || 0,
         expertise: body.expertise || [],
@@ -63,9 +63,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
-      console.error('Error registering mentor:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error registering mentor:', error);
+      }
       return NextResponse.json(
-        { error: 'Erreur lors de l\'inscription' },
+        { error: 'Erreur lors de l\'inscription', details: error.message },
         { status: 500 }
       );
     }
@@ -83,7 +85,9 @@ export async function POST(request: NextRequest) {
       }
     }, { status: 201 });
   } catch (error) {
-    console.error('Error in mentor registration:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error in mentor registration:', error);
+    }
     return NextResponse.json(
       {
         error: 'Erreur serveur interne',

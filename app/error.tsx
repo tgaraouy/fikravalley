@@ -12,14 +12,20 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Log error details to console for debugging
-    console.error('❌ Application Error:', {
-      message: error.message,
-      stack: error.stack,
-      digest: error.digest,
-      name: error.name,
-      timestamp: new Date().toISOString(),
-    });
+    // Log error details (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ Application Error:', {
+        message: error.message,
+        stack: error.stack,
+        digest: error.digest,
+        name: error.name,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    // In production, send to error tracking service
+    // if (process.env.NODE_ENV === 'production') {
+    //   // Sentry.captureException(error);
+    // }
   }, [error]);
 
   // Determine error type and user-friendly message
