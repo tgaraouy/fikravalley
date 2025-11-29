@@ -12,6 +12,9 @@ import { shareIdeaViaWhatsApp } from '@/lib/share/whatsapp-share';
 import {
   HeartIcon as HeartSolidIcon
 } from '@heroicons/react/24/solid';
+import { LikeButton } from '@/components/ideas/LikeButton';
+import { CommentsSection } from '@/components/ideas/CommentsSection';
+import { ReviewsSection } from '@/components/ideas/ReviewsSection';
 
 interface Idea {
   id: string;
@@ -45,6 +48,15 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
   const [likes, setLikes] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isClaiming, setIsClaiming] = useState(false);
+  const [claimForm, setClaimForm] = useState({
+    claimer_name: '',
+    claimer_email: '',
+    claimer_city: '',
+    claimer_type: 'solo',
+    engagement_level: 'exploring',
+    motivation: '',
+  });
   const [ideaId, setIdeaId] = useState<string | null>(null);
   const justSubmitted = searchParams?.get('submitted') === 'true';
   
@@ -227,17 +239,15 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-center gap-4 flex-wrap mb-6">
             <StatusBadge status={status} large />
             
-            <button
-              onClick={handleLike}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold transition-colors"
-            >
-              {isLiked ? (
-                <HeartSolidIcon className="w-5 h-5 text-red-500" />
-              ) : (
-                <HeartIcon className="w-5 h-5" />
-              )}
-              <span>{likes} likes</span>
-            </button>
+            <LikeButton 
+              ideaId={idea.id}
+              initialCount={likes}
+              initialIsLiked={isLiked}
+              onLikeChange={(count, isLiked) => {
+                setLikes(count);
+                setIsLiked(isLiked);
+              }}
+            />
             
             <button
               onClick={handleWhatsAppShare}
@@ -245,6 +255,14 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
             >
               <span className="text-lg">💬</span>
               <span>Share on WhatsApp</span>
+            </button>
+
+            <button
+              onClick={() => setIsClaiming(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition-colors shadow-md"
+            >
+              <span className="text-lg">🚀</span>
+              <span>Je lance ce projet</span>
             </button>
           </div>
           
@@ -321,6 +339,16 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
               />
             )}
             
+            {/* Comments Section */}
+            <div className="mt-12">
+              <CommentsSection ideaId={idea.id} />
+            </div>
+            
+            {/* Reviews Section */}
+            <div className="mt-8">
+              <ReviewsSection ideaId={idea.id} />
+            </div>
+            
           </div>
           
           {/* Sidebar (1/3) */}
@@ -347,6 +375,161 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
           copySuccess={copySuccess}
           onCopy={copyLink}
         />
+      )}
+
+      {/* Claim Modal */}
+      {isClaiming && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 md:p-8 relative">
+            <button
+              onClick={() => setIsClaiming(false)}
+              className="absolute top-3 right-4 text-slate-400 hover:text-slate-700 text-xl"
+            >
+              ×
+            </button>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              Tu veux lancer cette idée ?
+            </h2>
+            <p className="text-sm text-slate-600 mb-4">
+              Dis-nous qui tu es (ou votre équipe). On prépare le kit de lancement (mentor, plan d&apos;action, docs).
+            </p>
+
+            <form
+              className="space-y-4"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!ideaId) return;
+                try {
+                  const res = await fetch(`/api/ideas/${ideaId}/claim`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(claimForm),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) {
+                    alert(data.error || 'Impossible de sauvegarder ton engagement. Réessaie.');
+                    return;
+                  }
+                  alert("✅ C'est noté ! Ton équipe GenZ a pris cette idée. On prépare la suite (mentor + plan).");
+                  setIsClaiming(false);
+                  setClaimForm({
+                    claimer_name: '',
+                    claimer_email: '',
+                    claimer_city: '',
+                    claimer_type: 'solo',
+                    engagement_level: 'exploring',
+                    motivation: '',
+                  });
+                } catch (error) {
+                  if (process.env.NODE_ENV === 'development') {
+                    console.error('Error submitting claim:', error);
+                  }
+                  alert('Erreur réseau. Réessaie plus tard.');
+                }
+              }}
+            >
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Ton nom ou nom d&apos;équipe *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={claimForm.claimer_name}
+                  onChange={(e) => setClaimForm({ ...claimForm, claimer_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Email (optionnel)
+                  </label>
+                  <input
+                    type="email"
+                    value={claimForm.claimer_email}
+                    onChange={(e) => setClaimForm({ ...claimForm, claimer_email: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Ville (optionnel)
+                  </label>
+                  <input
+                    type="text"
+                    value={claimForm.claimer_city}
+                    onChange={(e) => setClaimForm({ ...claimForm, claimer_city: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Tu es / vous êtes *
+                  </label>
+                  <select
+                    value={claimForm.claimer_type}
+                    onChange={(e) => setClaimForm({ ...claimForm, claimer_type: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                  >
+                    <option value="solo">Solo</option>
+                    <option value="team">Équipe</option>
+                    <option value="community">Communauté</option>
+                    <option value="university_club">Club universitaire</option>
+                    <option value="other">Autre</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Étape actuelle *
+                  </label>
+                  <select
+                    value={claimForm.engagement_level}
+                    onChange={(e) => setClaimForm({ ...claimForm, engagement_level: e.target.value })}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                  >
+                    <option value="exploring">Je découvre</option>
+                    <option value="validating">Je valide le problème</option>
+                    <option value="prototyping">Je fais un prototype</option>
+                    <option value="launching">Je prépare le lancement</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Pourquoi cette idée ? (optionnel)
+                </label>
+                <textarea
+                  rows={3}
+                  value={claimForm.motivation}
+                  onChange={(e) => setClaimForm({ ...claimForm, motivation: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500"
+                  placeholder="Explique en 1-2 phrases pourquoi cette idée te parle."
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsClaiming(false)}
+                  className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-semibold shadow-sm"
+                >
+                  Confirmer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
       
     </div>

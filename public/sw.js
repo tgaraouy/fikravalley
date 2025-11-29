@@ -4,8 +4,9 @@
  * Handles offline-first sync and caching for Fikra Valley
  */
 
-const CACHE_NAME = 'fikra-valley-v1';
-const STATIC_CACHE = 'fikra-static-v1';
+const CACHE_NAME = 'fikra-valley-v2';
+const STATIC_CACHE = 'fikra-static-v2';
+const RUNTIME_CACHE = 'fikra-runtime-v2';
 
 // Install - Cache static assets
 self.addEventListener('install', (event) => {
@@ -13,9 +14,12 @@ self.addEventListener('install', (event) => {
     caches.open(STATIC_CACHE).then((cache) => {
       return cache.addAll([
         '/',
-        '/manifest.json',
+        '/manifest.webmanifest',
         '/png/FikraValley_flag_logo.png',
-      ]);
+        '/favicon.ico',
+      ]).catch((err) => {
+        console.error('Cache addAll failed:', err);
+      });
     })
   );
   self.skipWaiting();
@@ -27,7 +31,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME && name !== STATIC_CACHE)
+          .filter((name) => name !== CACHE_NAME && name !== STATIC_CACHE && name !== RUNTIME_CACHE)
           .map((name) => caches.delete(name))
       );
     })
@@ -43,17 +47,31 @@ self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) return;
 
+  // Skip API requests (they should always be fresh)
+  if (event.request.url.includes('/api/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
         // Clone the response
         const responseToCache = response.clone();
 
-        // Cache successful responses
+        // Cache successful responses (HTML, CSS, JS, images)
         if (response.status === 200) {
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
+          const contentType = response.headers.get('content-type');
+          if (
+            contentType &&
+            (contentType.includes('text/html') ||
+              contentType.includes('text/css') ||
+              contentType.includes('application/javascript') ||
+              contentType.includes('image/'))
+          ) {
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
+          }
         }
 
         return response;
@@ -66,7 +84,31 @@ self.addEventListener('fetch', (event) => {
           }
           // Return offline page for navigation requests
           if (event.request.mode === 'navigate') {
-            return caches.match('/');
+            return caches.match('/').then((cachedResponse) => {
+              if (cachedResponse) {
+                return cachedResponse;
+              }
+              // Return a basic offline response
+              return new Response(
+                `
+                <!DOCTYPE html>
+                <html>
+                  <head>
+                    <title>Hors ligne - Fikra Valley</title>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                  </head>
+                  <body style="font-family: system-ui; text-align: center; padding: 2rem;">
+                    <h1>Vous êtes hors ligne</h1>
+                    <p>Vérifiez votre connexion internet et réessayez.</p>
+                  </body>
+                </html>
+              `,
+                {
+                  headers: { 'Content-Type': 'text/html' },
+                }
+              );
+            });
           }
         });
       })

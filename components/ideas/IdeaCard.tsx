@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { LikeButton } from './LikeButton';
+import { MOROCCO_PRIORITIES } from '@/lib/idea-bank/scoring/morocco-priorities';
+import { SDGBadgesList } from './SDGBadge';
 
 interface Idea {
   id: string;
@@ -17,12 +20,17 @@ interface Idea {
   stage2_total?: number;
   receipt_count?: number;
   upvote_count?: number;
-  sdg_alignment?: number[];
+  sdg_alignment?: number[] | { sdgTags?: number[] } | null;
   funding_status?: string;
   qualification_tier?: 'exceptional' | 'qualified' | 'developing';
   created_at: string;
   submitter_name?: string;
   has_receipts?: boolean;
+  moroccan_priorities?: string[];
+  budget_tier?: string | null;
+  location_type?: string | null;
+  complexity?: string | null;
+  adoption_count?: number | null;
 }
 
 interface IdeaCardProps {
@@ -80,18 +88,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
   
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
-    setLikes(prev => isLiked ? prev - 1 : prev + 1);
-    
-    // TODO: Call API to update likes
-    // try {
-    //   await fetch(`/api/ideas/${idea.id}/upvote`, { method: 'POST' });
-    // } catch (error) {
-    //   console.error('Failed to update like:', error);
-    //   // Revert on error
-    //   setIsLiked(isLiked);
-    //   setLikes(idea.upvote_count || 0);
-    // }
+    // LikeButton component handles this now
   };
   
   const handleCardClick = () => {
@@ -100,6 +97,23 @@ export function IdeaCard({ idea }: IdeaCardProps) {
   
   const displayTitle = idea.title_darija || idea.title;
   const displayDescription = idea.proposed_solution || idea.problem_statement;
+  const priorities = (idea.moroccan_priorities || []) as string[];
+
+  const formatBudgetTier = (tier?: string | null) => {
+    if (!tier) return null;
+    switch (tier) {
+      case '<1K':
+        return '<1K DH';
+      case '1K-5K':
+        return '1K–5K DH';
+      case '5K-10K':
+        return '5K–10K DH';
+      case '10K+':
+        return '10K+ DH';
+      default:
+        return tier;
+    }
+  };
   
   return (
     <motion.div
@@ -117,32 +131,100 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           <ScoreBadge score={clarityDecisionScore} />
         </div>
         
+        {/* Adoption Count Badge */}
+        {typeof idea.adoption_count === 'number' && idea.adoption_count > 0 && (
+          <div className="absolute top-4 right-4 flex flex-col items-end gap-1 z-20">
+            <span className="px-2 py-1 rounded-full bg-pink-500 text-white text-[10px] font-semibold shadow">
+              🔥 {idea.adoption_count}
+            </span>
+          </div>
+        )}
+        
         {/* Like Button */}
-        <button
-          onClick={handleLike}
-          className="absolute top-4 right-4 flex items-center gap-1 px-2 py-1 rounded-full hover:bg-gray-100 transition-colors z-10"
+        <div 
+          className="absolute top-10 right-4 z-10"
+          onClick={(e) => e.stopPropagation()}
         >
-          <motion.div
-            animate={{ scale: isLiked ? [1, 1.3, 1] : 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-xl"
-          >
-            {isLiked ? '❤️' : '🤍'}
-          </motion.div>
-          <span className="text-sm font-semibold text-gray-700">
-            {likes}
-          </span>
-        </button>
+          <LikeButton 
+            ideaId={idea.id}
+            initialCount={likes}
+            initialIsLiked={isLiked}
+            onLikeChange={(count, isLiked) => {
+              setLikes(count);
+              setIsLiked(isLiked);
+            }}
+          />
+        </div>
         
         {/* Title */}
         <h3 className="text-xl font-bold text-gray-900 mb-2 mt-8 line-clamp-2">
           {displayTitle}
         </h3>
+
+        {/* Moroccan Priority Badges */}
+        {priorities.length > 0 && (
+          <div className="flex gap-1 flex-wrap mb-2">
+            {priorities.slice(0, 2).map((code) => {
+              const priority = MOROCCO_PRIORITIES.find((p) => p.id === code);
+              if (!priority) return null;
+              return (
+                <span
+                  key={code}
+                  className="px-2 py-0.5 rounded-full bg-green-50 text-green-800 text-[10px] font-semibold border border-green-100"
+                  title={priority.description}
+                >
+                  {priority.name.split(' ')[0]}
+                </span>
+              );
+            })}
+            {priorities.length > 2 && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-semibold">
+                +{priorities.length - 2}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* SDG Badges (Secondary - below Morocco priorities) */}
+        {(() => {
+          let sdgNumbers: number[] = [];
+          if (idea.sdg_alignment) {
+            if (Array.isArray(idea.sdg_alignment)) {
+              sdgNumbers = idea.sdg_alignment;
+            } else if (typeof idea.sdg_alignment === 'object' && idea.sdg_alignment.sdgTags) {
+              sdgNumbers = idea.sdg_alignment.sdgTags;
+            }
+          }
+          return sdgNumbers.length > 0 ? (
+            <div className="mb-2">
+              <SDGBadgesList sdgNumbers={sdgNumbers} size="sm" maxDisplay={3} />
+            </div>
+          ) : null;
+        })()}
         
         {/* Description */}
-        <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
+        <p className="text-gray-600 text-sm line-clamp-3 mb-3 leading-relaxed">
           {displayDescription}
         </p>
+
+        {/* Budget / Complexity / Location Type */}
+        <div className="flex gap-2 flex-wrap mb-3 text-[11px]">
+          {formatBudgetTier(idea.budget_tier) && (
+            <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">
+              {formatBudgetTier(idea.budget_tier)}
+            </span>
+          )}
+          {idea.complexity && (
+            <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 capitalize">
+              {idea.complexity}
+            </span>
+          )}
+          {idea.location_type && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 capitalize">
+              {idea.location_type}
+            </span>
+          )}
+        </div>
         
         {/* Status Badge */}
         <StatusBadge status={status} />

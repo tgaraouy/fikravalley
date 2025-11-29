@@ -17,6 +17,7 @@ import { detectLanguage, type Language } from '@/lib/constants/tagline';
 import IdeaRewardScreen from '@/components/reward/IdeaRewardScreen';
 import VoiceFieldsConfirmation from '@/components/submission/VoiceFieldsConfirmation';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
+import PrivacyProtectionBadge from '@/components/PrivacyProtectionBadge';
 
 interface SimpleVoiceSubmitProps {
   onSubmit: (transcript: string, contactInfo: { email?: string; phone?: string; name?: string }, extractedData?: any) => void;
@@ -359,6 +360,9 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       <div className="min-h-screen bg-slate-50 p-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-slate-900">💡 Soumettre votre idée</h1>
+
+          {/* Privacy Protection Badge */}
+          <PrivacyProtectionBadge variant="full" showLink={true} />
 
           {/* Input Form - Replicate Test Page Flow */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">

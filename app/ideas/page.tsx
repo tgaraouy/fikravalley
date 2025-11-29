@@ -30,12 +30,19 @@ interface Idea {
   stage2_total?: number;
   receipt_count?: number;
   upvote_count?: number;
-  sdg_alignment?: number[];
+  sdg_alignment?: number[] | { sdgTags?: number[] } | null;
   funding_status?: string;
   qualification_tier?: 'exceptional' | 'qualified' | 'developing';
   created_at: string;
   submitter_name?: string;
   has_receipts?: boolean;
+  moroccan_priorities?: string[];
+  budget_tier?: string | null;
+  location_type?: string | null;
+  complexity?: string | null;
+  adoption_count?: number | null;
+  engagement_score?: number;
+  claim_count?: number;
 }
 
 interface IdeasResponse {
@@ -56,11 +63,17 @@ export default function IdeasPage() {
     location: searchParams.get('location') || '',
     scoreMin: parseInt(searchParams.get('scoreMin') || '0'),
     scoreMax: parseInt(searchParams.get('scoreMax') || '100'),
+    budget_tiers: searchParams.get('budget_tiers')?.split(',').filter(Boolean) || [],
+    complexities: searchParams.get('complexities')?.split(',').filter(Boolean) || [],
+    location_types: searchParams.get('location_types')?.split(',').filter(Boolean) || [],
+    sdg_tags: searchParams.get('sdg_tags')?.split(',').filter(Boolean) || [],
   });
   const [sort, setSort] = useState(searchParams.get('sort') || 'score_desc');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [ideas, setIdeas] = useState<IdeasResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [trending, setTrending] = useState<Idea[]>([]);
+  const [topIdeas, setTopIdeas] = useState<Idea[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -113,6 +126,28 @@ export default function IdeasPage() {
 
     fetchIdeas();
   }, [debouncedSearch, filters, sort, page]);
+
+  // Fetch trending & top ideas (once on load)
+  useEffect(() => {
+    const fetchHighlights = async () => {
+      try {
+        const [trendingRes, topRes] = await Promise.all([
+          fetch('/api/ideas/trending?limit=6'),
+          fetch('/api/ideas/top?limit=5'),
+        ]);
+        const trendingData = await trendingRes.json();
+        const topData = await topRes.json();
+        setTrending(trendingData.items || []);
+        setTopIdeas(topData.items || []);
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching trending/top ideas:', error);
+        }
+      }
+    };
+
+    fetchHighlights();
+  }, []);
 
   // Fetch search suggestions
   useEffect(() => {
@@ -191,6 +226,71 @@ export default function IdeasPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        {/* Trending & Top 5 */}
+        {(trending.length > 0 || topIdeas.length > 0) && (
+          <div className="mb-10 grid lg:grid-cols-3 gap-6">
+            {trending.length > 0 && (
+              <div className="lg:col-span-2 bg-white rounded-2xl shadow-md border border-amber-100 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>🔥 Trending Ideas</span>
+                    <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
+                      Top {trending.length}
+                    </span>
+                  </h2>
+                  <span className="text-xs text-slate-500">
+                    Basé sur likes, validations et claims GenZ
+                  </span>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {trending.map((idea) => (
+                    <IdeaCard key={idea.id} idea={idea} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {topIdeas.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-md border border-green-100 p-5">
+                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <span>🏆 Top 5</span>
+                  <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                    Plus engageantes
+                  </span>
+                </h2>
+                <div className="space-y-3">
+                  {topIdeas.map((idea, index) => (
+                    <button
+                      key={idea.id}
+                      onClick={() => {
+                        window.location.href = `/ideas/${idea.id}`;
+                      }}
+                      className="w-full flex items-start justify-between gap-2 p-2 rounded-lg hover:bg-slate-50 text-left"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900 line-clamp-2">
+                            {idea.title}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {idea.location} • {idea.category}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-500 text-right">
+                        <div>🔥 score</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
           {/* Filters Sidebar */}
           <div className="lg:col-span-3">
@@ -267,6 +367,10 @@ export default function IdeasPage() {
                           location: '',
                           scoreMin: 15,
                           scoreMax: 40,
+                          budget_tiers: [],
+                          complexities: [],
+                          location_types: [],
+                          sdg_tags: [],
                         });
                       }}
                       className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

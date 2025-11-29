@@ -8,6 +8,7 @@ import Logo from '@/components/Logo';
 import UserMenu from '@/components/UserMenu';
 import EngagingFooter from '@/components/footer/EngagingFooter';
 import PWARegister from '@/components/PWARegister';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 
 import './globals.css';
 
@@ -19,7 +20,7 @@ import { APP_TAGLINE } from '@/lib/constants/tagline';
 export const metadata: Metadata = {
   title: 'Fikra Valley - Transforme ton idée en entreprise avec ta voix',
   description: APP_TAGLINE.meta.fr,
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={cn('min-h-screen bg-sand-50 text-slate-900 antialiased font-sans', inter.variable, outfit.variable)} suppressHydrationWarning>
         <PWARegister />
+        <PWAInstallPrompt />
         {/* Simple Navigation Bar */}
         <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 gap-6">

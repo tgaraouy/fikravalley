@@ -16,11 +16,13 @@ export default function manifest(): MetadataRoute.Manifest {
                 src: '/png/FikraValley_flag_logo.png',
                 sizes: '192x192',
                 type: 'image/png',
+                purpose: 'any',
             },
             {
                 src: '/png/FikraValley_flag_logo.png',
                 sizes: '512x512',
                 type: 'image/png',
+                purpose: 'any',
             },
         ],
         categories: ['business', 'productivity', 'education'],
