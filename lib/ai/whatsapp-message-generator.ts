@@ -6,6 +6,7 @@
  */
 
 import { anthropic, CLAUDE_MODEL } from '@/lib/anthropic';
+import { generateValidationPaymentLink } from '@/lib/payments/mobile-money';
 
 export interface CustomerMessageParams {
   ideaTitle: string;
@@ -13,6 +14,7 @@ export interface CustomerMessageParams {
   customerName?: string;
   paymentLink?: string;
   amount?: number; // in DH
+  idea_id?: string; // For auto-generating payment link
 }
 
 /**
@@ -21,8 +23,18 @@ export interface CustomerMessageParams {
  */
 export async function generateCustomerMessage(
   params: CustomerMessageParams
-): Promise<string> {
-  const { ideaTitle, problemStatement, customerName, paymentLink, amount = 10 } = params;
+): Promise<{ message: string; paymentLink?: string; paymentInstructions?: string }> {
+  const { ideaTitle, problemStatement, customerName, paymentLink, amount = 3, idea_id } = params;
+
+  // Auto-generate payment link if not provided but idea_id is available
+  let finalPaymentLink = paymentLink;
+  let paymentInstructions = '';
+  
+  if (!finalPaymentLink && idea_id) {
+    const paymentData = generateValidationPaymentLink(idea_id, ideaTitle, customerName, amount);
+    finalPaymentLink = paymentData.link;
+    paymentInstructions = paymentData.instructions;
+  }
 
   const prompt = `Génère un message WhatsApp en Darija marocaine pour valider une idée d'entreprise.
 
@@ -64,11 +76,15 @@ Génère UNIQUEMENT le message, sans explication.`;
     if (customerName) {
       message = message.replace(/\[nom client\]/gi, customerName);
     }
-    if (paymentLink) {
-      message = message.replace(/\[payment_link\]/gi, paymentLink);
+    if (finalPaymentLink) {
+      message = message.replace(/\[payment_link\]/gi, finalPaymentLink);
     }
 
-    return message;
+    return {
+      message,
+      paymentLink: finalPaymentLink,
+      paymentInstructions,
+    };
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Error generating customer message:', error);
@@ -77,17 +93,32 @@ Génère UNIQUEMENT le message, sans explication.`;
   }
 }
 
-function getFallbackMessage(params: CustomerMessageParams): string {
-  const { ideaTitle, problemStatement, customerName, paymentLink, amount = 10 } = params;
+function getFallbackMessage(params: CustomerMessageParams): { message: string; paymentLink?: string; paymentInstructions?: string } {
+  const { ideaTitle, problemStatement, customerName, paymentLink, amount = 3, idea_id } = params;
   const name = customerName || '[nom client]';
   const problem = problemStatement.substring(0, 100) + '...';
-  const link = paymentLink || '[payment_link]';
+  
+  // Auto-generate payment link if not provided
+  let finalPaymentLink = paymentLink;
+  let paymentInstructions = '';
+  
+  if (!finalPaymentLink && idea_id) {
+    const paymentData = generateValidationPaymentLink(idea_id, ideaTitle, customerName, amount);
+    finalPaymentLink = paymentData.link;
+    paymentInstructions = paymentData.instructions;
+  }
+  
+  const link = finalPaymentLink || '[payment_link]';
 
-  return `Salam ${name}, je teste une idée: ${ideaTitle}. 
+  return {
+    message: `Salam ${name}, je teste une idée: ${ideaTitle}. 
 
 Ça résout: ${problem}
 
-Tu veux l'essayer? ${amount} DH seulement. ${link}`;
+Tu veux l'essayer? ${amount} DH seulement. ${link}`,
+    paymentLink: finalPaymentLink,
+    paymentInstructions,
+  };
 }
 
 /**

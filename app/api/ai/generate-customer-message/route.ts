@@ -30,16 +30,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Idea not found' }, { status: 404 });
     }
 
-    // Generate message
-    const message = await generateCustomerMessage({
+    // Generate message with payment link
+    const result = await generateCustomerMessage({
       ideaTitle: idea.title,
       problemStatement: idea.problem_statement,
       customerName: customer_name,
       paymentLink: payment_link,
-      amount: amount || 10,
+      amount: amount || 3, // Default to 3 DH for validation
+      idea_id: idea_id,
     });
 
-    return NextResponse.json({ message });
+    return NextResponse.json({
+      message: result.message,
+      paymentLink: result.paymentLink,
+      paymentInstructions: result.paymentInstructions,
+    });
   } catch (error: any) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Error generating customer message:', error);
