@@ -18,9 +18,8 @@ interface Filters {
   scoreMin: number;
   scoreMax: number;
   budget_tiers: string[];
-  complexities: string[];
   location_types: string[];
-  sdg_tags: string[];
+  // complexities and sdg_tags removed - internal matching only, not user-facing
 }
 
 interface FilterSidebarProps {
@@ -57,11 +56,10 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   const [expandedSections, setExpandedSections] = useState({
     priorities: true, // Morocco priorities - always prominent
     budget: false,
-    skill: false,
     locationType: false,
     location: true,
-    sdg: false, // SDG filter - collapsed by default (secondary)
     score: true,
+    // skill and sdg removed - internal matching only, not user-facing
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -103,9 +101,8 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
       scoreMin: 15,
       scoreMax: 40,
       budget_tiers: [],
-      complexities: [],
       location_types: [],
-      sdg_tags: [],
+      // complexities and sdg_tags removed - internal matching only
     });
   };
 
@@ -113,9 +110,7 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
     (filters.priorities && filters.priorities.length > 0) ||
     (filters.sectors && filters.sectors.length > 0) ||
     (filters.budget_tiers && filters.budget_tiers.length > 0) ||
-    (filters.complexities && filters.complexities.length > 0) ||
     (filters.location_types && filters.location_types.length > 0) ||
-    (filters.sdg_tags && filters.sdg_tags.length > 0) ||
     filters.location ||
     filters.scoreMin !== 15 ||
     filters.scoreMax !== 40;
@@ -190,26 +185,8 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
           </div>
         </div>
 
-        {/* 🎯 Skill Level */}
-        <div>
-          <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <span>🎯</span>
-            Niveau de Compétence
-          </h3>
-          <div className="space-y-1 text-sm">
-            {['beginner', 'intermediate', 'advanced'].map((lvl) => (
-              <label key={lvl} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={(filters.complexities || []).includes(lvl)}
-                  onChange={() => toggleArrayFilter('complexities', lvl)}
-                  className="w-4 h-4 text-green-600 border-slate-300 rounded focus:ring-green-500"
-                />
-                <span className="capitalize text-xs">{lvl}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+        {/* 🎯 Skill Level - HIDDEN from public UI (internal matching only) */}
+        {/* Complexity filter removed - used for internal mentor matching, not user-facing */}
 
         {/* 📍 Location Type */}
         <div>

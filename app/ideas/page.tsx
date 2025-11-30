@@ -64,9 +64,8 @@ export default function IdeasPage() {
     scoreMin: parseInt(searchParams.get('scoreMin') || '0'),
     scoreMax: parseInt(searchParams.get('scoreMax') || '100'),
     budget_tiers: searchParams.get('budget_tiers')?.split(',').filter(Boolean) || [],
-    complexities: searchParams.get('complexities')?.split(',').filter(Boolean) || [],
     location_types: searchParams.get('location_types')?.split(',').filter(Boolean) || [],
-    sdg_tags: searchParams.get('sdg_tags')?.split(',').filter(Boolean) || [],
+    // complexities and sdg_tags removed - internal matching only, not user-facing
   });
   const [sort, setSort] = useState(searchParams.get('sort') || 'score_desc');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
@@ -368,9 +367,8 @@ export default function IdeasPage() {
                           scoreMin: 15,
                           scoreMax: 40,
                           budget_tiers: [],
-                          complexities: [],
                           location_types: [],
-                          sdg_tags: [],
+                          // complexities and sdg_tags removed - internal matching only
                         });
                       }}
                       className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
