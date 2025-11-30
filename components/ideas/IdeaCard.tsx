@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { LikeButton } from './LikeButton';
 import { MOROCCO_PRIORITIES } from '@/lib/idea-bank/scoring/morocco-priorities';
-import { SDGBadgesList } from './SDGBadge';
+// SDG badges removed from public UI - background metadata only
 
 interface Idea {
   id: string;
@@ -185,38 +185,18 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           </div>
         )}
 
-        {/* SDG Badges (Secondary - below Morocco priorities) */}
-        {(() => {
-          let sdgNumbers: number[] = [];
-          if (idea.sdg_alignment) {
-            if (Array.isArray(idea.sdg_alignment)) {
-              sdgNumbers = idea.sdg_alignment;
-            } else if (typeof idea.sdg_alignment === 'object' && idea.sdg_alignment.sdgTags) {
-              sdgNumbers = idea.sdg_alignment.sdgTags;
-            }
-          }
-          return sdgNumbers.length > 0 ? (
-            <div className="mb-2">
-              <SDGBadgesList sdgNumbers={sdgNumbers} size="sm" maxDisplay={3} />
-            </div>
-          ) : null;
-        })()}
+        {/* SDG Badges - HIDDEN from public UI (background metadata for funders only) */}
         
         {/* Description */}
         <p className="text-gray-600 text-sm line-clamp-3 mb-3 leading-relaxed">
           {displayDescription}
         </p>
 
-        {/* Budget / Complexity / Location Type */}
+        {/* Budget / Location Type - Complexity hidden (internal matching only) */}
         <div className="flex gap-2 flex-wrap mb-3 text-[11px]">
           {formatBudgetTier(idea.budget_tier) && (
             <span className="px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100">
               {formatBudgetTier(idea.budget_tier)}
-            </span>
-          )}
-          {idea.complexity && (
-            <span className="px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-100 capitalize">
-              {idea.complexity}
             </span>
           )}
           {idea.location_type && (
@@ -224,6 +204,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
               {idea.location_type}
             </span>
           )}
+          {/* Complexity badge removed - used for internal matching only, not user-facing */}
         </div>
         
         {/* Status Badge */}

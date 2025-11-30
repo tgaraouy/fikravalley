@@ -248,46 +248,8 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
           </div>
         </div>
 
-        {/* 🌍 SDG Alignment (Secondary) */}
-        <div>
-          <button
-            type="button"
-            onClick={() => toggleSection('sdg')}
-            className="w-full flex items-center justify-between text-sm font-semibold text-slate-800 mb-2"
-          >
-            <div className="flex items-center gap-2">
-              <span>🌍</span>
-              <span>ODD (secondaire)</span>
-            </div>
-            <span className="text-xs text-slate-500">{expandedSections.sdg ? '−' : '+'}</span>
-          </button>
-          {expandedSections.sdg && (
-            <div className="space-y-1.5 max-h-64 overflow-y-auto">
-              {getAllSDGNumbers().map((sdgNum) => {
-                const sdgInfo = getSDGInfo(sdgNum);
-                if (!sdgInfo) return null;
-                return (
-                  <label
-                    key={sdgNum}
-                    className="flex items-center gap-2 cursor-pointer hover:text-green-600 transition-colors text-xs"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={(filters.sdg_tags || []).includes(sdgNum.toString())}
-                      onChange={() => toggleArrayFilter('sdg_tags', sdgNum.toString())}
-                      className="w-3.5 h-3.5 text-green-600 border-slate-300 rounded focus:ring-green-500"
-                    />
-                    <div className="flex items-center gap-1.5 flex-1">
-                      <span>{sdgInfo.icon}</span>
-                      <span className="font-medium">ODD {sdgNum}</span>
-                      <span className="text-slate-500 text-xs truncate">{sdgInfo.nameFr}</span>
-                    </div>
-                  </label>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {/* 🌍 SDG Alignment - HIDDEN from public UI (background metadata only) */}
+        {/* SDG tags are used internally for funder matching, not user-facing filters */}
 
         {/* Score Range */}
         <div>

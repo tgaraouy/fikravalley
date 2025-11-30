@@ -15,6 +15,7 @@ import {
 import { LikeButton } from '@/components/ideas/LikeButton';
 import { CommentsSection } from '@/components/ideas/CommentsSection';
 import { ReviewsSection } from '@/components/ideas/ReviewsSection';
+import { GenerateMessageButton } from '@/components/ideas/GenerateMessageButton';
 
 interface Idea {
   id: string;
@@ -257,12 +258,17 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
               <span>Share on WhatsApp</span>
             </button>
 
+            <GenerateMessageButton
+              ideaId={idea.id}
+              ideaTitle={displayTitle}
+              problemStatement={idea.problem_statement}
+            />
             <button
               onClick={() => setIsClaiming(true)}
               className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition-colors shadow-md"
             >
               <span className="text-lg">🚀</span>
-              <span>Je lance ce projet</span>
+              <span>Je teste cette idée</span>
             </button>
           </div>
           
@@ -388,10 +394,11 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
               ×
             </button>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">
-              Tu veux lancer cette idée ?
+              Tu veux tester cette idée ?
             </h2>
             <p className="text-sm text-slate-600 mb-4">
-              Dis-nous qui tu es (ou votre équipe). On prépare le kit de lancement (mentor, plan d&apos;action, docs).
+              <strong>3 conversations, 1 payment de 10 DH.</strong> C'est tout ce qu'il faut pour valider. 
+              On te génère les messages WhatsApp et un mentor te contacte seulement si tu bloques.
             </p>
 
             <form
@@ -410,7 +417,7 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
                     alert(data.error || 'Impossible de sauvegarder ton engagement. Réessaie.');
                     return;
                   }
-                  alert("✅ C'est noté ! Ton équipe GenZ a pris cette idée. On prépare la suite (mentor + plan).");
+                  alert("✅ C'est noté ! On te génère les messages WhatsApp pour tes 3 conversations. Un mentor te contacte seulement si tu as besoin d'aide.");
                   setIsClaiming(false);
                   setClaimForm({
                     claimer_name: '',
