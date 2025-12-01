@@ -234,7 +234,15 @@ IMPORTANT:
       cleaned = jsonMatch[0];
     }
 
-    const analysis = JSON.parse(cleaned) as MarketAnalysis;
+    // Try to parse JSON with better error handling
+    let analysis: MarketAnalysis;
+    try {
+      analysis = JSON.parse(cleaned) as MarketAnalysis;
+    } catch (parseError: any) {
+      console.error(`JSON parse error for idea ${idea.id}:`, parseError.message);
+      console.error('Response text (first 500 chars):', cleaned.substring(0, 500));
+      throw new Error(`Failed to parse JSON: ${parseError.message}`);
+    }
     
     // Ensure required fields
     if (!analysis.analyzed_at) {
@@ -247,6 +255,12 @@ IMPORTANT:
     return analysis;
   } catch (error: any) {
     console.error(`Error generating analysis for idea ${idea.id}:`, error.message);
+    if (error.response) {
+      console.error('API Response:', error.response.status, error.response.statusText);
+    }
+    if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+      console.error('⚠️  Rate limit hit - will retry on next run');
+    }
     return null;
   }
 }
@@ -288,8 +302,9 @@ async function analyzeIdea(idea: any, progress: Progress, provider: 'anthropic' 
 
     return true;
   } catch (error: any) {
-    console.error(`❌ Error analyzing ${idea.id}:`, error.message);
-    progress.failed.push({ id: idea.id, error: error.message });
+    const errorMessage = error.message || error.toString() || 'Unknown error';
+    console.error(`❌ Error analyzing ${idea.id}:`, errorMessage);
+    progress.failed.push({ id: idea.id, error: errorMessage });
     saveProgress(progress);
     return false;
   }
