@@ -16,6 +16,7 @@ import { LikeButton } from '@/components/ideas/LikeButton';
 import { CommentsSection } from '@/components/ideas/CommentsSection';
 import { ReviewsSection } from '@/components/ideas/ReviewsSection';
 import { GenerateMessageButton } from '@/components/ideas/GenerateMessageButton';
+import { MarketAnalysisSection } from '@/components/ideas/MarketAnalysisSection';
 
 interface Idea {
   id: string;
@@ -353,6 +354,18 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
             {/* Reviews Section */}
             <div className="mt-8">
               <ReviewsSection ideaId={idea.id} />
+            </div>
+
+            {/* Market Analysis Section */}
+            <div className="mt-8">
+              <MarketAnalysisSection
+                ideaId={idea.id}
+                ideaTitle={displayTitle}
+                problemStatement={idea.problem_statement}
+                proposedSolution={idea.proposed_solution}
+                category={idea.category}
+                location={idea.location}
+              />
             </div>
             
           </div>

@@ -60,6 +60,7 @@ export async function GET(
         roi_time_saved_hours,
         roi_cost_saved_eur,
         alignment,
+        ai_market_analysis,
         created_at,
         updated_at
       `)
