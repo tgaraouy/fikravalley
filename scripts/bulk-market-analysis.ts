@@ -102,7 +102,7 @@ async function generateMarketAnalysis(
     category?: string | null;
     location?: string | null;
   },
-  provider: 'anthropic' | 'openai' | 'gemini' = 'anthropic'
+  provider: 'anthropic' | 'openai' | 'gemini' | 'openrouter' = 'anthropic'
 ): Promise<MarketAnalysis | null> {
   const prompt = `Analyze the market potential for this Moroccan startup idea:
 
@@ -213,18 +213,29 @@ IMPORTANT:
           throw new Error('GEMINI_API_KEY not found');
         }
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Try gemini-1.5-flash-latest first, fallback to gemini-pro if needed
-        try {
-          const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
-          const result = await model.generateContent(prompt);
-          responseText = result.response.text();
-        } catch (flashError: any) {
-          // Fallback to gemini-pro if flash model not available
-          console.warn('gemini-1.5-flash-latest not available, trying gemini-pro...');
-          const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-          const result = await model.generateContent(prompt);
-          responseText = result.response.text();
+        // Skip Gemini for now - model names are inconsistent
+        // Use OpenRouter or other providers instead
+        throw new Error('Gemini provider temporarily disabled - use OpenRouter instead');
+      }
+
+      case 'openrouter': {
+        if (!process.env.OPENROUTER_API_KEY) {
+          throw new Error('OPENROUTER_API_KEY not found');
         }
+        const openrouter = new OpenAI({
+          baseURL: 'https://openrouter.ai/api/v1',
+          apiKey: process.env.OPENROUTER_API_KEY,
+          defaultHeaders: {
+            'HTTP-Referer': 'https://fikravalley.com',
+            'X-Title': 'Fikra Valley Market Analysis',
+          },
+        });
+        const response = await openrouter.chat.completions.create({
+          model: 'anthropic/claude-3.5-sonnet',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 4000,
+        });
+        responseText = response.choices[0]?.message?.content || '';
         break;
       }
     }
@@ -277,7 +288,7 @@ IMPORTANT:
 async function analyzeIdea(
   idea: any, 
   progress: Progress, 
-  providers: Array<'anthropic' | 'openai' | 'gemini'>,
+  providers: Array<'anthropic' | 'openai' | 'gemini' | 'openrouter'>,
   providerIndex: number
 ): Promise<boolean> {
   // Skip if already analyzed
