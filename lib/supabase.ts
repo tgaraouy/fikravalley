@@ -37,6 +37,41 @@ export interface Database {
           ai_category_suggested: string | null;
           ai_cost_estimate: string | null;
           ai_impact_score: number | null;
+          ai_market_analysis: {
+            analyzed_at?: string;
+            market_size?: {
+              value?: string;
+              unit?: string;
+              description?: string;
+            };
+            competitors?: Array<{
+              name?: string;
+              description?: string;
+              market_share?: string;
+            }>;
+            trends?: string[];
+            potential?: {
+              short_term?: string;
+              long_term?: string;
+              scalability?: string;
+            };
+            risks?: Array<{
+              type?: string;
+              description?: string;
+              mitigation?: string;
+            }>;
+            opportunities?: Array<{
+              area?: string;
+              description?: string;
+              impact?: string;
+            }>;
+            sources?: Array<{
+              title?: string;
+              url?: string;
+              type?: string;
+            }>;
+            confidence_score?: number;
+          } | null;
           analysis_completed_at: string | null;
           matched_diaspora: string[] | null;
           matching_score: number | null;
