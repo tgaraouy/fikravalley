@@ -11,7 +11,8 @@
     "test:ai": "tsx scripts/test-ai-validation.ts",
     "test:agent1": "tsx scripts/test-agent-1.ts",
     "seed:ai-ideas": "tsx scripts/seed-ai-startup-ideas.ts",
-    "backfill:morocco": "tsx scripts/backfill-moroccan-metadata.ts"
+    "backfill:morocco": "tsx scripts/backfill-moroccan-metadata.ts",
+    "analyze:market": "tsx scripts/bulk-market-analysis.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.71",
