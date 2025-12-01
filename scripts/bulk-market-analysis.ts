@@ -369,7 +369,7 @@ async function main() {
   if (process.env.GEMINI_API_KEY) providers.push('gemini');
 
   if (providers.length === 0) {
-    throw new Error('No LLM API keys found. Need at least one of: ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY');
+    throw new Error('No LLM API keys found. Need at least one of: ANTHROPIC_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, GEMINI_API_KEY');
   }
 
   console.log(`🔑 Available providers: ${providers.join(', ')}\n`);
