@@ -213,9 +213,10 @@ IMPORTANT:
           throw new Error('GEMINI_API_KEY not found');
         }
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Skip Gemini for now - model names are inconsistent
-        // Use OpenRouter or other providers instead
-        throw new Error('Gemini provider temporarily disabled - use OpenRouter instead');
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const result = await model.generateContent(prompt);
+        responseText = result.response.text();
+        break;
       }
 
       case 'openrouter': {
