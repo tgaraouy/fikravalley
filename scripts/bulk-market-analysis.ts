@@ -363,9 +363,10 @@ async function main() {
   console.log(`❌ Failed: ${progress.failed.length} ideas failed\n`);
 
   // Determine provider
-  const providers: Array<'anthropic' | 'openai' | 'gemini'> = [];
+  const providers: Array<'anthropic' | 'openai' | 'gemini' | 'openrouter'> = [];
   if (process.env.ANTHROPIC_API_KEY) providers.push('anthropic');
   if (process.env.OPENAI_API_KEY) providers.push('openai');
+  if (process.env.OPENROUTER_API_KEY) providers.push('openrouter');
   if (process.env.GEMINI_API_KEY) providers.push('gemini');
 
   if (providers.length === 0) {
