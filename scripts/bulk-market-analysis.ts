@@ -213,9 +213,18 @@ IMPORTANT:
           throw new Error('GEMINI_API_KEY not found');
         }
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-        const result = await model.generateContent(prompt);
-        responseText = result.response.text();
+        // Try gemini-1.5-flash-latest first, fallback to gemini-pro if needed
+        try {
+          const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+          const result = await model.generateContent(prompt);
+          responseText = result.response.text();
+        } catch (flashError: any) {
+          // Fallback to gemini-pro if flash model not available
+          console.warn('gemini-1.5-flash-latest not available, trying gemini-pro...');
+          const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+          const result = await model.generateContent(prompt);
+          responseText = result.response.text();
+        }
         break;
       }
     }
@@ -265,7 +274,12 @@ IMPORTANT:
   }
 }
 
-async function analyzeIdea(idea: any, progress: Progress, provider: 'anthropic' | 'openai' | 'gemini'): Promise<boolean> {
+async function analyzeIdea(
+  idea: any, 
+  progress: Progress, 
+  providers: Array<'anthropic' | 'openai' | 'gemini'>,
+  providerIndex: number
+): Promise<boolean> {
   // Skip if already analyzed
   if (progress.analyzed.includes(idea.id)) {
     console.log(`⏭️  Skipping ${idea.id} - already analyzed`);
@@ -274,40 +288,58 @@ async function analyzeIdea(idea: any, progress: Progress, provider: 'anthropic' 
 
   console.log(`\n📊 Analyzing: ${idea.title.substring(0, 50)}... (${idea.id.substring(0, 8)})`);
 
-  try {
-    const analysis = await generateMarketAnalysis(idea, provider);
+  // Try each provider until one works
+  let lastError: Error | null = null;
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[(providerIndex + i) % providers.length];
+    
+    try {
+      console.log(`   Trying provider: ${provider}...`);
+      const analysis = await generateMarketAnalysis(idea, provider);
 
-    if (!analysis) {
-      throw new Error('Failed to generate analysis');
+      if (!analysis) {
+        throw new Error(`Failed to generate analysis with ${provider}`);
+      }
+
+      // Save to database
+      const { error } = await supabase
+        .from('marrai_ideas')
+        .update({ ai_market_analysis: analysis })
+        .eq('id', idea.id);
+
+      if (error) {
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      // Update progress
+      progress.analyzed.push(idea.id);
+      progress.totalAnalyzed = progress.analyzed.length;
+      saveProgress(progress);
+
+      console.log(`✅ Analyzed: ${idea.title.substring(0, 50)}`);
+      console.log(`   Provider: ${provider}`);
+      console.log(`   Confidence: ${(analysis.confidence_score || 0) * 100}%`);
+      console.log(`   Progress: ${progress.totalAnalyzed} analyzed`);
+
+      return true; // Success - exit the provider loop
+    } catch (error: any) {
+      const errorMessage = error.message || error.toString() || 'Unknown error';
+      console.warn(`   ⚠️  ${provider} failed: ${errorMessage.substring(0, 80)}`);
+      lastError = error;
+      
+      // If this is not the last provider, try the next one
+      if (i < providers.length - 1) {
+        continue;
+      }
     }
-
-    // Save to database
-    const { error } = await supabase
-      .from('marrai_ideas')
-      .update({ ai_market_analysis: analysis })
-      .eq('id', idea.id);
-
-    if (error) {
-      throw new Error(`Database error: ${error.message}`);
-    }
-
-    // Update progress
-    progress.analyzed.push(idea.id);
-    progress.totalAnalyzed = progress.analyzed.length;
-    saveProgress(progress);
-
-    console.log(`✅ Analyzed: ${idea.title.substring(0, 50)}`);
-    console.log(`   Confidence: ${(analysis.confidence_score || 0) * 100}%`);
-    console.log(`   Progress: ${progress.totalAnalyzed} analyzed`);
-
-    return true;
-  } catch (error: any) {
-    const errorMessage = error.message || error.toString() || 'Unknown error';
-    console.error(`❌ Error analyzing ${idea.id}:`, errorMessage);
-    progress.failed.push({ id: idea.id, error: errorMessage });
-    saveProgress(progress);
-    return false;
   }
+
+  // All providers failed
+  const errorMessage = lastError?.message || 'All providers failed';
+  console.error(`❌ Error analyzing ${idea.id}: All providers failed. Last error: ${errorMessage}`);
+  progress.failed.push({ id: idea.id, error: errorMessage });
+  saveProgress(progress);
+  return false;
 }
 
 async function main() {
@@ -380,10 +412,8 @@ async function main() {
     console.log(`\n📦 Processing batch ${Math.floor(i / batchSize) + 1} (${batch.length} ideas)...\n`);
 
     for (const idea of batch) {
-      const provider = providers[providerIndex % providers.length];
+      await analyzeIdea(idea, progress, providers, providerIndex);
       providerIndex++;
-
-      await analyzeIdea(idea, progress, provider);
 
       // Delay between ideas
       if (i + batch.length < toAnalyze.length) {
