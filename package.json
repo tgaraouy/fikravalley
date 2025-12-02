@@ -14,7 +14,10 @@
     "backfill:morocco": "tsx scripts/backfill-moroccan-metadata.ts",
     "analyze:market": "tsx scripts/bulk-market-analysis.ts",
     "verify:market": "tsx scripts/verify-market-analysis.ts",
-    "generate:embeddings": "tsx scripts/generate-idea-embeddings.ts"
+    "generate:embeddings": "tsx scripts/generate-idea-embeddings.ts",
+    "check:ideas": "tsx scripts/check-ideas-data.ts",
+    "restore:visibility": "tsx scripts/restore-ideas-visibility.ts",
+    "check:idea": "tsx scripts/check-specific-idea.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.71",

@@ -19,6 +19,7 @@ import { ReviewsSection } from '@/components/ideas/ReviewsSection';
 import { GenerateMessageButton } from '@/components/ideas/GenerateMessageButton';
 import { MarketAnalysisSection } from '@/components/ideas/MarketAnalysisSection';
 import { SimilarIdeas } from '@/components/ideas/SimilarIdeas';
+import { ProblemSharpness } from '@/components/ideas/ProblemSharpness';
 
 interface Idea {
   id: string;
@@ -220,7 +221,8 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
   const intimacyScore = Math.round(((idea.total_score || 0) - clarityDecisionScore) * 10 / 10);
   const receipts = idea.receipt_count || 0;
   
-  const getSectorIcon = (category: string): string => {
+  const getSectorIcon = (category: string | null | undefined): string => {
+    if (!category) return '💡';
     const icons: Record<string, string> = {
       'agriculture': '🌾', 'education': '🎓', 'health': '🏥', 'healthcare': '🏥',
       'technology': '💻', 'fintech': '💳', 'finance': '💰', 'e-commerce': '🛒',
@@ -307,15 +309,17 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-center gap-4 flex-wrap mb-6">
             <StatusBadge status={status} large />
             
-            <LikeButton 
-              ideaId={idea.id}
-              initialCount={likes}
-              initialIsLiked={isLiked}
-              onLikeChange={(count, isLiked) => {
-                setLikes(count);
-                setIsLiked(isLiked);
-              }}
-            />
+            {idea?.id && (
+              <LikeButton 
+                ideaId={idea.id}
+                initialCount={likes}
+                initialIsLiked={isLiked}
+                onLikeChange={(count, isLiked) => {
+                  setLikes(count);
+                  setIsLiked(isLiked);
+                }}
+              />
+            )}
             
             <button
               onClick={handleWhatsAppShare}
@@ -325,11 +329,13 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
               <span>Share on WhatsApp</span>
             </button>
 
-            <GenerateMessageButton
-              ideaId={idea.id}
-              ideaTitle={displayTitle}
-              problemStatement={idea.problem_statement}
-            />
+            {idea?.id && (
+              <GenerateMessageButton
+                ideaId={idea.id}
+                ideaTitle={displayTitle}
+                problemStatement={idea.problem_statement}
+              />
+            )}
             <button
               onClick={() => setIsClaiming(true)}
               className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition-colors shadow-md"
@@ -374,10 +380,12 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
               <span>{idea.location}</span>
             </div>
             
-            <div className="flex items-center gap-1">
-              <span>{getSectorIcon(idea.category)}</span>
-              <span className="capitalize">{idea.category}</span>
-            </div>
+            {idea.category && (
+              <div className="flex items-center gap-1">
+                <span>{getSectorIcon(idea.category)}</span>
+                <span className="capitalize">{idea.category}</span>
+              </div>
+            )}
             
             <div className="flex items-center gap-1">
               <span>📅</span>
@@ -424,38 +432,46 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
             )}
             
             {/* Comments Section */}
-            <div className="mt-12">
-              <CommentsSection ideaId={idea.id} />
-            </div>
+            {idea?.id && (
+              <div className="mt-12">
+                <CommentsSection ideaId={idea.id} />
+              </div>
+            )}
             
             {/* Reviews Section */}
-            <div className="mt-8">
-              <ReviewsSection ideaId={idea.id} />
-            </div>
+            {idea?.id && (
+              <div className="mt-8">
+                <ReviewsSection ideaId={idea.id} />
+              </div>
+            )}
 
             {/* Market Analysis Section */}
-            <div className="mt-8">
-              <MarketAnalysisSection
-                ideaId={idea.id}
-                ideaTitle={displayTitle}
-                problemStatement={idea.problem_statement}
-                proposedSolution={idea.proposed_solution}
-                category={idea.category}
-                location={idea.location}
-              />
-            </div>
+            {idea?.id && (
+              <div className="mt-8">
+                <MarketAnalysisSection
+                  ideaId={idea.id}
+                  ideaTitle={displayTitle}
+                  problemStatement={idea.problem_statement}
+                  proposedSolution={idea.proposed_solution}
+                  category={idea.category}
+                  location={idea.location}
+                />
+              </div>
+            )}
             
           </div>
           
           {/* Sidebar (1/3) */}
           <div className="lg:col-span-1">
-            <Sidebar 
-              receipts={receipts}
-              intimacy={intimacyScore}
-              likes={likes}
-              createdAt={idea.created_at}
-              ideaId={idea.id}
-            />
+            {idea?.id && (
+              <Sidebar 
+                receipts={receipts}
+                intimacy={intimacyScore}
+                likes={likes}
+                createdAt={idea.created_at}
+                ideaId={idea.id}
+              />
+            )}
           </div>
           
         </div>
@@ -755,12 +771,29 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
 
 // Overview Tab Component
 function OverviewTab({ idea }: { idea: Idea }) {
+  const [problemStatement, setProblemStatement] = useState(idea.problem_statement);
+
   return (
     <div className="space-y-6">
       
+      {/* Problem Sharpness Tool */}
+      {idea?.id && (
+        <ProblemSharpness
+          ideaId={idea.id}
+          currentProblem={problemStatement}
+          onProblemUpdated={(newProblem) => {
+            setProblemStatement(newProblem);
+            // Update local idea state
+            if (idea) {
+              idea.problem_statement = newProblem;
+            }
+          }}
+        />
+      )}
+      
       <Section title="The Problem">
         <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-          {idea.problem_statement}
+          {problemStatement}
         </p>
       </Section>
       
