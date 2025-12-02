@@ -18,7 +18,10 @@ self.addEventListener('install', (event) => {
         '/png/FikraValley_flag_logo.png',
         '/favicon.ico',
       ]).catch((err) => {
-        console.error('Cache addAll failed:', err);
+        // Silently fail in production
+        if (self.location.hostname === 'localhost') {
+          console.error('Cache addAll failed:', err);
+        }
       });
     })
   );
@@ -52,6 +55,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Skip Next.js internal routes (image optimization, static assets, etc.)
+  if (event.request.url.includes('/_next/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
@@ -69,7 +77,9 @@ self.addEventListener('fetch', (event) => {
               contentType.includes('image/'))
           ) {
             caches.open(RUNTIME_CACHE).then((cache) => {
-              cache.put(event.request, responseToCache);
+              cache.put(event.request, responseToCache).catch(() => {
+                // Silently fail cache writes
+              });
             });
           }
         }
@@ -78,38 +88,42 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => {
         // Fallback to cache if network fails
-        return caches.match(event.request).then((response) => {
-          if (response) {
-            return response;
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
           }
           // Return offline page for navigation requests
           if (event.request.mode === 'navigate') {
-            return caches.match('/').then((cachedResponse) => {
-              if (cachedResponse) {
-                return cachedResponse;
+            return caches.match('/').then((homeResponse) => {
+              if (homeResponse) {
+                return homeResponse;
               }
               // Return a basic offline response
               return new Response(
-                `
-                <!DOCTYPE html>
-                <html>
-                  <head>
-                    <title>Hors ligne - Fikra Valley</title>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1">
-                  </head>
-                  <body style="font-family: system-ui; text-align: center; padding: 2rem;">
-                    <h1>Vous êtes hors ligne</h1>
-                    <p>Vérifiez votre connexion internet et réessayez.</p>
-                  </body>
-                </html>
-              `,
+                `<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hors ligne - Fikra Valley</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body style="font-family: system-ui; text-align: center; padding: 2rem;">
+    <h1>Vous êtes hors ligne</h1>
+    <p>Vérifiez votre connexion internet et réessayez.</p>
+  </body>
+</html>`,
                 {
                   headers: { 'Content-Type': 'text/html' },
                 }
               );
             });
           }
+          // For non-navigation requests (images, fonts, etc.), return a 404-like response
+          // This prevents the "Failed to convert value to 'Response'" error
+          return new Response('', {
+            status: 404,
+            statusText: 'Not Found (offline)',
+          });
         });
       })
   );
@@ -131,10 +145,16 @@ async function syncFikraData() {
     });
 
     if (response.ok) {
-      console.log('Background sync successful');
+      // Log only in development
+      if (self.location.hostname === 'localhost') {
+        console.log('Background sync successful');
+      }
     }
   } catch (error) {
-    console.error('Background sync failed:', error);
+    // Log only in development
+    if (self.location.hostname === 'localhost') {
+      console.error('Background sync failed:', error);
+    }
     // Will retry automatically
   }
 }

@@ -17,16 +17,28 @@ export async function GET(
     const ideaId = id;
     const supabase = await createClient();
 
-    // Get all approved reviews for this idea
+    // Get reviews for this idea
+    // Note: Some deployments may not have the reviews table yet.
     const { data: reviews, error } = await supabase
       .from('marrai_idea_reviews')
       .select('*')
       .eq('idea_id', ideaId)
-      .eq('approved', true)
-      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) {
+      // If the table doesn't exist yet, gracefully degrade to empty stats
+      const code = (error as any)?.code;
+      if (code === '42P01') {
+        return NextResponse.json({
+          reviews: [],
+          stats: {
+            total: 0,
+            average: 0,
+            distribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+          },
+        });
+      }
+
       console.error('Error fetching reviews:', error);
       return NextResponse.json(
         { error: 'Failed to fetch reviews' },

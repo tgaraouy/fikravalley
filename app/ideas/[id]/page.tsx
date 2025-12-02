@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   HeartIcon, 
   ShareIcon, 
-  CheckIcon 
+  CheckIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { shareIdeaViaWhatsApp } from '@/lib/share/whatsapp-share';
 import {
@@ -17,6 +18,7 @@ import { CommentsSection } from '@/components/ideas/CommentsSection';
 import { ReviewsSection } from '@/components/ideas/ReviewsSection';
 import { GenerateMessageButton } from '@/components/ideas/GenerateMessageButton';
 import { MarketAnalysisSection } from '@/components/ideas/MarketAnalysisSection';
+import { SimilarIdeas } from '@/components/ideas/SimilarIdeas';
 
 interface Idea {
   id: string;
@@ -60,6 +62,25 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
     motivation: '',
   });
   const [ideaId, setIdeaId] = useState<string | null>(null);
+  const [isUIMockOpen, setIsUIMockOpen] = useState(false);
+  const [isUIMockLoading, setIsUIMockLoading] = useState(false);
+  const [uiMockError, setUIMockError] = useState<string | null>(null);
+  const [uiMock, setUIMock] = useState<{
+    layout: {
+      screen_title: string;
+      description?: string;
+      sections: Array<{
+        id?: string;
+        title: string;
+        description?: string;
+        suggested_components?: string[];
+        cta_buttons?: Array<{
+          label: string;
+          action_hint?: string;
+        }>;
+      }>;
+    };
+  } | null>(null);
   const justSubmitted = searchParams?.get('submitted') === 'true';
   
   // Unwrap params Promise
@@ -120,6 +141,51 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
     navigator.clipboard.writeText(window.location.href);
     setCopySuccess(true);
     setTimeout(() => setCopySuccess(false), 2000);
+  };
+
+  const handleGenerateUIMock = async () => {
+    if (!ideaId) return;
+    setIsUIMockLoading(true);
+    setUIMockError(null);
+    try {
+      const res = await fetch(`/api/ideas/${ideaId}/ui-mock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ locale: 'fr' }),
+      });
+      
+      // Check if response is JSON before parsing (avoid "Unexpected token <" error)
+      const contentType = res.headers.get('content-type') || '';
+      let data;
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        // Response is HTML (404 page) or other non-JSON
+        const text = await res.text();
+        setUIMockError(`Route not found (${res.status}). Please restart dev server.`);
+        return;
+      }
+      if (!res.ok) {
+        setUIMockError(data.error || 'Impossible de générer le mock UI.');
+      } else {
+        // API returns: { uiMock: { layout: {...}, meta: {...} } }
+        // Extract the uiMock object from the response
+        if (data.uiMock) {
+          setUIMock(data.uiMock);
+        } else {
+          // Fallback: if structure is different, use data directly
+          setUIMock(data);
+        }
+        setIsUIMockOpen(true);
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error generating UI mock:', error);
+      }
+      setUIMockError('Erreur réseau. Réessaie plus tard.');
+    } finally {
+      setIsUIMockLoading(false);
+    }
   };
   
   if (isLoading) {
@@ -270,6 +336,17 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
             >
               <span className="text-lg">🚀</span>
               <span>Je teste cette idée</span>
+            </button>
+
+            <button
+              onClick={handleGenerateUIMock}
+              disabled={isUIMockLoading}
+              className="flex items-center gap-2 px-4 py-2 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-lg font-semibold transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="text-lg">🎨</span>
+              <span>
+                {isUIMockLoading ? 'Mock UI…' : 'Mock UI (AI)'}
+              </span>
             </button>
           </div>
           
@@ -551,6 +628,126 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
       )}
+
+      {/* UI Mock Modal */}
+      {isUIMockOpen && uiMock && uiMock.layout && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 md:p-8 relative">
+            <button
+              onClick={() => setIsUIMockOpen(false)}
+              className="absolute top-3 right-4 text-slate-400 hover:text-slate-700 text-xl"
+            >
+              ×
+            </button>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              🎨 Mock UI (Gemini Nano Banana)
+            </h2>
+            <p className="text-sm text-slate-600 mb-4">
+              Esquisse d&apos;écran mobile pour cette idée. C&apos;est une
+              suggestion rapide pour designers et devs – rien n&apos;est stocké.
+            </p>
+
+            <div className="space-y-4">
+              <div className="border rounded-xl p-4 bg-slate-50">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {uiMock.layout.screen_title}
+                </h3>
+                {uiMock.layout.description && (
+                  <p className="text-sm text-slate-700 mt-1">
+                    {uiMock.layout.description}
+                  </p>
+                )}
+              </div>
+
+              {uiMock.layout.sections.map((section, idx) => (
+                <div
+                  key={section.id || idx}
+                  className="border rounded-xl p-4"
+                >
+                  <h4 className="text-base font-semibold text-slate-900 mb-1">
+                    {section.title}
+                  </h4>
+                  {section.description && (
+                    <p className="text-sm text-slate-700 mb-2">
+                      {section.description}
+                    </p>
+                  )}
+
+                  {section.suggested_components &&
+                    section.suggested_components.length > 0 && (
+                      <div className="mb-2">
+                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                          Composants suggérés
+                        </div>
+                        <ul className="list-disc list-inside text-sm text-slate-700 space-y-1">
+                          {section.suggested_components.map((comp, i) => (
+                            <li key={i}>{comp}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {section.cta_buttons && section.cta_buttons.length > 0 && (
+                    <div>
+                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                        Boutons d&apos;action
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {section.cta_buttons.map((btn, i) => (
+                          <div
+                            key={i}
+                            className="px-3 py-1 rounded-full border border-emerald-300 bg-emerald-50 text-xs text-emerald-800"
+                          >
+                            <span className="font-semibold">
+                              {btn.label}
+                            </span>
+                            {btn.action_hint && (
+                              <span className="ml-1 text-[11px] text-emerald-700">
+                                ({btn.action_hint})
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <div className="mt-4 flex justify-between items-center gap-3">
+                {uiMockError && (
+                  <p className="text-xs text-red-600">{uiMockError}</p>
+                )}
+                <div className="ml-auto flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!uiMock || !uiMock.layout) return;
+                      try {
+                        navigator.clipboard.writeText(
+                          JSON.stringify(uiMock.layout, null, 2)
+                        );
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                    className="px-3 py-1 text-xs border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50"
+                  >
+                    Copier JSON
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsUIMockOpen(false)}
+                    className="px-4 py-1 text-sm font-semibold text-slate-600 hover:text-slate-900"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       
     </div>
   );
@@ -751,15 +948,14 @@ function Sidebar({ receipts, intimacy, likes, createdAt, ideaId }: {
         </button>
       </div>
       
-      {/* Related Ideas */}
+      {/* Similar Ideas */}
       <div className="bg-white rounded-2xl shadow-lg p-6">
-        <h3 className="text-lg font-bold mb-4">Similar Ideas</h3>
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <SparklesIcon className="w-5 h-5 text-green-600" />
+          Similar Ideas
+        </h3>
         
-        <div className="space-y-3">
-          <div className="text-sm text-gray-500 text-center py-4">
-            Related ideas coming soon
-          </div>
-        </div>
+        <SimilarIdeas ideaId={ideaId} limit={5} threshold={0.6} />
       </div>
       
     </div>

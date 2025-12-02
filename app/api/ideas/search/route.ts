@@ -242,10 +242,32 @@ export async function GET(request: NextRequest) {
     });
 
     // Apply Morocco priorities filter (PRIMARY)
+    // Check moroccan_priorities field directly (JSONB array)
     if (priorities.length > 0) {
       filteredIdeas = filteredIdeas.filter((idea: any) => {
-        const ideaPriorities = (idea.alignment as any)?.moroccoPriorities || [];
-        return priorities.some((p) => ideaPriorities.includes(p));
+        // moroccan_priorities is a JSONB array field in the database
+        const ideaPriorities = idea.moroccan_priorities || [];
+        // Handle both string array and parsed JSONB array
+        const prioritiesArray = Array.isArray(ideaPriorities) 
+          ? ideaPriorities 
+          : (typeof ideaPriorities === 'string' ? JSON.parse(ideaPriorities) : []);
+        
+        // Normalize priority IDs to handle mismatches between filter UI and database
+        // FilterSidebar uses 'women_empowerment' (from MOROCCO_PRIORITIES.id)
+        // Database might have 'women_entrepreneurship' (from categorization rules)
+        const priorityMap: Record<string, string[]> = {
+          'women_empowerment': ['women_empowerment', 'women_entrepreneurship'],
+          'women_entrepreneurship': ['women_empowerment', 'women_entrepreneurship'],
+          'healthcare_improvement': ['healthcare_improvement', 'health_system'],
+          'health_system': ['healthcare_improvement', 'health_system'],
+        };
+        
+        // Check if any selected priority matches any of the idea's priorities
+        // Use mapped variants if available, otherwise check exact match
+        return priorities.some((p) => {
+          const variants = priorityMap[p] || [p];
+          return variants.some((variant) => prioritiesArray.includes(variant));
+        });
       });
     }
 

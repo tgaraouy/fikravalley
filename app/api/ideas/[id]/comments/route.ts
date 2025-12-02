@@ -17,13 +17,13 @@ export async function GET(
     const ideaId = id;
     const supabase = await createClient();
 
-    // Get all approved comments for this idea
+    // Get comments for this idea
+    // Note: Some deployments don't have moderation columns (approved/deleted_at),
+    // so we only filter by idea_id to avoid schema errors.
     const { data: comments, error } = await supabase
       .from('marrai_idea_comments')
       .select('*')
       .eq('idea_id', ideaId)
-      .eq('approved', true)
-      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) {

@@ -27,34 +27,23 @@ export default function PWARegister() {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 // New service worker available, prompt user to refresh
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('New service worker available. Refresh to update.');
-                }
+                // Silently handle updates
               }
             });
           }
         });
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Service Worker registered:', registration.scope);
-        }
+        // Service worker registered silently
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Service Worker registration failed:', error);
-        }
+        // Silently fail - service worker is optional for PWA
+        // Only log critical errors in development if needed
       }
     };
 
     // Register immediately
     registerServiceWorker();
 
-    // Also register on page load (in case user navigates)
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      // Service worker already controlling this page
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Service Worker already controlling page');
-      }
-    }
+    // Service worker already controlling this page - no action needed
   }, []);
 
   return null;

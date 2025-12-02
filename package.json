@@ -13,11 +13,13 @@
     "seed:ai-ideas": "tsx scripts/seed-ai-startup-ideas.ts",
     "backfill:morocco": "tsx scripts/backfill-moroccan-metadata.ts",
     "analyze:market": "tsx scripts/bulk-market-analysis.ts",
-    "verify:market": "tsx scripts/verify-market-analysis.ts"
+    "verify:market": "tsx scripts/verify-market-analysis.ts",
+    "generate:embeddings": "tsx scripts/generate-idea-embeddings.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.71",
     "@anthropic-ai/sdk": "^0.68.0",
+    "@google/genai": "^1.30.0",
     "@google/generative-ai": "^0.24.1",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.2",

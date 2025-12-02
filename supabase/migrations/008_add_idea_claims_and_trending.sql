@@ -48,15 +48,26 @@ CREATE INDEX IF NOT EXISTS idx_marrai_idea_claims_created_at ON marrai_idea_clai
 CREATE OR REPLACE VIEW marrai_idea_engagement AS
 SELECT
   i.id AS idea_id,
-  COALESCE(i.upvote_count, 0) AS upvotes,
-  COALESCE(i.receipt_count, 0) AS receipts,
+  COALESCE(u.upvote_count, 0) AS upvotes,
+  COALESCE(r.receipt_count, 0) AS receipts,
   COALESCE(c.claim_count, 0) AS claims,
   (
-    COALESCE(i.upvote_count, 0) * 0.4 +
-    COALESCE(i.receipt_count, 0) * 0.3 +
+    COALESCE(u.upvote_count, 0) * 0.4 +
+    COALESCE(r.receipt_count, 0) * 0.3 +
     COALESCE(c.claim_count, 0) * 0.3
   )::NUMERIC(10,2) AS engagement_score
 FROM marrai_ideas i
+LEFT JOIN (
+  SELECT idea_id, COUNT(*)::INT AS upvote_count
+  FROM marrai_idea_upvotes
+  GROUP BY idea_id
+) u ON u.idea_id = i.id
+LEFT JOIN (
+  SELECT idea_id, COUNT(*)::INT AS receipt_count
+  FROM marrai_idea_receipts
+  WHERE verified = true
+  GROUP BY idea_id
+) r ON r.idea_id = i.id
 LEFT JOIN (
   SELECT idea_id, COUNT(*)::INT AS claim_count
   FROM marrai_idea_claims
