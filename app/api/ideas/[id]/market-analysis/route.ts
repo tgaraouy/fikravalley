@@ -80,76 +80,77 @@ async function generateMarketAnalysis(
   },
   provider: 'anthropic' | 'openai' | 'gemini' | 'openrouter' = 'anthropic'
 ): Promise<MarketAnalysis | null> {
-  const prompt = `Analyze the market potential for this Moroccan startup idea:
+  const prompt = `Analyse le potentiel de marché pour cette idée de startup marocaine:
 
-Title: ${idea.title}
-Problem: ${idea.problem_statement}
+Titre: ${idea.title}
+Problème: ${idea.problem_statement}
 Solution: ${idea.proposed_solution || 'N/A'}
-Category: ${idea.category || 'N/A'}
-Location: ${idea.location || 'N/A'}
+Catégorie: ${idea.category || 'N/A'}
+Localisation: ${idea.location || 'N/A'}
 
-Provide a comprehensive market analysis in JSON format. Focus on:
-1. Market size in Morocco (in DH) with context
-2. Top 3-5 competitors in Morocco (if any)
-3. Current market trends relevant to Morocco
-4. Short-term potential (0-6 months) and long-term potential (6+ months)
-5. Scalability assessment
-6. Key risks (market, technical, regulatory) with mitigation strategies
-7. Opportunities specific to Moroccan context
-8. Sources/references if available (optional)
-9. Confidence score (0-1) based on available information
+Fournis une analyse de marché complète en format JSON. Concentre-toi sur:
+1. Taille du marché au Maroc (en DH) avec contexte
+2. Top 3-5 concurrents au Maroc (si existants)
+3. Tendances actuelles du marché pertinentes pour le Maroc
+4. Potentiel à court terme (0-6 mois) et à long terme (6+ mois)
+5. Évaluation de la scalabilité
+6. Risques clés (marché, technique, réglementaire) avec stratégies d'atténuation
+7. Opportunités spécifiques au contexte marocain
+8. Sources/références si disponibles (optionnel)
+9. Score de confiance (0-1) basé sur les informations disponibles
 
-Return ONLY valid JSON matching this structure:
+Retourne UNIQUEMENT un JSON valide correspondant à cette structure:
 {
   "analyzed_at": "ISO timestamp",
   "market_size": {
-    "value": "e.g., 50M or 1.2B",
+    "value": "ex: 50M ou 1.2B",
     "unit": "DH",
-    "description": "Brief context about market size"
+    "description": "Contexte bref sur la taille du marché"
   },
   "competitors": [
     {
-      "name": "Competitor name",
-      "description": "What they do",
-      "market_share": "Estimated share if known"
+      "name": "Nom du concurrent",
+      "description": "Ce qu'ils font",
+      "market_share": "Part de marché estimée si connue"
     }
   ],
-  "trends": ["Trend 1", "Trend 2"],
+  "trends": ["Tendance 1", "Tendance 2"],
   "potential": {
-    "short_term": "0-6 months potential",
-    "long_term": "6+ months potential",
-    "scalability": "Scalability assessment"
+    "short_term": "Potentiel 0-6 mois",
+    "long_term": "Potentiel 6+ mois",
+    "scalability": "Évaluation de la scalabilité"
   },
   "risks": [
     {
-      "type": "market|technical|regulatory",
-      "description": "Risk description",
-      "mitigation": "How to mitigate"
+      "type": "marché|technique|réglementaire",
+      "description": "Description du risque",
+      "mitigation": "Comment atténuer"
     }
   ],
   "opportunities": [
     {
-      "area": "Opportunity area",
+      "area": "Domaine d'opportunité",
       "description": "Description",
-      "impact": "Potential impact"
+      "impact": "Impact potentiel"
     }
   ],
   "sources": [
     {
-      "title": "Source title",
-      "url": "URL if available",
-      "type": "article|report|study"
+      "title": "Titre de la source",
+      "url": "URL si disponible",
+      "type": "article|rapport|étude"
     }
   ],
   "confidence_score": 0.85
 }
 
 IMPORTANT:
-- Return ONLY the JSON object, no markdown, no code blocks
-- Use realistic Moroccan market data
-- If market data is unavailable, use "unknown" or reasonable estimates
-- Focus on Moroccan context (cities, regulations, market conditions)
-- Confidence score should reflect data availability (lower if limited data)`;
+- Retourne UNIQUEMENT l'objet JSON, pas de markdown, pas de blocs de code
+- Utilise des données de marché marocain réalistes
+- Si les données de marché ne sont pas disponibles, utilise "inconnu" ou des estimations raisonnables
+- Concentre-toi sur le contexte marocain (villes, réglementations, conditions du marché)
+- Le score de confiance doit refléter la disponibilité des données (plus bas si données limitées)
+- TOUS les textes doivent être en FRANÇAIS`;
 
   try {
     let responseText = '';

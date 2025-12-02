@@ -117,11 +117,11 @@ export function MarketAnalysisSection({
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-4">
           <ChartBarIcon className="w-6 h-6 text-green-600" />
-          <h2 className="text-2xl font-bold">Market Analysis</h2>
+          <h2 className="text-2xl font-bold">Analyse de Marché</h2>
         </div>
         <div className="text-center py-8 text-gray-500">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
-          Loading market analysis...
+          Chargement de l'analyse de marché...
         </div>
       </div>
     );
@@ -133,14 +133,14 @@ export function MarketAnalysisSection({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <ChartBarIcon className="w-6 h-6 text-green-600" />
-            <h2 className="text-2xl font-bold">Market Analysis</h2>
+            <h2 className="text-2xl font-bold">Analyse de Marché</h2>
           </div>
         </div>
         
         <div className="text-center py-8">
           <ChartBarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-600 mb-4">
-            No market analysis available yet. Generate one to see market size, competitors, trends, and opportunities.
+            Aucune analyse de marché disponible. Génère une analyse pour voir la taille du marché, les concurrents, les tendances et les opportunités.
           </p>
           <button
             onClick={generateAnalysis}
@@ -150,10 +150,10 @@ export function MarketAnalysisSection({
             {isGenerating ? (
               <>
                 <span className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-                Generating...
+                Génération en cours...
               </>
             ) : (
-              'Generate Market Analysis'
+              'Générer l\'Analyse de Marché'
             )}
           </button>
           {error && (
@@ -174,7 +174,7 @@ export function MarketAnalysisSection({
           <h2 className="text-2xl font-bold">Market Analysis</h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Confidence:</span>
+          <span className="text-sm text-gray-500">Confiance:</span>
           <span className={`text-sm font-semibold ${
             confidencePercentage >= 80 ? 'text-green-600' :
             confidencePercentage >= 60 ? 'text-yellow-600' : 'text-red-600'
@@ -186,7 +186,7 @@ export function MarketAnalysisSection({
 
       {analysis.analyzed_at && (
         <p className="text-sm text-gray-500">
-          Analyzed on {new Date(analysis.analyzed_at).toLocaleDateString('en-US', {
+          Analysé le {new Date(analysis.analyzed_at).toLocaleDateString('fr-FR', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
@@ -199,7 +199,7 @@ export function MarketAnalysisSection({
         <div className="border-l-4 border-green-500 pl-4">
           <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
             <ArrowTrendingUpIcon className="w-5 h-5 text-green-600" />
-            Market Size
+            Taille du Marché
           </h3>
           {analysis.market_size.value && (
             <p className="text-2xl font-bold text-green-600 mb-1">
@@ -221,7 +221,7 @@ export function MarketAnalysisSection({
               <div key={idx} className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h4 className="font-semibold text-gray-900">{competitor.name || 'Unknown'}</h4>
+                    <h4 className="font-semibold text-gray-900">{competitor.name || 'Inconnu'}</h4>
                     {competitor.description && (
                       <p className="text-sm text-gray-600 mt-1">{competitor.description}</p>
                     )}
@@ -241,7 +241,7 @@ export function MarketAnalysisSection({
       {/* Trends */}
       {analysis.trends && analysis.trends.length > 0 && (
         <div>
-          <h3 className="font-bold text-lg mb-3">Market Trends</h3>
+          <h3 className="font-bold text-lg mb-3">Tendances du Marché</h3>
           <ul className="space-y-2">
             {analysis.trends.map((trend, idx) => (
               <li key={idx} className="flex items-start gap-2">
@@ -258,24 +258,24 @@ export function MarketAnalysisSection({
         <div className="bg-green-50 rounded-lg p-4">
           <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
             <LightBulbIcon className="w-5 h-5 text-green-600" />
-            Potential
+            Potentiel
           </h3>
           <div className="space-y-3">
             {analysis.potential.short_term && (
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Short-term (0-6 months)</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">Court terme (0-6 mois)</h4>
                 <p className="text-sm text-gray-700">{analysis.potential.short_term}</p>
               </div>
             )}
             {analysis.potential.long_term && (
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Long-term (6+ months)</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">Long terme (6+ mois)</h4>
                 <p className="text-sm text-gray-700">{analysis.potential.long_term}</p>
               </div>
             )}
             {analysis.potential.scalability && (
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Scalability</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">Scalabilité</h4>
                 <p className="text-sm text-gray-700">{analysis.potential.scalability}</p>
               </div>
             )}
@@ -288,7 +288,7 @@ export function MarketAnalysisSection({
         <div>
           <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
             <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600" />
-            Risks
+            Risques
           </h3>
           <div className="space-y-3">
             {analysis.risks.map((risk, idx) => (
@@ -305,7 +305,7 @@ export function MarketAnalysisSection({
                     )}
                     {risk.mitigation && (
                       <p className="text-xs text-gray-600 mt-2">
-                        <strong>Mitigation:</strong> {risk.mitigation}
+                        <strong>Atténuation:</strong> {risk.mitigation}
                       </p>
                     )}
                   </div>
@@ -321,7 +321,7 @@ export function MarketAnalysisSection({
         <div>
           <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
             <LightBulbIcon className="w-5 h-5 text-green-600" />
-            Opportunities
+            Opportunités
           </h3>
           <div className="space-y-3">
             {analysis.opportunities.map((opp, idx) => (
@@ -334,7 +334,7 @@ export function MarketAnalysisSection({
                 )}
                 {opp.impact && (
                   <p className="text-xs text-green-700 font-medium">
-                    Impact: {opp.impact}
+                    Impact : {opp.impact}
                   </p>
                 )}
               </div>
@@ -378,7 +378,7 @@ export function MarketAnalysisSection({
           disabled={isGenerating}
           className="text-sm text-green-600 hover:text-green-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isGenerating ? 'Regenerating...' : '🔄 Regenerate Analysis'}
+          {isGenerating ? 'Régénération...' : '🔄 Régénérer l\'Analyse'}
         </button>
       </div>
     </div>
