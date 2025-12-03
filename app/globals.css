@@ -12,6 +12,14 @@ body {
   @apply antialiased text-slate-900 bg-sand-50;
 }
 
+/* Global Typography - Premium Headings */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-extrabold;
+}
+
+/* Tifinagh Script - Increase font size for optical balance */
+/* Applied inline in components for better browser support */
+
 .bg-zellige {
   background-color: #fdfcfb;
   background-image: radial-gradient(#d4b98c 0.5px, transparent 0.5px), radial-gradient(#d4b98c 0.5px, #fdfcfb 0.5px);
@@ -44,6 +52,62 @@ a {
   to {
     transform: translateY(0);
     opacity: 1;
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Ensure touch targets are at least 44px */
+  button,
+  a,
+  input[type="button"],
+  input[type="submit"],
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent text size adjustment on iOS */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Better spacing for mobile */
+  .mobile-spacing > * + * {
+    margin-top: 1rem;
+  }
+
+  /* Safe area handling for notches */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile touch devices */
+  button:hover,
+  a:hover {
+    opacity: 0.8;
+  }
+
+  /* Remove hover effects on touch */
+  .hover\:bg-slate-100:hover {
+    background-color: transparent;
   }
 }
 
@@ -169,4 +233,34 @@ html {
   right: 0;
   z-index: 9999;
   pointer-events: none;
+}
+
+/* Fade-in animation for social proof counter */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
+}
+
+/* Heartbeat animation for microphone button */
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-heartbeat {
+  animation: heartbeat 2s ease-in-out infinite;
 }

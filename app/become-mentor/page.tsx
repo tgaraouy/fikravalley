@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, CheckCircle, Star, Users, Heart } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/ui/Toast';
 import { getUserFriendlyError, logError } from '@/lib/utils/error-handler';
+import LinkedInMentorRegistration from '@/components/mentors/LinkedInMentorRegistration';
 
 export default function BecomeMentorPage() {
   const router = useRouter();
@@ -163,7 +164,22 @@ export default function BecomeMentorPage() {
           </CardContent>
         </Card>
 
-        {/* Registration Form */}
+        {/* LinkedIn Registration (Option 1 - Preferred) */}
+        <div className="mb-8">
+          <LinkedInMentorRegistration />
+        </div>
+
+        {/* Divider */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-300"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-4 bg-white text-slate-500">Ou utilisez le formulaire classique</span>
+          </div>
+        </div>
+
+        {/* Registration Form (Fallback) */}
         <Card className="border-2 border-green-200 shadow-lg">
           <CardHeader>
             <CardTitle>Formulaire d'inscription</CardTitle>

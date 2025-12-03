@@ -17,7 +17,8 @@
     "generate:embeddings": "tsx scripts/generate-idea-embeddings.ts",
     "check:ideas": "tsx scripts/check-ideas-data.ts",
     "restore:visibility": "tsx scripts/restore-ideas-visibility.ts",
-    "check:idea": "tsx scripts/check-specific-idea.ts"
+    "check:idea": "tsx scripts/check-specific-idea.ts",
+    "populate:founder-letters": "tsx scripts/populate-founder-letters.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.71",

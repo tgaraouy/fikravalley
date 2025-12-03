@@ -16,6 +16,8 @@ import { IdeaCard } from '@/components/ideas/IdeaCard';
 import { FilterSidebar } from '@/components/ideas/FilterSidebar';
 import { SearchSuggestions } from '@/components/ideas/SearchSuggestions';
 import IdeasDatabaseHero from '@/components/database/IdeasDatabaseHero';
+import { MobileSearch } from '@/components/mobile/MobileSearch';
+import { Search } from 'lucide-react';
 
 interface Idea {
   id: string;
@@ -75,6 +77,7 @@ export default function IdeasPage() {
   const [topIdeas, setTopIdeas] = useState<Idea[]>([]);
   const [searchSuggestions, setSearchSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState(search);
@@ -187,17 +190,40 @@ export default function IdeasPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Hero Section with Integrated Search */}
-      <IdeasDatabaseHero
-        totalIdeas={ideas?.total || 0}
-        searchQuery={search}
-        onSearchChange={(query) => {
-          setSearch(query);
-          setShowSuggestions(true);
-        }}
-        onSearchFocus={() => setShowSuggestions(true)}
-        onSearchBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-      />
+      {/* Mobile Search Button */}
+      <div className="md:hidden sticky top-0 z-20 bg-white border-b border-slate-200 safe-area-top">
+        <button
+          onClick={() => setShowMobileSearch(true)}
+          className="w-full flex items-center gap-3 px-4 py-3 text-left bg-slate-50 rounded-lg mx-4 my-3"
+        >
+          <Search className="w-5 h-5 text-slate-400" />
+          <span className="text-slate-500 flex-1">
+            {search || 'Rechercher des idées...'}
+          </span>
+        </button>
+      </div>
+
+      {/* Desktop Hero Section */}
+      <div className="hidden md:block">
+        <IdeasDatabaseHero
+          totalIdeas={ideas?.total || 0}
+          searchQuery={search}
+          onSearchChange={(query) => {
+            setSearch(query);
+            setShowSuggestions(true);
+          }}
+          onSearchFocus={() => setShowSuggestions(true)}
+          onSearchBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+        />
+      </div>
+
+      {/* Mobile Search Modal */}
+      {showMobileSearch && (
+        <MobileSearch
+          onClose={() => setShowMobileSearch(false)}
+          initialQuery={search}
+        />
+      )}
 
       {/* Incentives & Featured (New) */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10 mb-12">
@@ -224,7 +250,7 @@ export default function IdeasPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 pb-24 md:pb-12 safe-area-bottom">
         {/* Trending & Top 5 */}
         {(trending.length > 0 || topIdeas.length > 0) && (
           <div className="mb-10 grid lg:grid-cols-3 gap-6">
@@ -294,7 +320,11 @@ export default function IdeasPage() {
           {/* Filters Sidebar */}
           <div className="lg:col-span-3">
             <div className="sticky top-4">
-              <FilterSidebar filters={filters} onChange={handleFilterChange} />
+              <FilterSidebar 
+                filters={filters} 
+                onChange={handleFilterChange}
+                defaultCollapsed={false} // Default to expanded, but user can collapse
+              />
             </div>
           </div>
 

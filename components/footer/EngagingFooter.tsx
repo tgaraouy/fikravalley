@@ -27,9 +27,19 @@ export default function EngagingFooter() {
   };
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white pt-12 sm:pt-16 md:pt-20 pb-10">
+    <footer className="relative bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white pt-12 sm:pt-16 md:pt-20 pb-10 overflow-hidden">
+      {/* Zellige Texture Overlay */}
+      <div 
+        className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage: "url('/png/zillige.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      />
       
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="relative z-10 max-w-7xl mx-auto px-4">
         
         {/* Top Section: Newsletter + Quick Actions */}
         <div className="grid md:grid-cols-2 gap-8 sm:gap-12 mb-12 sm:mb-16">
@@ -104,32 +114,32 @@ export default function EngagingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-12">
           
           <div>
-            <h4 className="font-bold mb-4 text-sm sm:text-base">Plateforme</h4>
+            <h4 className="font-bold mb-4 text-sm sm:text-base">Founder&apos;s Journey</h4>
             <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/submit" className="hover:text-white transition-colors">Comment ça marche</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Tarifs (Gratuit!)</Link></li>
-              <li><Link href="/ideas" className="hover:text-white transition-colors">Success Stories</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">FAQ</Link></li>
+              <li><Link href="/validator" className="hover:text-white transition-colors">🔥 Roast My Idea</Link></li>
+              <li><Link href="/network" className="hover:text-white transition-colors">👥 Find Co-Founders</Link></li>
+              <li><Link href="/resources" className="hover:text-white transition-colors">🧠 The Library</Link></li>
+              <li><Link href="/submit-voice" className="hover:text-white transition-colors">Submit Idea</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-bold mb-4 text-sm sm:text-base">Ressources</h4>
             <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/submit" className="hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Guides</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Templates</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Événements</Link></li>
+              <li><Link href="/resources" className="hover:text-white transition-colors">Blog</Link></li>
+              <li><Link href="/resources" className="hover:text-white transition-colors">Guides</Link></li>
+              <li><Link href="/resources" className="hover:text-white transition-colors">Templates</Link></li>
+              <li><Link href="/resources" className="hover:text-white transition-colors">Événements</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-bold mb-4 text-sm sm:text-base">Communauté</h4>
             <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/submit" className="hover:text-white transition-colors">Mentors</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Partenaires</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Investisseurs</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Forum</Link></li>
+              <li><Link href="/network" className="hover:text-white transition-colors">Mentors</Link></li>
+              <li><Link href="/network" className="hover:text-white transition-colors">Partenaires</Link></li>
+              <li><Link href="/network" className="hover:text-white transition-colors">Investisseurs</Link></li>
+              <li><Link href="/network" className="hover:text-white transition-colors">Forum</Link></li>
             </ul>
           </div>
           

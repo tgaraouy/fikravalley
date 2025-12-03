@@ -20,6 +20,7 @@ import { GenerateMessageButton } from '@/components/ideas/GenerateMessageButton'
 import { MarketAnalysisSection } from '@/components/ideas/MarketAnalysisSection';
 import { SimilarIdeas } from '@/components/ideas/SimilarIdeas';
 import { ProblemSharpness } from '@/components/ideas/ProblemSharpness';
+import FounderInfo from '@/components/ideas/FounderInfo';
 
 interface Idea {
   id: string;
@@ -38,6 +39,7 @@ interface Idea {
   qualification_tier?: 'exceptional' | 'qualified' | 'developing';
   created_at: string;
   submitter_name?: string;
+  submitter_email?: string;
   has_receipts?: boolean;
   target_audience?: string;
   moroccan_priorities?: string[];
@@ -367,14 +369,7 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
           </p>
           
           {/* Metadata */}
-          <div className="flex items-center gap-6 flex-wrap text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
-                {(idea.submitter_name || 'A')[0].toUpperCase()}
-              </div>
-              <span className="font-medium">By {idea.submitter_name || 'Anonymous'}</span>
-            </div>
-            
+          <div className="flex items-center gap-6 flex-wrap text-sm text-gray-600 mb-6">
             <div className="flex items-center gap-1">
               <span>📍</span>
               <span>{idea.location}</span>
@@ -392,6 +387,15 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
               <span>Submitted {formatDate(idea.created_at)}</span>
             </div>
           </div>
+
+          {/* Founder Info */}
+          {idea?.id && (
+            <FounderInfo
+              ideaId={idea.id}
+              submitterName={idea.submitter_name}
+              submitterEmail={idea.submitter_email}
+            />
+          )}
           
         </div>
         

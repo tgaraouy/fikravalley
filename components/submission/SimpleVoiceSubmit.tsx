@@ -245,9 +245,15 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
     
     // If we already have extracted fields (from real-time processing), use them directly
     if (extractedFields && extractedFields.title && extractedFields.problem_statement) {
-      // Use the edited fields directly
+      // Use the edited fields directly - show contact form or submit
       setExtractedData(extractedFields);
-      setShowFieldsConfirmation(true);
+      
+      // Show contact form if not filled, otherwise submit directly
+      if (!contactInfo.email && !contactInfo.phone) {
+        setShowContactForm(true);
+      } else {
+        handleFinalSubmit(extractedFields);
+      }
       return;
     }
     
@@ -255,9 +261,25 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
     setIsExtracting(true);
     await processWithAgent1(transcript);
     
-    // If we have extracted data from Agent 1, use it
+    // If we have extracted data from Agent 1, populate fields and show contact form if needed
     if (extractedData) {
-      setShowFieldsConfirmation(true);
+      // Populate extractedFields for editing
+      setExtractedFields({
+        title: extractedData.title,
+        problem_statement: extractedData.problem_statement,
+        proposed_solution: extractedData.proposed_solution,
+        current_manual_process: extractedData.current_manual_process,
+        digitization_opportunity: extractedData.digitization_opportunity,
+        category: extractedData.category || 'other',
+        location: extractedData.location || 'other',
+      });
+      
+      // Show contact form if not filled, otherwise submit directly
+      if (!contactInfo.email && !contactInfo.phone) {
+        setShowContactForm(true);
+      } else {
+        handleFinalSubmit(extractedData);
+      }
     } else {
       // Fallback: use basic extraction
       const fallbackData = {
@@ -268,7 +290,13 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
       };
       setExtractedData(fallbackData);
       setExtractedFields(fallbackData);
-      setShowFieldsConfirmation(true);
+      
+      // Show contact form if not filled, otherwise submit directly
+      if (!contactInfo.email && !contactInfo.phone) {
+        setShowContactForm(true);
+      } else {
+        handleFinalSubmit(fallbackData);
+      }
     }
     
     setIsExtracting(false);
@@ -276,6 +304,8 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
 
   const handleFieldsConfirmed = (confirmedData: any) => {
     setExtractedData(confirmedData);
+    // Update extractedFields with confirmed data for display
+    setExtractedFields(confirmedData);
     setShowFieldsConfirmation(false);
     
     // Show contact form if not filled
@@ -357,7 +387,7 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         />
       )}
 
-      <div className="min-h-screen bg-slate-50 p-8">
+      <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-24 md:pb-8 safe-area-bottom">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-6 text-slate-900">💡 Soumettre votre idée</h1>
 
@@ -469,7 +499,17 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
 
           {/* Extracted Fields - Always Visible and Editable */}
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Informations extraites</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Informations extraites</h2>
+              {extractedFields && (extractedFields.title || extractedFields.problem_statement) && (
+                <span className="text-sm text-green-600 font-medium">✓ Modifiable</span>
+              )}
+            </div>
+            <p className="text-sm text-slate-600 mb-4">
+              {extractedFields && (extractedFields.title || extractedFields.problem_statement) 
+                ? 'Modifiez les champs ci-dessous si nécessaire avant de soumettre.'
+                : 'Ces champs seront remplis automatiquement après l\'analyse de votre idée.'}
+            </p>
             
             <div className="space-y-4">
               <div>
@@ -798,15 +838,44 @@ export default function SimpleVoiceSubmit({ onSubmit }: SimpleVoiceSubmitProps) 
         </div>
       )}
 
-          {/* Submit Button */}
-          {transcript && !isRecording && !showContactForm && !showFieldsConfirmation && (
-            <button
-              onClick={handleSubmit}
-              disabled={isProcessing || isExtracting}
-              className="mt-8 w-full bg-green-600 text-white py-4 rounded-lg font-bold text-lg shadow-lg hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50"
-            >
-              {isExtracting ? '⏳ Analyse en cours...' : isProcessing ? '⏳ Envoi...' : '✅ سّبق الفكرة (Submit)'}
-            </button>
+          {/* Submit Button - Always visible when transcript exists or fields are filled */}
+          {!isRecording && !showContactForm && (
+            <div className="mt-8 mb-8 sticky bottom-4 z-10 bg-slate-50 p-4 rounded-lg border-2 border-green-300 shadow-xl">
+              <button
+                onClick={handleSubmit}
+                disabled={isProcessing || isExtracting || showFieldsConfirmation || (!transcript && !(extractedFields && (extractedFields.title || extractedFields.problem_statement)))}
+                className="w-full bg-green-600 text-white py-5 px-6 rounded-lg font-bold text-xl shadow-lg hover:bg-green-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {showFieldsConfirmation ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>⏳ Vérification en cours...</span>
+                  </>
+                ) : isExtracting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>⏳ Analyse en cours...</span>
+                  </>
+                ) : isProcessing ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>⏳ Envoi...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✅</span>
+                    <span>سّبق الفكرة (Submit)</span>
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-slate-600 text-center mt-3 font-medium">
+                {!transcript && !(extractedFields && (extractedFields.title || extractedFields.problem_statement)) 
+                  ? '⚠️ Entrez votre idée dans le champ ci-dessus pour activer le bouton'
+                  : transcript 
+                    ? '✓ Vérifiez les informations extraites ci-dessus avant de soumettre'
+                    : '✓ Remplissez les champs ci-dessus pour soumettre votre idée'}
+              </p>
+            </div>
           )}
         </div>
       </div>

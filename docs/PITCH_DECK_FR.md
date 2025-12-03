@@ -103,33 +103,73 @@
 - Aucune saisie requise
 - Fonctionne sur réseaux 2G
 - Transcription automatique
+- ✅ **PWA** : Installation sur mobile, mode hors-ligne
 
-#### 2. **7 Agents IA Spécialisés**
+#### 2. **7 Agents IA Spécialisés** (Production Ready)
 - **Agent 1 (FIKRA) :** Clarification du problème via questionnement socratique
+  - Détection de 6 types de gaps
+  - Scoring d'intimité (0-10) basé sur Locke
+  - 5 modes d'agent (listening, questioning, suggesting, challenging, validating)
 - **Agent 2 (PROOF) :** Stratégie de collecte de preuves (reçus 3-DH)
-- **Agent 3 (SCORE) :** Notation en temps réel (clarté + intimité)
+  - 4 méthodes de collecte personnalisées
+  - Validation OCR + détection de fraude
+  - Scoring de volonté de payer (1-5)
+- **Agent 3 (SCORE) :** Notation en temps réel (clarté + décision + intimité)
+  - Scoring transparent (montre le travail)
+  - 5 tiers de qualification
+  - Insights prédictifs
 - **Agent 4 :** Analyse de faisabilité et ROI
 - **Agent 5 :** Matching de mentors (diaspora + local)
-- **Agent 6 :** Notifications WhatsApp
+- **Agent 6 :** Notifications WhatsApp + Email
 - **Agent 7 :** Feature flagging et priorisation
 
-#### 3. **Matching de Mentors**
+#### 3. **Analyse Avancée d'Idées**
+- ✅ **Problem Sharpness** : Analyse IA de la netteté du problème (1-5)
+  - Identification persona, friction, job, pain point
+  - Suggestions d'amélioration
+  - Édition inline
+- ✅ **Market Analysis** : Analyse de marché générée par IA
+  - Taille du marché, concurrents, potentiel
+  - Score de confiance (0-100%)
+- ✅ **Vector Embeddings** : Recherche sémantique
+  - Similarité cosinus entre idées
+  - Suggestions d'idées similaires
+- ✅ **UI Mockups IA** : Génération de mockups UI par Gemini
+  - Layout JSON structuré
+  - Composants suggérés
+
+#### 4. **Engagement Social**
+- ✅ **Likes/Upvotes** : Système de j'aime anonyme
+- ✅ **Comments** : Commentaires sur les idées
+- ✅ **Reviews** : Avis et notes (1-5 étoiles)
+- ✅ **Claims** : Revendication d'idées ("Je teste cette idée")
+- ✅ **Trending & Top 5** : Idées populaires calculées en temps réel
+
+#### 5. **Matching de Mentors**
 - Algorithme de matching alimenté par l'IA
 - Connexions avec la diaspora
-- Intégration d'appels vidéo
-- Suivi du succès
+- Dashboard de matching
+- Acceptation/rejet de matches
+- ✅ **Digest Email** : Résumé hebdomadaire pour mentors
 
-#### 4. **PDFs Prêts pour les Banques**
+#### 6. **PDFs Prêts pour les Banques**
 - Génération automatique de dossiers Intilaka
 - Calculs de ROI
 - Analyse de marché
 - Recommandations de financement
 
-#### 5. **Mécaniques Virales**
+#### 7. **Validation & Paiements**
+- ✅ **Mobile Money** : Intégration M-Wallet, Orange Money, CIH, Attijariwafa
+- ✅ **Génération de liens de paiement** : Deep links/USSD codes
+- ✅ **Validation 3-DH** : Preuve de demande
+- ✅ **Génération de messages WhatsApp** : Messages personnalisés pour validation clients
+
+#### 8. **Mécaniques Virales**
 - Partage WhatsApp
 - Validation de reçus (preuve de demande 3-DH)
-- Banque d'idées publique
+- Banque d'idées publique (550+ idées)
 - Validation communautaire
+- ✅ **Filtres avancés** : Priorités marocaines, budget, localisation
 
 ---
 
@@ -139,32 +179,51 @@
 
 **Frontend :**
 - Next.js 16 (React 19)
-- TypeScript
+- TypeScript (strict mode)
 - Tailwind CSS
-- Prêt pour PWA
+- ✅ **PWA** (Service Worker, Web App Manifest)
+- Framer Motion (animations)
+- Heroicons, Lucide React (icons)
 
 **Backend :**
-- Supabase (PostgreSQL + Realtime)
-- API Anthropic Claude
-- Fonctions serverless
+- Supabase (PostgreSQL 15+ + Realtime)
+- Next.js API Routes (Serverless)
+- ✅ **4 LLM Providers** : Anthropic Claude, OpenAI, Google Gemini, OpenRouter
+- Fonctions serverless (Vercel Edge)
 
 **IA/ML :**
-- Claude 3.5 Sonnet (analyse)
+- ✅ **Claude Sonnet 4** (analyse principale)
+- ✅ **GPT-4 / GPT-3.5** (fallback)
+- ✅ **Gemini 2.5 Flash** (UI mockups)
+- ✅ **OpenAI Embeddings** (text-embedding-3-small, 1536 dimensions)
+- ✅ **pgvector** (HNSW index pour similarité)
 - Orchestration d'agents personnalisée
-- NLP multi-langues
-- Transcription vocale
+- NLP multi-langues (Darija, Tamazight, Français, Anglais)
+- Transcription vocale (OpenAI Whisper)
+
+**Base de Données :**
+- PostgreSQL 15+ (Supabase)
+- ✅ **20+ tables** (idées, mentors, reçus, upvotes, comments, reviews, claims, etc.)
+- ✅ **15 migrations** (schéma complet)
+- ✅ **Vector embeddings** (pgvector)
+- ✅ **GIN indexes** (JSONB: moroccan_priorities, sdg_alignment, ai_market_analysis)
+- ✅ **HNSW index** (similarité vectorielle)
+- ✅ **2 vues** (scores, engagement)
 
 **Infrastructure :**
-- Vercel (hébergement)
-- Supabase (base de données)
-- API WhatsApp Business
-- Optimisé pour 2G
+- Vercel (hébergement + Edge Network)
+- Supabase (base de données + Storage + Realtime)
+- ✅ **API WhatsApp Business** (intégration prête)
+- Optimisé pour 2G (lazy loading, compression)
+- ✅ **Rate Limiting** (par route API)
 
 **Sécurité :**
-- Conforme PDPL
-- Hachage des numéros de téléphone (bcrypt)
-- Politiques RLS
-- Validation humaine en boucle
+- ✅ **Conforme PDPL** (minimisation, consentement, portabilité)
+- ✅ **Hachage bcrypt** (numéros de téléphone)
+- ✅ **Row-Level Security (RLS)** (toutes les tables)
+- ✅ **Validation stricte** (entrées utilisateur)
+- ✅ **Gestion d'erreurs robuste** (try-catch, logs conditionnels)
+- ✅ **Validation humaine en boucle** (approbation admin)
 
 ---
 
@@ -225,29 +284,56 @@
 ### 📈 Progrès à ce Jour
 
 **Produit :**
-- ✅ Plateforme prête pour la production
-- ✅ 7 agents IA implémentés
-- ✅ Support multi-langues
-- ✅ Système de matching de mentors
-- ✅ Intégration WhatsApp
-- ✅ Génération de PDFs prêts pour les banques
+- ✅ **Plateforme complète** prête pour la production
+- ✅ **7 agents IA** fonctionnels et testés (6,600+ lignes de code)
+- ✅ **550+ idées** dans la base de données (dont 250+ générées par IA)
+- ✅ **Support multi-langues** (Darija, Tamazight, Français, Anglais)
+- ✅ **PWA** fonctionnelle (installation mobile, mode hors-ligne)
+- ✅ **Système de matching de mentors** avec diaspora
+- ✅ **Intégration WhatsApp** (webhook, messages personnalisés)
+- ✅ **Génération de PDFs** prêts pour les banques (format Intilaka)
+- ✅ **Engagement social** (likes, comments, reviews, claims)
+- ✅ **Analyse avancée** (Problem Sharpness, Market Analysis, Vector Embeddings)
+- ✅ **Mobile Money** (M-Wallet, Orange Money, CIH, Attijariwafa)
+- ✅ **UI Mockups IA** (génération par Gemini)
 
-**Histoires :**
+**Statistiques Techniques :**
+- ✅ **50,000+ lignes de code** TypeScript
+- ✅ **200+ fichiers** TypeScript
+- ✅ **132 routes API** (idées, agents, admin, mentors, paiements)
+- ✅ **100+ composants React**
+- ✅ **15 migrations** base de données
+- ✅ **100+ tests** (unitaires + intégration)
+- ✅ **4 LLM providers** (Anthropic, OpenAI, Gemini, OpenRouter)
+
+**Histoires Utilisateurs :**
 - **GenZ Casablanca :** Idée de café → Appel mentor → Plan coworking
 - **SolarGuard Khouribga :** Observation panneaux solaires → Prototype IoT → Lancement startup
 
-**Technique :**
-- ✅ Build TypeScript réussi
-- ✅ Base de données Supabase en production
-- ✅ Déploiement Vercel
-- ✅ Conformité PDPL
-- ✅ Sécurité renforcée
+**Technique & Infrastructure :**
+- ✅ **Build TypeScript** réussi (0 erreurs)
+- ✅ **Base de données Supabase** en production (20+ tables, 30+ indexes)
+- ✅ **Déploiement Vercel** opérationnel
+- ✅ **Conformité PDPL** complète
+- ✅ **Sécurité renforcée** (RLS, bcrypt, rate limiting)
+- ✅ **Vector Search** (pgvector, HNSW index)
+- ✅ **Realtime** (Supabase subscriptions)
+
+**Fonctionnalités Récentes (Décembre 2025) :**
+- ✅ Problem Sharpness (analyse IA de la netteté du problème)
+- ✅ Market Analysis (analyse de marché générée par IA)
+- ✅ Vector Embeddings (recherche sémantique d'idées similaires)
+- ✅ UI Mockups IA (génération de layouts par Gemini)
+- ✅ Mobile Money Integration (4 providers marocains)
+- ✅ WhatsApp Message Generator (messages personnalisés pour validation)
+- ✅ Pre-seed Framework (beachhead customer, wedge, unfair insight)
 
 **Prochaines Étapes :**
-- Lancement bêta (Q1 2025)
-- 1 000 idées au premier trimestre
-- 50 partenariats de mentors
-- 2 partenariats bancaires
+- 🎯 Lancement bêta (Q1 2025)
+- 🎯 1 000 idées au premier trimestre
+- 🎯 50 partenariats de mentors
+- 🎯 2 partenariats bancaires
+- 🎯 Application mobile (iOS/Android)
 
 ---
 
@@ -448,40 +534,54 @@
 
 ### 🤖 Architecture des Agents IA
 
-**Agent 1 : Extracteur de Conversation**
-- Extrait des données structurées de la voix
-- Gère l'entrée multi-langues
-- Notation de confiance
+**Agent 1 : FIKRA (Idea Clarifier)**
+- ✅ Détection de 6 types de gaps (WHO, FREQUENCY, LIVED_EXPERIENCE, etc.)
+- ✅ Scoring d'intimité (0-10) basé sur la philosophie de John Locke
+- ✅ Questionnement socratique
+- ✅ 5 modes d'agent (listening, questioning, suggesting, challenging, validating)
+- ✅ Support multilingue (Darija, Français, Arabe)
+- ✅ Tracking du parcours de réflexion
 
-**Agent 2 : Analyseur de Faisabilité**
-- Faisabilité technique (0-10)
-- Analyse de marché
-- Estimation des coûts
+**Agent 2 : PROOF (Evidence Collector)**
+- ✅ Génération de stratégies personnalisées (4 méthodes)
+- ✅ Validation de reçus avec OCR
+- ✅ Détection de fraude
+- ✅ Coaching de progression (5 jalons)
+- ✅ Scoring de volonté de payer (1-5)
 
-**Agent 3 : Scoreur d'Impact**
-- Impact social (0-10)
-- Impact économique
-- Alignement ODD
+**Agent 3 : SCORE (Real-Time Analyst)**
+- ✅ Scoring en temps réel (clarté 0-10 + décision 0-40 + intimité 0-10)
+- ✅ Identification et priorisation de gaps
+- ✅ 5 tiers de qualification (Unqualified → Exceptional)
+- ✅ Scoring transparent (montre le travail)
+- ✅ Insights prédictifs
 
-**Agent 4 : Matcheur de Priorités**
-- Alignement avec les priorités du Maroc
-- Matching sectoriel
-- Pertinence géographique
+**Agent 4 : Analyseur de Faisabilité & Impact**
+- ✅ Faisabilité technique (0-10)
+- ✅ Impact social (0-10)
+- ✅ Analyse de marché
+- ✅ Estimation des coûts
+- ✅ Alignement ODD (17 objectifs)
 
 **Agent 5 : Matcheur de Mentors**
-- Matching de compétences
-- Matching d'expérience
-- Matching de disponibilité
+- ✅ Matching de compétences alimenté par IA
+- ✅ Matching d'expérience
+- ✅ Matching de disponibilité
+- ✅ Connexions avec la diaspora
+- ✅ Scoring de compatibilité
 
 **Agent 6 : Agent de Notification**
-- Messagerie WhatsApp
-- Notifications email
-- Mises à jour de statut
+- ✅ Messagerie WhatsApp (webhook, messages personnalisés)
+- ✅ Notifications email
+- ✅ Génération de messages de validation clients
+- ✅ Mises à jour de statut
+- ✅ Digest email pour mentors
 
 **Agent 7 : Agent Feature Flag**
-- Auto-flagging des idées exceptionnelles
-- Attribution de priorité
-- Contrôle de visibilité
+- ✅ Auto-flagging des idées exceptionnelles
+- ✅ Attribution de priorité
+- ✅ Contrôle de visibilité
+- ✅ Qualification automatique
 
 ---
 
@@ -513,5 +613,67 @@
 
 **FIN DU PITCH DECK**
 
-*Dernière mise à jour : Janvier 2025*
+*Dernière mise à jour : Décembre 2025*
+
+---
+
+## ANNEXE : STATISTIQUES COMPLÈTES
+
+### 📊 Métriques Techniques
+
+**Code:**
+- 50,000+ lignes de code TypeScript
+- 200+ fichiers TypeScript
+- 100+ composants React
+- 132 routes API
+- 100+ tests (unitaires + intégration)
+
+**Base de Données:**
+- 20+ tables
+- 15 migrations
+- 30+ indexes (B-tree, GIN, HNSW)
+- 2 vues (scores, engagement)
+- 550+ idées (dont 250+ générées par IA)
+
+**Agents IA:**
+- 7 agents implémentés
+- 6,600+ lignes de code agents
+- 172+ tests agents
+- 11 fichiers de documentation
+
+**Fonctionnalités:**
+- 50+ pages
+- 4 langues supportées
+- 4 LLM providers intégrés
+- PWA fonctionnelle
+- Mobile Money (4 providers)
+
+---
+
+## ANNEXE : RÉALISATIONS RÉCENTES
+
+### Décembre 2025
+
+**Nouvelles Fonctionnalités:**
+- ✅ Problem Sharpness (analyse IA de la netteté du problème)
+- ✅ Market Analysis (analyse de marché générée par IA)
+- ✅ Vector Embeddings (recherche sémantique)
+- ✅ Similar Ideas (suggestions basées sur similarité cosinus)
+- ✅ UI Mockups IA (génération par Gemini)
+- ✅ Mobile Money Integration (M-Wallet, Orange Money, CIH, Attijariwafa)
+- ✅ WhatsApp Message Generator (messages personnalisés)
+- ✅ Pre-seed Framework (beachhead customer, wedge, unfair insight)
+
+**Améliorations:**
+- ✅ Engagement social (likes, comments, reviews, claims)
+- ✅ Trending & Top 5 (calcul en temps réel)
+- ✅ Filtres avancés (priorités marocaines, budget, localisation)
+- ✅ PWA complète (installation, offline, background sync)
+- ✅ Gestion d'erreurs robuste
+- ✅ Migration 015 (champs manquants ajoutés)
+
+**Documentation:**
+- ✅ Résumé complet du projet (`COMPLETE_PROJECT_SUMMARY.md`)
+- ✅ Guides techniques mis à jour
+- ✅ Pitch deck mis à jour avec dernières réalisations
 

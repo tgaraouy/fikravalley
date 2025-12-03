@@ -93,9 +93,25 @@ export async function POST(request: NextRequest) {
       if (!body.location) body.location = 'other';
     }
 
-    if (!body.submitter_name || !body.submitter_email || !body.submitter_type) {
+    // Validate contact info: email OR phone required (at least one)
+    if (!body.submitter_email && !body.submitter_phone) {
       return NextResponse.json(
-        { error: 'Les champs nom, email et type de profil sont requis' },
+        { error: 'Au moins un contact (email ou téléphone) est requis' },
+        { status: 400 }
+      );
+    }
+
+    // For ultra-simple submission, phone is required
+    if (body.submitted_via === 'web' && !body.submitter_phone) {
+      return NextResponse.json(
+        { error: 'Le numéro de téléphone mobile est requis' },
+        { status: 400 }
+      );
+    }
+
+    if (!body.submitter_name || !body.submitter_type) {
+      return NextResponse.json(
+        { error: 'Les champs nom et type de profil sont requis' },
         { status: 400 }
       );
     }
@@ -119,13 +135,14 @@ export async function POST(request: NextRequest) {
       roi_cost_saved_eur: body.roi_cost_saved_eur || null,
       priority: body.urgency || null,
       submitter_name: body.submitter_name,
-      submitter_email: body.submitter_email,
+      submitter_email: body.submitter_email || null,
       submitter_phone: body.submitter_phone || null,
       submitter_type: body.submitter_type,
       submitter_skills: body.submitter_skills || [],
       status: body.status || 'submitted',
       submitted_via: body.submitted_via || 'web',
-    };
+      visible: body.visible !== undefined ? body.visible : false, // Default: private
+    } as any; // Type assertion needed as visible may not be in type definition
 
     // Insert into database
     const { data: insertedIdea, error: insertError } = await (supabase as any)

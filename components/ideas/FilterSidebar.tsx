@@ -6,7 +6,8 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { MOROCCO_PRIORITIES } from '@/lib/idea-bank/scoring/morocco-priorities';
 import { getAllSDGNumbers, getSDGInfo } from '@/lib/constants/sdg-info';
 // Icons - using simple text for now
@@ -25,6 +26,7 @@ interface Filters {
 interface FilterSidebarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  defaultCollapsed?: boolean; // Allow parent to control initial state
 }
 
 
@@ -52,7 +54,29 @@ const MOROCCO_CITIES = [
   'Other',
 ];
 
-export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
+export function FilterSidebar({ filters, onChange, defaultCollapsed }: FilterSidebarProps) {
+  // On mobile, collapse by default; on desktop, use prop or default to expanded
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const [isCollapsed, setIsCollapsed] = useState(
+    defaultCollapsed !== undefined ? defaultCollapsed : isMobile
+  );
+
+  // Update collapsed state when mobile state changes
+  useEffect(() => {
+    if (defaultCollapsed === undefined) {
+      setIsCollapsed(isMobile);
+    }
+  }, [isMobile, defaultCollapsed]);
   const [expandedSections, setExpandedSections] = useState({
     priorities: true, // Morocco priorities - always prominent
     budget: false,
@@ -116,22 +140,63 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
     filters.scoreMax !== 40;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <span>Filters</span>
-        </h2>
-        {hasActiveFilters && (
+    <div className="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+      {/* Header - Always Visible */}
+      <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-200">
+        <div className="flex items-center gap-2 flex-1">
           <button
-            onClick={clearFilters}
-            className="text-sm text-green-600 hover:text-green-700 font-medium"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="flex items-center gap-2 text-slate-900 hover:text-green-600 transition-colors group flex-1"
           >
-            Clear All
+            <Filter className="w-5 h-5" />
+            <h2 className="text-lg md:text-xl font-bold">Filters</h2>
+            {hasActiveFilters && (
+              <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                {[
+                  filters.priorities?.length || 0,
+                  filters.sectors?.length || 0,
+                  filters.budget_tiers?.length || 0,
+                  filters.location_types?.length || 0,
+                  filters.location ? 1 : 0,
+                  filters.scoreMin !== 15 || filters.scoreMax !== 40 ? 1 : 0,
+                ].reduce((a, b) => a + b, 0)}
+              </span>
+            )}
+            <div className="ml-auto">
+              {isCollapsed ? (
+                <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-green-600 transition-colors" />
+              ) : (
+                <ChevronUp className="w-5 h-5 text-slate-400 group-hover:text-green-600 transition-colors" />
+              )}
+            </div>
           </button>
-        )}
+          {hasActiveFilters && !isCollapsed && (
+            <button
+              onClick={clearFilters}
+              className="text-sm text-green-600 hover:text-green-700 font-medium hidden md:block ml-2"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-6">
+      {/* Collapsible Content */}
+      {!isCollapsed && (
+        <div className="p-4 md:p-6 space-y-6 animate-in slide-in-from-top-2 duration-200">
+          {/* Clear All Button - Mobile Only */}
+          {hasActiveFilters && (
+            <div className="md:hidden pb-4 border-b border-slate-200">
+              <button
+                onClick={clearFilters}
+                className="w-full px-4 py-2 text-sm text-green-600 hover:text-green-700 font-medium bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+
+          <div className="space-y-6">
         {/* PRIMARY: Morocco Priorities */}
         <div>
           <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
@@ -267,7 +332,9 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
           </div>
         </div>
 
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

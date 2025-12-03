@@ -9,6 +9,7 @@ import UserMenu from '@/components/UserMenu';
 import EngagingFooter from '@/components/footer/EngagingFooter';
 import PWARegister from '@/components/PWARegister';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import { MobileNav, BottomNav } from '@/components/mobile/MobileNav';
 
 import './globals.css';
 
@@ -61,35 +62,53 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={cn('min-h-screen bg-sand-50 text-slate-900 antialiased font-sans', inter.variable, outfit.variable)} suppressHydrationWarning>
         <PWARegister />
         <PWAInstallPrompt />
-        {/* Simple Navigation Bar */}
-        <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+        {/* Desktop Navigation */}
+        <nav className="hidden md:block border-b border-slate-200 bg-white/80 backdrop-blur-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 gap-6">
             <div className="flex items-center flex-shrink-0 gap-3">
-              <Logo href="/" size="lg" showText={true} className="hidden sm:flex" />
-              <Logo href="/" size="lg" showText={false} className="sm:hidden" />
+              <Logo href="/" size="lg" showText={true} />
             </div>
-            <div className="flex items-center gap-4 sm:gap-6 flex-1 justify-end">
-              <Link href="/ideas" className="text-sm text-slate-600 hover:text-slate-900">
-                Idées
-              </Link>
-              <Link href="/submit-voice" className="text-sm text-slate-600 hover:text-slate-900">
-                Soumettre
-              </Link>
-              <Link href="/find-mentor" className="text-sm text-slate-600 hover:text-slate-900">
-                Trouver Mentor
-              </Link>
-              <Link href="/become-mentor" className="text-sm text-slate-600 hover:text-slate-900">
-                Devenir Mentor
-              </Link>
-              <Link href="/matching" className="text-sm text-slate-600 hover:text-slate-900">
-                Matching
-              </Link>
+            <div className="flex items-center gap-6 flex-1 justify-end">
+              {/* Founders Cluster */}
+              <div className="flex items-center gap-4 border-r border-slate-200 pr-6">
+                <Link href="/submit-voice" className="text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+                  Soumettre
+                </Link>
+                <Link href="/ideas" className="text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+                  Idées
+                </Link>
+                <Link href="/founder" className="text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+                  Fondateurs
+                </Link>
+              </div>
+
+              {/* Mentors Cluster */}
+              <div className="flex items-center gap-4">
+                <Link href="/find-mentor" className="text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+                  Trouver Mentor
+                </Link>
+                <Link href="/become-mentor" className="text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+                  Devenir Mentor
+                </Link>
+              </div>
+
               <UserMenu />
             </div>
           </div>
         </nav>
+
+        {/* Mobile Navigation */}
+        <div className="md:hidden">
+          <div className="sticky top-0 z-30 bg-white border-b border-slate-200 safe-area-top">
+            <div className="flex items-center justify-between px-4 py-3">
+              <Logo href="/" size="lg" showText={true} />
+            </div>
+          </div>
+          <MobileNav />
+        </div>
         {children}
         <EngagingFooter />
+        <BottomNav />
       </body>
     </html>
   );
