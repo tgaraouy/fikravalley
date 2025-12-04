@@ -33,6 +33,7 @@
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.81.1",
     "@types/qrcode": "^1.5.6",
+    "@vercel/analytics": "^1.6.1",
     "ai": "^5.0.101",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",

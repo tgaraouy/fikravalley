@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit } from 'next/font/google';
 import React from 'react';
 import Link from 'next/link';
+import { Analytics } from '@vercel/analytics/next';
 
 import { cn } from '@/lib/utils';
 import Logo from '@/components/Logo';
@@ -107,6 +108,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <EngagingFooter />
         <BottomNav />
+        <Analytics />
       </body>
     </html>
   );
