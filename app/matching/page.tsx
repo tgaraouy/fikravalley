@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,6 +89,10 @@ export default function MatchingPage() {
   const searchParams = useSearchParams();
   const { toasts, success, error: showError, removeToast } = useToast();
   
+  // Success function reference for useEffect
+  const successRef = React.useRef(success);
+  successRef.current = success;
+  
   const [viewMode, setViewMode] = useState<ViewMode>('public');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [matches, setMatches] = useState<MentorMatch[]>([]);
@@ -113,6 +117,7 @@ export default function MatchingPage() {
     
     const email = searchParams.get('email') || '';
     const phone = searchParams.get('phone') || '';
+    const message = searchParams.get('message');
     
     if (mode === 'mentor') {
       setMentorEmail(email);
@@ -120,6 +125,13 @@ export default function MatchingPage() {
     } else if (mode === 'user') {
       setUserEmail(email);
       setUserPhone(phone);
+    }
+    
+    // Show success message
+    if (message === 'match_accepted') {
+      successRef.current('✅ Match accepté! Vous serez contacté prochainement.');
+    } else if (message === 'match_rejected') {
+      successRef.current('Match rejeté. Merci pour votre réponse.');
     }
   }, [searchParams]);
 

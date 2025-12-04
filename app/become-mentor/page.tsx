@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, CheckCircle, Star, Users, Heart } from 'lucide-react';
+import { Loader2, CheckCircle, Star, Users, Heart, Target, Zap } from 'lucide-react';
 import { useToast, ToastContainer } from '@/components/ui/Toast';
 import { getUserFriendlyError, logError } from '@/lib/utils/error-handler';
 import LinkedInMentorRegistration from '@/components/mentors/LinkedInMentorRegistration';
@@ -121,8 +121,8 @@ export default function BecomeMentorPage() {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4 relative">
+      <div className="max-w-3xl mx-auto relative z-0">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -136,36 +136,71 @@ export default function BecomeMentorPage() {
           </p>
         </div>
 
-        {/* Benefits Card */}
-        <Card className="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-          <CardContent className="p-6">
-            <h3 className="font-bold text-green-900 mb-4 flex items-center gap-2">
-              <Heart className="w-5 h-5" />
-              Pourquoi devenir mentor?
-            </h3>
-            <ul className="space-y-2 text-sm text-green-800">
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span><strong>Impact réel:</strong> Aidez des entrepreneurs à transformer leurs idées en entreprises</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span><strong>Réseau:</strong> Connectez-vous avec la prochaine génération d'entrepreneurs marocains</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span><strong>Flexibilité:</strong> Choisissez vos heures et le nombre d'idées à mentorer</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span><strong>Reconnaissance:</strong> Votre profil sera visible et vous recevrez des demandes ciblées</span>
-              </li>
-            </ul>
+        {/* Enhanced Value Proposition Card */}
+        <Card className="mb-8 bg-gradient-to-br from-green-50 via-emerald-50 to-green-50 border-2 border-green-300 shadow-lg">
+          <CardContent className="p-8">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-extrabold text-green-900 mb-2 flex items-center justify-center gap-2">
+                <Heart className="w-6 h-6 text-red-500" />
+                Pourquoi devenir mentor?
+              </h3>
+              <p className="text-green-700 font-medium">Rejoignez une communauté qui transforme les idées en réalité</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Target className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-green-900 mb-1">Impact réel</h4>
+                    <p className="text-sm text-green-800">Aidez des entrepreneurs à transformer leurs idées en entreprises</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Users className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-green-900 mb-1">Réseau</h4>
+                    <p className="text-sm text-green-800">Connectez-vous avec la prochaine génération d'entrepreneurs marocains</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-green-900 mb-1">Flexibilité</h4>
+                    <p className="text-sm text-green-800">Choisissez vos heures et le nombre d'idées à mentorer</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-green-200 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <Star className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-green-900 mb-1">Reconnaissance</h4>
+                    <p className="text-sm text-green-800">Votre profil sera visible et vous recevrez des demandes ciblées</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* LinkedIn Registration (Option 1 - Preferred) */}
-        <div className="mb-8">
+        <div className="mb-8 relative z-50">
           <LinkedInMentorRegistration />
         </div>
 

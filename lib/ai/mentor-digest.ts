@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase-server';
 
 export interface MentorDigestItem {
   idea_id: string;
+  match_id?: string; // Match ID for one-click reply
   idea_title: string;
   adopter_name: string;
   adopter_location: string;
@@ -56,6 +57,7 @@ export async function generateMentorDigest(mentorId: string): Promise<MentorDige
         id,
         title,
         problem_statement,
+        proposed_solution,
         submitter_name,
         location,
         moroccan_priorities
@@ -82,6 +84,7 @@ export async function generateMentorDigest(mentorId: string): Promise<MentorDige
 
     return {
       idea_id: idea.id,
+      match_id: match.id, // Add match_id for one-click reply
       idea_title: idea.title,
       adopter_name: idea.submitter_name || 'Adopter',
       adopter_location: idea.location || 'Maroc',
@@ -166,10 +169,19 @@ function generateEmailBody(digest: MentorDigest): string {
       <p style="margin: 8px 0; color: #059669; font-weight: 600;">
         ⏱️ Time needed: ${item.time_needed}
       </p>
-      <a href="https://fikravalley.com/matching?idea=${item.idea_id}&action=accept" 
-         style="display: inline-block; margin-top: 8px; padding: 8px 16px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">
-        ${item.one_click_reply}
-      </a>
+      <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://fikravalley.com'}/api/mentor/matches/one-click?match_id=${item.match_id || item.idea_id}&action=accept&email=${encodeURIComponent(digest.mentor_email)}" 
+           style="display: inline-block; padding: 12px 24px; background: #10b981; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          ✅ Oui, je peux aider
+        </a>
+        <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://fikravalley.com'}/api/mentor/matches/one-click?match_id=${item.match_id || item.idea_id}&action=reject&email=${encodeURIComponent(digest.mentor_email)}" 
+           style="display: inline-block; padding: 12px 24px; background: #ef4444; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+          ❌ Pas cette fois
+        </a>
+      </div>
+      <p style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+        Ou <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://fikravalley.com'}/matching?mode=mentor&email=${encodeURIComponent(digest.mentor_email)}" style="color: #10b981;">voir tous mes matches</a>
+      </p>
     </div>
   `
     )

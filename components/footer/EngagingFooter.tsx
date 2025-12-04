@@ -27,7 +27,7 @@ export default function EngagingFooter() {
   };
 
   return (
-    <footer className="relative bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white pt-12 sm:pt-16 md:pt-20 pb-10 overflow-hidden">
+    <footer className="relative bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white pt-6 pb-4 overflow-hidden z-0">
       {/* Zellige Texture Overlay */}
       <div 
         className="absolute inset-0 opacity-10 mix-blend-overlay pointer-events-none"
@@ -39,137 +39,61 @@ export default function EngagingFooter() {
         }}
       />
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4">
+      <div className="relative z-0 max-w-7xl mx-auto px-4">
         
-        {/* Top Section: Newsletter + Quick Actions */}
-        <div className="grid md:grid-cols-2 gap-8 sm:gap-12 mb-12 sm:mb-16">
-          
-          {/* Newsletter */}
-          <div>
-            <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-              Restez inspiré 💡
-            </h3>
-            <p className="text-gray-300 mb-6 text-sm sm:text-base">
-              Recevez chaque semaine une success story + conseils de validation.
-            </p>
-            
-            {!subscribed ? (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/10 border-2 border-white/20 focus:border-orange-500 outline-none text-white placeholder-gray-400"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSubscribe()}
-                />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleSubscribe}
-                  className="px-6 py-3 bg-orange-500 rounded-lg font-bold hover:bg-orange-600 transition-colors whitespace-nowrap"
-                >
-                  S'abonner
-                </motion.button>
-              </div>
-            ) : (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="flex items-center gap-3 p-4 bg-green-500/20 border-2 border-green-500 rounded-lg"
-              >
-                <span className="text-2xl sm:text-3xl">✓</span>
-                <span className="font-semibold text-sm sm:text-base">Merci! Premier email en route 📬</span>
-              </motion.div>
-            )}
-            
-            <div className="mt-4 text-xs sm:text-sm text-gray-400">
-              Désabonnement en 1 clic.
-            </div>
-          </div>
-          
-          {/* Quick Actions */}
-          <div>
-            <h3 className="text-2xl sm:text-3xl font-bold mb-6">
-              Actions rapides ⚡
-            </h3>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <QuickActionCard
-                icon="🚀"
-                label="Soumettre une idée"
-                href="/submit-voice"
-              />
-              <QuickActionCard
-                icon="📖"
-                label="Voir les idées"
-                href="/ideas"
-              />
-            </div>
-          </div>
-          
-        </div>
-        
-        
-        {/* Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-12">
+        {/* Compact Links Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           
           <div>
-            <h4 className="font-bold mb-4 text-sm sm:text-base">Founder&apos;s Journey</h4>
-            <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/validator" className="hover:text-white transition-colors">🔥 Roast My Idea</Link></li>
-              <li><Link href="/network" className="hover:text-white transition-colors">👥 Find Co-Founders</Link></li>
-              <li><Link href="/resources" className="hover:text-white transition-colors">🧠 The Library</Link></li>
-              <li><Link href="/submit-voice" className="hover:text-white transition-colors">Submit Idea</Link></li>
+            <h4 className="font-bold mb-2 text-xs">Founder&apos;s Journey</h4>
+            <ul className="space-y-1 text-gray-400 text-xs">
+              <li><Link href="/submit-voice" className="hover:text-white transition-colors">Soumettre</Link></li>
+              <li><Link href="/ideas" className="hover:text-white transition-colors">Idées</Link></li>
+              <li><Link href="/founder" className="hover:text-white transition-colors">Fondateurs</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold mb-4 text-sm sm:text-base">Ressources</h4>
-            <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/resources" className="hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/resources" className="hover:text-white transition-colors">Guides</Link></li>
-              <li><Link href="/resources" className="hover:text-white transition-colors">Templates</Link></li>
-              <li><Link href="/resources" className="hover:text-white transition-colors">Événements</Link></li>
+            <h4 className="font-bold mb-2 text-xs">Mentors</h4>
+            <ul className="space-y-1 text-gray-400 text-xs">
+              <li><Link href="/find-mentor" className="hover:text-white transition-colors">Trouver Mentor</Link></li>
+              <li><Link href="/become-mentor" className="hover:text-white transition-colors">Devenir Mentor</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold mb-4 text-sm sm:text-base">Communauté</h4>
-            <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/network" className="hover:text-white transition-colors">Mentors</Link></li>
-              <li><Link href="/network" className="hover:text-white transition-colors">Partenaires</Link></li>
-              <li><Link href="/network" className="hover:text-white transition-colors">Investisseurs</Link></li>
-              <li><Link href="/network" className="hover:text-white transition-colors">Forum</Link></li>
+            <h4 className="font-bold mb-2 text-xs">Ressources</h4>
+            <ul className="space-y-1 text-gray-400 text-xs">
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Confidentialité</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">CGU</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="font-bold mb-4 text-sm sm:text-base">À propos</h4>
-            <ul className="space-y-2 text-gray-400 text-xs sm:text-sm">
-              <li><Link href="/submit" className="hover:text-white transition-colors">Notre mission</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">L'équipe</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Carrières</Link></li>
-              <li><Link href="/submit" className="hover:text-white transition-colors">Contact</Link></li>
+            <h4 className="font-bold mb-2 text-xs">Contact</h4>
+            <ul className="space-y-1 text-gray-400 text-xs">
+              <li><Link href="/submit-voice" className="hover:text-white transition-colors">Support</Link></li>
+              <li><Link href="/become-mentor" className="hover:text-white transition-colors">Rejoindre</Link></li>
             </ul>
           </div>
           
         </div>
         
-        {/* Social + Bottom */}
-        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+        {/* Social + Bottom - Compact */}
+        <div className="border-t border-white/10 pt-4 flex flex-col md:flex-row justify-between items-center gap-3">
           
           {/* Logo + Tagline */}
           <div className="text-center md:text-left">
-            <div className="flex flex-col items-center md:items-start gap-2">
-              <Logo href="/" size="md" showText={true} />
-              <p className="text-xs text-gray-400 tracking-wide">
+            <div className="flex flex-col items-center md:items-start gap-1">
+              <Logo href="/" size="sm" showText={true} />
+              <p className="text-xs text-gray-400">
                 {APP_TAGLINE.transformation?.fr || 'Idée → Réalité'}
               </p>
             </div>
           </div>
           
           {/* Social Icons */}
-          <div className="flex gap-4">
+          <div className="flex gap-2">
             <SocialIcon icon="in" label="LinkedIn" href="https://linkedin.com/company/fikravalley" />
             <SocialIcon icon="𝕏" label="Twitter" href="https://twitter.com/fikravalley" />
             <SocialIcon icon="f" label="Facebook" href="https://facebook.com/fikravalley" />
@@ -177,7 +101,7 @@ export default function EngagingFooter() {
           </div>
           
           {/* Legal */}
-          <div className="text-xs sm:text-sm text-gray-400 flex flex-wrap justify-center gap-4">
+          <div className="text-xs text-gray-400 flex flex-wrap justify-center gap-3">
             <Link href="/privacy" className="hover:text-white">Confidentialité</Link>
             <Link href="/terms" className="hover:text-white">CGU</Link>
             <Link href="/privacy" className="hover:text-white">Cookies</Link>
@@ -186,7 +110,7 @@ export default function EngagingFooter() {
         </div>
         
         {/* Copyright */}
-        <div className="text-center text-xs sm:text-sm text-gray-500 mt-8">
+        <div className="text-center text-xs text-gray-500 mt-3">
           © 2025 Fikra Valley. Fait avec ❤️ au Maroc 🇲🇦
         </div>
         

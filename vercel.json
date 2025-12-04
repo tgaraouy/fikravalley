@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/cleanup-expired-data",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/send-mentor-digests",
+      "schedule": "0 9 * * 1"
     }
   ]
 }

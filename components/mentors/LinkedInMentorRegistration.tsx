@@ -43,10 +43,15 @@ export default function LinkedInMentorRegistration() {
     const checkLinkedInConfig = async () => {
       try {
         const response = await fetch('/api/auth/linkedin/check');
-        const data = await response.json();
-        setLinkedInAvailable(data.configured === true);
+        if (response.ok) {
+          const data = await response.json();
+          setLinkedInAvailable(data.configured === true);
+        } else {
+          // If check fails, assume not configured
+          setLinkedInAvailable(false);
+        }
       } catch (error) {
-        // If check fails, assume not configured
+        // If check fails, assume not configured (silently fail)
         setLinkedInAvailable(false);
       }
     };
@@ -151,6 +156,7 @@ export default function LinkedInMentorRegistration() {
   };
 
   // If LinkedIn is not configured, don't show LinkedIn option
+  // Note: Keep component mounted to prevent re-rendering issues
   if (!linkedInAvailable) {
     return null; // Hide LinkedIn option if not configured
   }
@@ -160,11 +166,18 @@ export default function LinkedInMentorRegistration() {
     return (
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
-        <Card className="border-2 border-blue-200">
+        <Card className="border-2 border-green-200 shadow-xl animate-fade-in">
           <CardContent className="p-6 space-y-6">
-            <div className="flex items-center gap-3 text-green-700">
-              <CheckCircle className="w-6 h-6" />
-              <h2 className="text-xl font-bold">Profil LinkedIn chargé avec succès!</h2>
+            {/* Success Animation */}
+            <div className="flex items-center gap-3 text-green-700 bg-green-50 rounded-lg p-4 border border-green-200">
+              <div className="relative">
+                <CheckCircle className="w-8 h-8 animate-scale-in" />
+                <div className="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-30"></div>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">✅ Profil LinkedIn chargé avec succès!</h2>
+                <p className="text-sm text-green-600">90% de votre profil est déjà rempli</p>
+              </div>
             </div>
 
             {/* Profile Preview */}
@@ -254,38 +267,71 @@ export default function LinkedInMentorRegistration() {
   return (
     <>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-      <Card className="border-2 border-blue-200">
-        <CardContent className="p-6 text-center space-y-4">
+      <Card className="border-2 border-blue-200 shadow-xl relative overflow-visible z-50">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 animate-gradient-x opacity-50"></div>
+        
+        <CardContent className="p-8 text-center space-y-6 relative z-10">
+          {/* Prominent LinkedIn Icon with pulse animation */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-              <Linkedin className="w-8 h-8 text-blue-600" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20"></div>
+              <div className="relative w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                <Linkedin className="w-10 h-10 text-white" />
+              </div>
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold text-slate-900">
-            Inscription rapide avec LinkedIn
-          </h2>
+          {/* Value Proposition - More Prominent */}
+          <div className="space-y-3">
+            <h2 className="text-3xl font-extrabold text-slate-900">
+              ⚡ Inscription en 1 clic
+            </h2>
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-blue-100">
+              <p className="text-lg font-semibold text-slate-800 mb-2">
+                90% de votre profil rempli automatiquement
+              </p>
+              <p className="text-sm text-slate-600">
+                Connectez-vous avec LinkedIn pour remplir automatiquement votre profil de mentor.
+                <br />
+                <strong className="text-blue-600">Aucune saisie manuelle requise!</strong>
+              </p>
+            </div>
+          </div>
 
-          <p className="text-slate-600">
-            Connectez-vous avec LinkedIn pour remplir automatiquement votre profil de mentor.
-            <br />
-            <strong>Aucune saisie manuelle requise!</strong>
-          </p>
+          {/* Benefits in one line */}
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-slate-700">
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span>2-3 minutes</span>
+            </div>
+            <span className="text-slate-300">•</span>
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span>Auto-rempli</span>
+            </div>
+            <span className="text-slate-300">•</span>
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span>Sécurisé</span>
+            </div>
+          </div>
 
+          {/* Large CTA Button */}
           <Button
             onClick={handleLinkedInAuth}
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 text-lg disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-7 text-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Connexion...
+                <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                Connexion en cours...
               </>
             ) : (
               <>
-                <Linkedin className="w-5 h-5 mr-2" />
-                S'inscrire avec LinkedIn
+                <Linkedin className="w-6 h-6 mr-3" />
+                S'inscrire avec LinkedIn (1 clic)
               </>
             )}
           </Button>

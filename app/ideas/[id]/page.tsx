@@ -21,6 +21,8 @@ import { MarketAnalysisSection } from '@/components/ideas/MarketAnalysisSection'
 import { SimilarIdeas } from '@/components/ideas/SimilarIdeas';
 import { ProblemSharpness } from '@/components/ideas/ProblemSharpness';
 import FounderInfo from '@/components/ideas/FounderInfo';
+import { LeanCanvasViewer } from '@/components/canvas/LeanCanvasViewer';
+import { CanvasScores } from '@/components/canvas/CanvasScores';
 
 interface Idea {
   id: string;
@@ -50,7 +52,10 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
   const searchParams = useSearchParams();
   const [idea, setIdea] = useState<Idea | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'validation' | 'scoring'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'validation' | 'scoring' | 'canvas'>('overview');
+  const [canvas, setCanvas] = useState<any>(null);
+  const [canvasScores, setCanvasScores] = useState<any>(null);
+  const [isLoadingCanvas, setIsLoadingCanvas] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -111,6 +116,33 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
     };
     
     fetchIdea();
+  }, [ideaId]);
+
+  // Fetch canvas when idea is loaded
+  useEffect(() => {
+    if (!ideaId) return;
+    
+    const fetchCanvas = async () => {
+      setIsLoadingCanvas(true);
+      try {
+        const response = await fetch(`/api/ideas/${ideaId}/canvas`);
+        if (response.ok) {
+          const data = await response.json();
+          setCanvas(data.canvas);
+          setCanvasScores(data.scores);
+        } else if (response.status === 404) {
+          // No canvas yet, that's OK
+          setCanvas(null);
+          setCanvasScores(null);
+        }
+      } catch (error) {
+        console.error('Error fetching canvas:', error);
+      } finally {
+        setIsLoadingCanvas(false);
+      }
+    };
+    
+    fetchCanvas();
   }, [ideaId]);
   
   const handleLike = async () => {
@@ -407,7 +439,7 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
             
             {/* Tabs */}
             <div className="flex gap-4 border-b border-gray-200 mb-8 overflow-x-auto">
-              {['overview', 'validation', 'scoring'].map(tab => (
+              {['overview', 'validation', 'scoring', 'canvas'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab as any)}
@@ -419,7 +451,7 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
                     }
                   `}
                 >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  {tab === 'canvas' ? 'Lean Canvas' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
               ))}
             </div>
@@ -433,6 +465,49 @@ export default function IdeaDetailPage({ params }: { params: Promise<{ id: strin
                 decision={idea.stage2_total || 0}
                 intimacy={intimacyScore}
               />
+            )}
+            {activeTab === 'canvas' && (
+              <div className="space-y-6">
+                {isLoadingCanvas ? (
+                  <div className="text-center py-12">
+                    <div className="w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading canvas...</p>
+                  </div>
+                ) : canvas ? (
+                  <>
+                    <LeanCanvasViewer canvasData={canvas.canvas_data} version={canvas.version} />
+                    {canvasScores && (
+                      <CanvasScores scores={canvasScores} />
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
+                    <p className="text-gray-600 mb-4">No Lean Canvas generated yet.</p>
+                    <button
+                      onClick={async () => {
+                        setIsLoadingCanvas(true);
+                        try {
+                          const response = await fetch(`/api/ideas/${ideaId}/canvas`, {
+                            method: 'POST',
+                          });
+                          if (response.ok) {
+                            const data = await response.json();
+                            setCanvas(data.canvas);
+                            setCanvasScores(data.scores);
+                          }
+                        } catch (error) {
+                          console.error('Error generating canvas:', error);
+                        } finally {
+                          setIsLoadingCanvas(false);
+                        }
+                      }}
+                      className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700"
+                    >
+                      Generate Lean Canvas
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
             
             {/* Comments Section */}

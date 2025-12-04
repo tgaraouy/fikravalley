@@ -12,20 +12,16 @@ import { isLinkedInConfigured } from '@/lib/integrations/linkedin-oauth';
 export async function GET(request: NextRequest) {
   const configured = isLinkedInConfigured();
   
-  if (!configured) {
-    return NextResponse.json(
-      {
-        configured: false,
-        message: 'LinkedIn OAuth is not configured',
-        details: 'LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET environment variables are required. Please configure LinkedIn OAuth or use the manual registration form.',
-      },
-      { status: 503 }
-    );
-  }
-
+  // Always return 200 - this is a check endpoint, not an error
+  // Return configured status in the response body
   return NextResponse.json({
-    configured: true,
-    message: 'LinkedIn OAuth is configured and ready',
+    configured: configured,
+    message: configured 
+      ? 'LinkedIn OAuth is configured and ready'
+      : 'LinkedIn OAuth is not configured',
+    details: configured 
+      ? undefined
+      : 'LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET environment variables are required. Please configure LinkedIn OAuth or use the manual registration form.',
   });
 }
 

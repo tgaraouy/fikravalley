@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Loader2, Users, Sparkles, AlertCircle } from 'lucide-react';
+import { Mic, Loader2, Users, Sparkles, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { moderateContent, sanitizeContent } from '@/lib/moderation/content-moderation';
 
@@ -280,28 +280,40 @@ export default function VoiceMentorSearch({ onFindMentors, isSearching = false }
         </div>
       </div>
 
-      {/* Find Mentors Button */}
-      <Button
-        onClick={handleFindMentors}
-        disabled={isSearching || !background.trim() || !motivation.trim()}
-        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-6 text-lg shadow-lg"
-      >
-        {isSearching ? (
-          <>
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-            L'IA cherche les meilleurs mentors...
-          </>
-        ) : (
-          <>
-            <Sparkles className="w-5 h-5 mr-2" />
-            Trouver mes mentors (IA)
-          </>
+      {/* Enhanced Find Mentors Button */}
+      <div className="space-y-3">
+        <Button
+          onClick={handleFindMentors}
+          disabled={isSearching || !background.trim() || !motivation.trim()}
+          className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold py-7 text-xl shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        >
+          {isSearching ? (
+            <>
+              <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+              <span>L'IA analyse ton profil et cherche les meilleurs mentors...</span>
+            </>
+          ) : (
+            <>
+              <Sparkles className="w-6 h-6 mr-3" />
+              <span>Trouver mes mentors (IA) - 0 formulaire requis</span>
+            </>
+          )}
+        </Button>
+        
+        {/* Progress Indicator */}
+        {background.trim() && motivation.trim() && !isSearching && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <p className="text-sm text-green-800 font-medium">
+              ✅ Profil complet! Cliquez sur le bouton pour trouver vos mentors
+            </p>
+          </div>
         )}
-      </Button>
-
-      <p className="text-xs text-slate-500 text-center">
-        💡 L'IA analyse ton parcours et ta motivation pour trouver les mentors les plus pertinents
-      </p>
+        
+        <p className="text-xs text-slate-500 text-center">
+          💡 <strong>Voice-driven:</strong> L'IA analyse ton parcours et ta motivation pour trouver les mentors les plus pertinents. Aucun formulaire complexe!
+        </p>
+      </div>
     </div>
   );
 }

@@ -317,6 +317,67 @@ export default function HomePage() {
           </Button>
         </div>
 
+        {/* Mentor Value Proposition - Prominent CTA */}
+        <section className="bg-gradient-to-r from-green-50 via-emerald-50 to-green-50 rounded-2xl p-6 md:p-8 mb-8 border-2 border-green-200 shadow-lg">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-green-900 mb-2">
+              👨‍🏫 Devenez Mentor en 1 Clic
+            </h2>
+            <p className="text-green-700 font-medium">
+              Partagez votre expérience et aidez les entrepreneurs marocains à réussir
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Target className="w-6 h-6 text-green-600" />
+              </div>
+              <p className="text-sm font-semibold text-green-900">Impact réel</p>
+              <p className="text-xs text-green-700">Aidez des entrepreneurs</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <p className="text-sm font-semibold text-green-900">Réseau</p>
+              <p className="text-xs text-green-700">Connectez-vous</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Zap className="w-6 h-6 text-amber-600" />
+              </div>
+              <p className="text-sm font-semibold text-green-900">Flexibilité</p>
+              <p className="text-xs text-green-700">Choisissez vos heures</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                <CheckCircle className="w-6 h-6 text-purple-600" />
+              </div>
+              <p className="text-sm font-semibold text-green-900">1 clic LinkedIn</p>
+              <p className="text-xs text-green-700">Inscription rapide</p>
+            </div>
+          </div>
+          
+          <div className="text-center">
+            <Button
+              asChild
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-6 px-8 text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+            >
+              <Link href="/become-mentor">
+                <UserPlus className="w-5 h-5 mr-2" />
+                Devenir Mentor (1 clic LinkedIn)
+              </Link>
+            </Button>
+            <p className="text-xs text-green-700 mt-3">
+              ⚡ 90% de votre profil rempli automatiquement • 2-3 minutes seulement
+            </p>
+          </div>
+        </section>
+
         {/* Gen Z Founder Story - 50/50 Grid Layout */}
         <section className="bg-white/95 backdrop-blur rounded-2xl border-2 border-green-200 shadow-sm p-6 mb-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
